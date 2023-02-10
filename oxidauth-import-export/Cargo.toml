@@ -1,0 +1,13 @@
+[package]
+name = "oxidauth-import-export"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+description = "package for importing and exporting to and from oxidauth"
+homepage = "https://oxidauth.rs"
+repository = "https://github.com/oxidauth/oxidauth"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

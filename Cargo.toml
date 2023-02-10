@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+    "oxidauth-cli",
+    "oxidauth-import-export",
+    "oxidauth-http",
+    "oxidauth-kernel",
+    "oxidauth-permission",
+    "oxidauth-postgres",
+    "oxidauth-rs",
+    "oxidauth-seed",
+]
