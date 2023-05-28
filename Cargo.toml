@@ -2,9 +2,10 @@
 
 members = [
     "oxidauth-cli",
-    "oxidauth-import-export",
     "oxidauth-http",
+    "oxidauth-import-export",
     "oxidauth-kernel",
+    "oxidauth-migrate",
     "oxidauth-permission",
     "oxidauth-postgres",
     "oxidauth-rs",

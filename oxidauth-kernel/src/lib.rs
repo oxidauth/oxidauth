@@ -1,14 +1,22 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub mod users;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod services {
+    use std::{error, fmt};
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    pub trait AuthenticateService {
+        type Credentials;
+
+        fn authenticate(&self, credentials: Self::Credentials) -> Result<(), AuthenticateError>;
     }
+
+    #[derive(Debug)]
+    pub struct AuthenticateError {}
+
+    impl fmt::Display for AuthenticateError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "authenticate error")
+        }
+    }
+
+    impl error::Error for AuthenticateError {}
 }
