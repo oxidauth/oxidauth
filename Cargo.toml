@@ -5,9 +5,11 @@ members = [
     "oxidauth-http",
     "oxidauth-import-export",
     "oxidauth-kernel",
-    "oxidauth-migrate",
     "oxidauth-permission",
     "oxidauth-postgres",
+    "oxidauth-repository",
     "oxidauth-rs",
     "oxidauth-seed",
+    "oxidauth-telemetry",
+    "oxidauth-services",
 ]

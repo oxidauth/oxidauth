@@ -1,0 +1,17 @@
+[package]
+name = "oxidauth-services"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+argon2 = "0.5.0"
+async-trait = "0.1.68"
+oxidauth-kernel = { path = "../oxidauth-kernel" }
+oxidauth-repository = { path = "../oxidauth-repository" }
+rand = "0.8.5"
+rand_core = { version = "0.6.4", features = ["std"] }
+serde = { version = "1.0.164", features = ["derive"] }
+serde_json = "1.0.99"
+uuid = { version = "1.4.0", features = ["serde", "v4"] }
