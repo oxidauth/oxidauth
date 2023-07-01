@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::PublicKeyRow;
+pub use super::PublicKeyRow;
 
 #[async_trait]
 pub trait InsertPublicKey: Send + Sync + 'static {
     async fn insert_public_key(
         &self,
-        params: InsertPublicKeyParams,
+        params: &InsertPublicKeyParams,
     ) -> Result<PublicKeyRow, InsertPublicKeyError>;
 }
 
