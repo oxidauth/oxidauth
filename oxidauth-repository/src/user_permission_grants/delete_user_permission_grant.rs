@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::UserPermissionGrantRow;
+pub use super::UserPermissionGrantRow;
 
 #[async_trait]
 pub trait DeleteUserPermissionGrant: Send + Sync + 'static {
     async fn delete_user_permission_grant(
         &self,
-        params: DeleteUserPermissionGrantParams,
+        params: &DeleteUserPermissionGrantParams,
     ) -> Result<UserPermissionGrantRow, DeleteUserPermissionGrantError>;
 }
 
