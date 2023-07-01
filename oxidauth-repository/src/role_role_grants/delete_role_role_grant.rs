@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::RoleRoleGrantRow;
+pub use super::RoleRoleGrantRow;
 
 #[async_trait]
 pub trait DeleteRoleRoleGrant: Send + Sync + 'static {
     async fn delete_role_role_grant(
         &self,
-        params: DeleteRoleRoleGrantParams,
+        params: &DeleteRoleRoleGrantParams,
     ) -> Result<RoleRoleGrantRow, DeleteRoleRoleGrantError>;
 }
 
