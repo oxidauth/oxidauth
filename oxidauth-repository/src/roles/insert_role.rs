@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::RoleRow;
+pub use super::RoleRow;
 
 #[async_trait]
 pub trait InsertRole: Send + Sync + 'static {
@@ -15,6 +15,8 @@ pub struct InsertRoleParams {
     pub id: Option<Uuid>,
     pub name: String,
 }
+
+// @GEORGE - created and updated at?
 
 #[derive(Debug)]
 pub struct InsertRoleError {}

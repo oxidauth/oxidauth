@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::RoleRow;
+pub use super::RoleRow;
 
 #[async_trait]
 pub trait UpdateRole: Send + Sync + 'static {
@@ -12,8 +12,11 @@ pub trait UpdateRole: Send + Sync + 'static {
 
 #[derive(Debug)]
 pub struct UpdateRoleParams {
+    pub id: Uuid,
     pub name: String,
 }
 
 #[derive(Debug)]
 pub struct UpdateRoleError {}
+
+// @GEORGE - added id here because I thought it would be needed

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::RoleRow;
+pub use super::RoleRow;
 
 #[async_trait]
 pub trait DeleteRoleById: Send + Sync + 'static {
