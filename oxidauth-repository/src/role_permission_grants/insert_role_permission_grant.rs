@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::RolePermissionGrantRow;
+pub use super::RolePermissionGrantRow;
 
 #[async_trait]
 pub trait InsertRolePermissionGrant: Send + Sync + 'static {
