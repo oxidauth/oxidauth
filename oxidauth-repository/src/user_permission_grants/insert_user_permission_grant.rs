@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::UserPermissionGrantRow;
+pub use super::UserPermissionGrantRow;
 
 #[async_trait]
 pub trait InsertUserPermissionGrant: Send + Sync + 'static {
     async fn insert_user_permission_grant(
         &self,
-        params: InsertUserPermissionGrantParams,
+        params: &InsertUserPermissionGrantParams,
     ) -> Result<UserPermissionGrantRow, InsertUserPermissionGrantError>;
 }
 
