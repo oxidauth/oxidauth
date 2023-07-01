@@ -21,3 +21,5 @@ impl DeleteUserPermissionGrant for Database {
         Ok(result)
     }
 }
+
+// @GEORGE - delete where user OR permission match?
