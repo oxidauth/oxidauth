@@ -1,0 +1,3 @@
+DELETE FROM authorities 
+WHERE $1 
+RETURNING *

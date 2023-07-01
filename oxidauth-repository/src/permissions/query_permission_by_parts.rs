@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::PermissionRow;
+pub use super::PermissionRow;
 
 #[async_trait]
 pub trait QueryPermissionByParts: Send + Sync + 'static {
     async fn query_permission_by_parts(
         &self,
-        params: QueryPermissionByPartsParams,
+        params: &QueryPermissionByPartsParams,
     ) -> Result<PermissionRow, QueryPermissionByPartsError>;
 }
 

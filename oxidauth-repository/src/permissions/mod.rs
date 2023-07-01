@@ -1,4 +1,4 @@
-pub mod delete_permission;
+pub mod delete_permission_by_id;
 pub mod insert_permission;
 pub mod query_all_permissions;
 pub mod query_permission_by_id;

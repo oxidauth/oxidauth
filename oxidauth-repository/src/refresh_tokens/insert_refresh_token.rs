@@ -4,7 +4,7 @@ use super::RefreshTokenRow;
 
 #[async_trait]
 pub trait InsertRefreshToken: Send + Sync + 'static {
-    async fn isnert_refresh_token(
+    async fn insert_refresh_token(
         &self,
         params: &InsertRefreshTokenParams,
     ) -> Result<RefreshTokenRow, InsertRefreshTokenError>;

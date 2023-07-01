@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::AuthorityRow;
+pub use super::AuthorityRow;
 
 #[async_trait]
 pub trait UpdateAuthority: Send + Sync + 'static {
     async fn update_authority(
         &self,
-        params: UpdateAuthorityParams,
+        params: &UpdateAuthorityParams,
     ) -> Result<AuthorityRow, UpdateAuthorityError>;
 }
 

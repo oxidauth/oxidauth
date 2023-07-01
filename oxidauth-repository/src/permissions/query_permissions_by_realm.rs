@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::PermissionRow;
+pub use super::PermissionRow;
 
 #[async_trait]
 pub trait QueryPermissionsByRealm: Send + Sync + 'static {
