@@ -1,11 +1,14 @@
-use core::fmt;
-
 use chrono::{DateTime, Utc};
-use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
+use core::fmt;
 use serde_json::Value;
 use uuid::Uuid;
 
+use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
+
 pub mod insert_user;
+pub mod query_user_by_email;
+pub mod query_user_by_id;
+pub mod query_user_by_username;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct UserRow {
@@ -81,3 +84,4 @@ impl From<ParseUserStatusErr> for TryFromUserRowError {
         TryFromUserRowError::ParseUserStatusErr(err)
     }
 }
+
