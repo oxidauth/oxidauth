@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::PermissionRow;
+pub use super::PermissionRow;
 
 #[async_trait]
 pub trait InsertPermission: Send + Sync + 'static {
     async fn insert_permission(
         &self,
-        params: InsertPermissionParams,
+        params: &InsertPermissionParams,
     ) -> Result<PermissionRow, InsertPermissionError>;
 }
 

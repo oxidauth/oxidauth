@@ -4,7 +4,7 @@ use super::UserPermissionGrantRow;
 
 #[async_trait]
 pub trait InsertUserPermissionGrant: Send + Sync + 'static {
-    async fn delete_user_permission_grant(
+    async fn insert_user_permission_grant(
         &self,
         params: InsertUserPermissionGrantParams,
     ) -> Result<UserPermissionGrantRow, InsertUserPermissionGrantError>;

@@ -1,15 +1,16 @@
-use oxidauth_repository::authorities::insert_authority::*;
+use oxidauth_repository::authorities::update_authority::*;
 
 use crate::prelude::*;
 
 #[async_trait]
-impl InsertAuthority for Database {
-    async fn insert_authority(
+impl UpdateAuthority for Database {
+    async fn update_authority(
         &self,
-        params: &InsertAuthorityParams,
-    ) -> Result<AuthorityRow, InsertAuthorityError> {
+        params: &UpdateAuthorityParams,
+    ) -> Result<AuthorityRow, UpdateAuthorityError> {
         let result =
-            sqlx::query_as::<_, super::AuthorityRow>(include_str!("./insert_authority.sql"))
+            sqlx::query_as::<_, super::AuthorityRow>(include_str!("./update_authority.sql"))
+                .bind(&params.id)
                 .bind(&params.name)
                 .bind(&params.client_key)
                 .bind(&params.status)
@@ -19,7 +20,7 @@ impl InsertAuthority for Database {
                 .fetch_one(&self.pool)
                 .await
                 .map(Into::into)
-                .map_err(|_| InsertAuthorityError {})?;
+                .map_err(|_| UpdateAuthorityError {})?;
 
         Ok(result)
     }

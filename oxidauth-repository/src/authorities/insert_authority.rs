@@ -6,7 +6,7 @@ pub use super::AuthorityRow;
 pub trait InsertAuthority: Send + Sync + 'static {
     async fn insert_authority(
         &self,
-        params: InsertAuthorityParams,
+        params: &InsertAuthorityParams,
     ) -> Result<AuthorityRow, InsertAuthorityError>;
 }
 
