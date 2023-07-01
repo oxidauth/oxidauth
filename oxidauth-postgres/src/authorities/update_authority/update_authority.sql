@@ -5,6 +5,7 @@ SET
     status = $4,
     strategy = $5,
     settings = $6,
-    params = $7
+    params = $7,
+    updated_at = NOW()
 WHERE id = $1
 RETURNING *

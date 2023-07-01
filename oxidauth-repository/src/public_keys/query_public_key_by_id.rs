@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::PublicKeyRow;
+pub use super::PublicKeyRow;
 
 #[async_trait]
 pub trait QueryPublicKeyById: Send + Sync + 'static {
