@@ -15,5 +15,3 @@ pub type UserAuthorityRow = oxidauth_kernel::authorities::UserAuthority;
 //     pub created_at: DateTime<Utc>,
 //     pub updated_at: DateTime<Utc>,
 // }
-
-// @GEORGE - skipping postgres implementation for user_authorities for now

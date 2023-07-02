@@ -11,8 +11,8 @@ impl InsertRoleRoleGrant for Database {
         let result = sqlx::query_as::<_, super::RoleRoleGrantRow>(include_str!(
             "./insert_role_role_grant.sql"
         ))
-        .bind(params.parent_id)
-        .bind(params.child_id)
+        .bind(&params.parent_id)
+        .bind(&params.child_id)
         .fetch_one(&self.pool)
         .await
         .map(Into::into)

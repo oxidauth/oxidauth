@@ -1,5 +1,6 @@
 SELECT * 
 FROM permissions
 WHERE realm = $1
-OR WHERE resource = $2
-OR WHERE action = $3
+AND resource = $2
+AND action = $3
+LIMIT 1

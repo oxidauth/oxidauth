@@ -18,5 +18,3 @@ pub struct DeleteRolePermissionGrantParams {
 
 #[derive(Debug)]
 pub struct DeleteRolePermissionGrantError {}
-
-// @GEORGE - question here if the delete is on role or permission

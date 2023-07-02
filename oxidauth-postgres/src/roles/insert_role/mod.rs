@@ -6,8 +6,8 @@ use crate::prelude::*;
 impl InsertRole for Database {
     async fn insert_role(&self, params: &InsertRoleParams) -> Result<RoleRow, InsertRoleError> {
         let result = sqlx::query_as::<_, super::RoleRow>(include_str!("./insert_role.sql"))
-            .bind(params.id)
-            .bind(params.name)
+            .bind(&params.id)
+            .bind(&params.name)
             .fetch_one(&self.pool)
             .await
             .map(Into::into)
@@ -16,5 +16,3 @@ impl InsertRole for Database {
         Ok(result)
     }
 }
-
-// @GEORGE - no created at / updated at

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::UserAuthorityRow;
+pub use super::UserAuthorityRow;
 
 #[async_trait]
 pub trait QueryUserAuthoritiesByUserId: Send + Sync + 'static {
