@@ -18,5 +18,3 @@ pub struct UpdateRoleParams {
 
 #[derive(Debug)]
 pub struct UpdateRoleError {}
-
-// @GEORGE - added id here because I thought it would be needed
