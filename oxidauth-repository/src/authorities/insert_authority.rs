@@ -12,6 +12,7 @@ pub trait InsertAuthority: Send + Sync + 'static {
 
 #[derive(Debug)]
 pub struct InsertAuthorityParams {
+    pub id: Option<Uuid>,
     pub name: String,
     pub client_key: Uuid,
     pub status: String,

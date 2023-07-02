@@ -1,4 +1,4 @@
 INSERT INTO authorities
-(name, client_key, status, strategy, settings, params, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+(id, name, client_key, status, strategy, settings, params, created_at, updated_at)
+VALUES (COALESCE($1, uuid_generate_v4()), $2, $3, $4, $5, $6, NOW(), NOW())
 RETURNING *
