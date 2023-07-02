@@ -11,9 +11,9 @@ impl QueryPermissionByParts for Database {
         let result = sqlx::query_as::<_, super::PermissionRow>(include_str!(
             "./query_permission_by_parts.sql"
         ))
-        .bind(params.realm)
-        .bind(params.resource)
-        .bind(params.action)
+        .bind(&params.realm)
+        .bind(&params.resource)
+        .bind(&params.action)
         .fetch_one(&self.pool)
         .await
         .map(Into::into)
@@ -22,5 +22,3 @@ impl QueryPermissionByParts for Database {
         Ok(result)
     }
 }
-
-// @GEORGE - not sure if the SQL is doing what is needed here

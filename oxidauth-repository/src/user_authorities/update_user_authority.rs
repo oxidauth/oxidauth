@@ -1,17 +1,17 @@
 use crate::prelude::*;
 
-use super::UserAuthorityRow;
+pub use super::UserAuthorityRow;
 
 #[async_trait]
-pub trait UpdateUserAuthority: Send + Sync + 'static {
-    async fn update_user_authoritiy_by_user_id(
+pub trait UpdateUserAuthorityByUserId: Send + Sync + 'static {
+    async fn update_user_authority_by_user_id(
         &self,
-        params: &UpdateUserAuthorityParams,
+        params: &UpdateUserAuthorityByUserIdParams,
     ) -> Result<UserAuthorityRow, UpdateUserAuthorityError>;
 }
 
 #[derive(Debug)]
-pub struct UpdateUserAuthorityParams {
+pub struct UpdateUserAuthorityByUserIdParams {
     pub user_id: Uuid,
     pub authority_id: Uuid,
     pub user_identifier: String,

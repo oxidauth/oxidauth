@@ -16,7 +16,5 @@ pub struct InsertRoleParams {
     pub name: String,
 }
 
-// @GEORGE - created and updated at?
-
 #[derive(Debug)]
 pub struct InsertRoleError {}

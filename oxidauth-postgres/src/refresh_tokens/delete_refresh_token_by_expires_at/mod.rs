@@ -6,16 +6,18 @@ use crate::prelude::*;
 impl DeleteRefreshTokenByExpiresAt for Database {
     async fn delete_refresh_token_by_expires_at(
         &self,
-        refresh_token_id: Uuid,
-    ) -> Result<RefreshTokenRow, DeleteRefreshTokenByExpiresAtError> {
+        expires_at: DateTime<Utc>,
+    ) -> Result<Vec<RefreshTokenRow>, DeleteRefreshTokenByExpiresAtError> {
         let result = sqlx::query_as::<_, super::RefreshTokenRow>(include_str!(
             "./delete_refresh_token_by_expires_at.sql"
         ))
-        .bind(refresh_token_id)
-        .fetch_one(&self.pool)
+        .bind(expires_at)
+        .fetch_all(&self.pool)
         .await
+        .map_err(|_| DeleteRefreshTokenByExpiresAtError {})?
+        .into_iter()
         .map(Into::into)
-        .map_err(|_| DeleteRefreshTokenByExpiresAtError {})?;
+        .collect();
 
         Ok(result)
     }

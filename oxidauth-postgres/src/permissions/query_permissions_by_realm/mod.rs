@@ -7,7 +7,7 @@ impl QueryPermissionsByRealm for Database {
     async fn query_permissions_by_realm(
         &self,
         realm: String,
-    ) -> Result<PermissionRow, QueryPermissionsByRealmError> {
+    ) -> Result<Vec<PermissionRow>, QueryPermissionsByRealmError> {
         let result = sqlx::query_as::<_, super::PermissionRow>(include_str!(
             "./query_permissions_by_realm.sql"
         ))

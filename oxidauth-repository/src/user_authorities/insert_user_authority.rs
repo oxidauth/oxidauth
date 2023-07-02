@@ -1,12 +1,12 @@
 use crate::prelude::*;
 
-use super::UserAuthorityRow;
+pub use super::UserAuthorityRow;
 
 #[async_trait]
 pub trait InsertUserAuthority: Send + Sync + 'static {
     async fn insert_user_authority(
         &self,
-        insert_user_authority: &InsertUserAuthorityParams,
+        params: &InsertUserAuthorityParams,
     ) -> Result<UserAuthorityRow, InsertUserAuthorityError>;
 }
 

@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 #[async_trait]
 impl QueryAllPermissions for Database {
-    async fn query_all_permissions(&self) -> Result<PermissionRow, QueryAllPermissionsError> {
+    async fn query_all_permissions(&self) -> Result<Vec<PermissionRow>, QueryAllPermissionsError> {
         let result =
             sqlx::query_as::<_, super::PermissionRow>(include_str!("./query_all_permissions.sql"))
                 .fetch_all(&self.pool)
@@ -17,5 +17,3 @@ impl QueryAllPermissions for Database {
         Ok(result)
     }
 }
-
-// @GEORGE - QUERY ALLs are still erroring out for all entities
