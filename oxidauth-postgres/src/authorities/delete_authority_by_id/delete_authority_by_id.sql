@@ -1,3 +1,3 @@
 DELETE FROM authorities 
-WHERE $1 
+WHERE user_id = $1 
 RETURNING *
