@@ -10,6 +10,7 @@ impl InsertAuthority for Database {
     ) -> Result<AuthorityRow, InsertAuthorityError> {
         let result =
             sqlx::query_as::<_, super::AuthorityRow>(include_str!("./insert_authority.sql"))
+                .bind(&params.id)
                 .bind(&params.name)
                 .bind(&params.client_key)
                 .bind(&params.status)
