@@ -23,13 +23,13 @@ impl DeleteUserAuthorityById for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::user_authorities::insert_authority::*;
+    use oxidauth_repository::user_authorities::insert_user_authority::*;
     use sqlx::PgPool;
 
     use super::*;
 
     #[sqlx::test]
-    async fn it_should_delete_an_authority_by_id_successfully(pool: PgPool) {
+    async fn it_should_delete_a_user_authority_successfully(pool: PgPool) {
         let db = Database { pool };
 
         let authority_id = Uuid::new_v4();

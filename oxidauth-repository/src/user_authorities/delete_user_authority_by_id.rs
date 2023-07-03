@@ -10,5 +10,7 @@ pub trait DeleteUserAuthorityById: Send + Sync + 'static {
     ) -> Result<UserAuthorityRow, DeleteUserAuthorityByIdError>;
 }
 
+// @GEORGE - struggling here, this is delete user by id but table has no id - should it be combo of user id and authority id?
+
 #[derive(Debug)]
 pub struct DeleteUserAuthorityByIdError {}
