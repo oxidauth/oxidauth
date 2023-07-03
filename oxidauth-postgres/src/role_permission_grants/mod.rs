@@ -7,6 +7,7 @@ use crate::prelude::*;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct RolePermissionGrantRow {
+    pub id: Uuid,
     pub role_id: Uuid,
     pub permission_id: Uuid,
     pub created_at: DateTime<Utc>,
@@ -16,6 +17,7 @@ pub struct RolePermissionGrantRow {
 impl From<RolePermissionGrantRow> for RepoRolePermissionGrantRow {
     fn from(value: RolePermissionGrantRow) -> Self {
         Self {
+            id: value.id,
             role_id: value.role_id,
             permission_id: value.permission_id,
             created_at: value.created_at,

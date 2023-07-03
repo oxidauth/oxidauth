@@ -12,6 +12,7 @@ pub trait InsertRolePermissionGrant: Send + Sync + 'static {
 
 #[derive(Debug)]
 pub struct InsertRolePermissionGrantParams {
+    pub id: Option<Uuid>,
     pub role_id: Uuid,
     pub permission_id: Uuid,
 }
