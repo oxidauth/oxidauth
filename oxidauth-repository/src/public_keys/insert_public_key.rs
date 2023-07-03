@@ -12,6 +12,7 @@ pub trait InsertPublicKey: Send + Sync + 'static {
 
 #[derive(Debug)]
 pub struct InsertPublicKeyParams {
+    pub id: Option<Uuid>,
     pub public_key: Vec<u8>,
     pub private_key: Vec<u8>,
 }
