@@ -16,13 +16,12 @@ impl QueryRoleById for Database {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use oxidauth_repository::roles::insert_role::*;
     use sqlx::PgPool;
 
     use super::*;
-
-    // @GEORGE - I dont understand why the above are seen as not needed
 
     #[sqlx::test]
     async fn it_should_query_a_role_by_id_successfully(pool: PgPool) {
