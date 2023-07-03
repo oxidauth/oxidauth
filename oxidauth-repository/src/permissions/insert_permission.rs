@@ -12,6 +12,7 @@ pub trait InsertPermission: Send + Sync + 'static {
 
 #[derive(Debug)]
 pub struct InsertPermissionParams {
+    pub id: Option<Uuid>,
     pub realm: String,
     pub resource: String,
     pub action: String,
