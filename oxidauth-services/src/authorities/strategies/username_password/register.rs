@@ -1,68 +1,51 @@
-use std::env;
+use std::env::var as get_var;
 
-use oxidauth_kernel::authorities::{
-    Authority, RegisterError, RegisterParamsExtractor, RegisterParamsExtractorError,
-    RegisterService,
-};
-use oxidauth_repository::authorities::query_authority_by_client_id::QueryAuthorityByClientId;
+use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
+use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 
 use crate::dev_prelude::*;
 
-use super::*;
+use super::{
+    RegisterStrategy, RegisterStrategyError, UsernamePasswordAuthorityParams,
+    UsernamePasswordStrategy, UsernamePasswordUserAuthorityParams,
+};
 
-#[async_trait]
-impl<R, P> RegisterService<P> for RegisterUseCase<R>
-where
-    R: QueryAuthorityByClientId,
-    P: RegisterParamsExtractor,
-{
-    async fn register(&self, params: P) -> Result<(), RegisterError> {
-        todo!()
+impl RegisterStrategy<UsernamePasswordRegisterInputs> for UsernamePasswordStrategy {
+    type UserAuthorityParams = UsernamePasswordUserAuthorityParams;
+
+    fn user_authority_params(
+        &self,
+        authority_params: Value,
+        params: UsernamePasswordRegisterInputs,
+    ) -> Result<Self::UserAuthorityParams, RegisterStrategyError> {
+        let authority_params: UsernamePasswordAuthorityParams =
+            serde_json::from_value(authority_params).map_err(|_| RegisterStrategyError {})?;
+
+        let addtl_pepper =
+            get_var(authority_params.pepper_env_var_key).map_err(|_| RegisterStrategyError {})?;
+
+        let password = format!(
+            "{}:{}:{}:{}",
+            &params.username, &params.password, authority_params.pepper, addtl_pepper
+        );
+
+        let salt = SaltString::generate(&mut OsRng);
+        let argon2 = Argon2::default();
+
+        let password_hash = argon2
+            .hash_password(&password.into_bytes(), &salt)
+            .map_err(|_| RegisterStrategyError {})?
+            .to_string();
+
+        let user_authority_params = UsernamePasswordUserAuthorityParams { password_hash };
+
+        Ok(user_authority_params)
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UsernamePasswordRegisterParams {
-    pub client_id: Uuid,
+pub struct UsernamePasswordRegisterInputs {
     pub username: String,
     pub password: String,
-}
-
-#[async_trait]
-impl RegisterParamsExtractor for UsernamePasswordRegisterParams {
-    async fn client_id(&self) -> Result<Uuid, RegisterParamsExtractorError> {
-        Ok(self.client_id)
-    }
-
-    async fn user_identifier(&self) -> Result<String, RegisterParamsExtractorError> {
-        Ok(self.username.clone())
-    }
-
-    async fn params(&self, authority: &Authority) -> Result<Value, RegisterParamsExtractorError> {
-        let authority_params: UsernamePasswordAuthorityParams =
-            serde_json::from_value(authority.params.clone())
-                .map_err(|_| RegisterParamsExtractorError {})?;
-
-        let username_password_addtl_pepper = env::var(USERNAME_PASSWORD_ADDTL_PEPPER)
-            .map_err(|_| RegisterParamsExtractorError {})?;
-
-        let password = format!(
-            "{}:{}:{}:{}",
-            &self.username,
-            &self.password,
-            &authority_params.password_pepper,
-            &username_password_addtl_pepper,
-        );
-
-        let password_hash =
-            helpers::hash_password(password).map_err(|_| RegisterParamsExtractorError {})?;
-
-        let user_authority_params = UsernamePasswordUserAuthorityParams { password_hash };
-
-        let value = serde_json::to_value(user_authority_params)
-            .map_err(|_| RegisterParamsExtractorError {})?;
-
-        Ok(value)
-    }
 }

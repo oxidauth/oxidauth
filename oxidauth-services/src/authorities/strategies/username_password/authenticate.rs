@@ -1,68 +1,41 @@
-use std::env;
+use std::env::var as get_var;
 
-use oxidauth_kernel::authorities::{
-    AuthenticateError, AuthenticateParamsExtractor, AuthenticateParamsExtractorError,
-    AuthenticateService, Authority, UserAuthority,
-};
-
-use crate::dev_prelude::*;
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use serde::{Deserialize, Serialize};
 
 use super::*;
 
-#[async_trait]
-impl<R> AuthenticateService for RegisterUseCase<R>
-where
-    R: QueryAuthorityByClientId,
-{
-    async fn authenticate(&self) -> Result<(), AuthenticateError> {
-        todo!()
-    }
-}
+impl AuthenticateStrategy<UsernamePasswordAuthenticateInputs> for UsernamePasswordStrategy {
+    type AuthorityParams = UsernamePasswordAuthorityParams;
+    type UserAuthorityParams = UsernamePasswordUserAuthorityParams;
 
-#[derive(Debug)]
-pub struct UsernamePasswordAuthenticateParams {
-    pub client_id: Uuid,
-    pub username: String,
-    pub password: String,
-}
-
-#[async_trait]
-impl AuthenticateParamsExtractor for UsernamePasswordAuthenticateParams {
-    async fn client_id(&self) -> Result<Uuid, AuthenticateParamsExtractorError> {
-        Ok(self.client_id)
-    }
-
-    async fn user_identifier(&self) -> Result<String, AuthenticateParamsExtractorError> {
-        Ok(self.username.clone())
-    }
-
-    async fn params(
+    fn authenticate(
         &self,
-        authority: &Authority,
-        user_authority: &UserAuthority,
-    ) -> Result<Value, AuthenticateParamsExtractorError> {
-        let authority_params: UsernamePasswordAuthorityParams =
-            serde_json::from_value(authority.params.clone())
-                .map_err(|_| AuthenticateParamsExtractorError {})?;
-
-        let username_password_addtl_pepper = env::var(USERNAME_PASSWORD_ADDTL_PEPPER)
-            .map_err(|_| AuthenticateParamsExtractorError {})?;
+        authority_params: Self::AuthorityParams,
+        user_authority_params: Self::UserAuthorityParams,
+        params: UsernamePasswordAuthenticateInputs,
+    ) -> Result<(), AuthenticateStrategyError> {
+        let addtl_pepper = get_var(authority_params.pepper_env_var_key)
+            .map_err(|_| AuthenticateStrategyError {})?;
 
         let password = format!(
             "{}:{}:{}:{}",
-            &self.username,
-            &self.password,
-            &authority_params.password_pepper,
-            &username_password_addtl_pepper,
+            &params.username, &params.password, authority_params.pepper, addtl_pepper
         );
 
-        let user_authority_params: UsernamePasswordUserAuthorityParams =
-            serde_json::from_value(user_authority.params.clone())
-                .map_err(|_| AuthenticateParamsExtractorError {})?;
+        let password_hash = PasswordHash::new(&user_authority_params.password_hash)
+            .map_err(|_| AuthenticateStrategyError {})?;
 
-        helpers::verify_password(password, user_authority_params.password_hash)
-            .map_err(|_| AuthenticateParamsExtractorError {})?;
+        Argon2::default()
+            .verify_password(&password.into_bytes(), &password_hash)
+            .map_err(|_| AuthenticateStrategyError {})?;
 
-        Ok(Value::Bool(true))
+        Ok(())
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UsernamePasswordAuthenticateInputs {
+    pub username: String,
+    pub password: String,
 }

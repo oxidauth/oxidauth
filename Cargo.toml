@@ -10,6 +10,7 @@ members = [
     "oxidauth-repository",
     "oxidauth-rs",
     "oxidauth-seed",
-    "oxidauth-telemetry",
+    "oxidauth-server",
     "oxidauth-services",
+    "oxidauth-telemetry",
 ]
