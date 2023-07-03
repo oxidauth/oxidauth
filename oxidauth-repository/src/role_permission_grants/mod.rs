@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct RolePermissionGrantRow {
+    pub id: Uuid, // @GEORGE -- I added this here assuming it will have an id
     pub role_id: Uuid,
     pub permission_id: Uuid,
     pub created_at: DateTime<Utc>,
