@@ -12,6 +12,7 @@ pub trait InsertRefreshToken: Send + Sync + 'static {
 
 #[derive(Debug)]
 pub struct InsertRefreshTokenParams {
+    pub id: Option<Uuid>,
     pub user_id: Uuid,
     pub authority_id: Uuid,
     pub expires_at: DateTime<Utc>,
