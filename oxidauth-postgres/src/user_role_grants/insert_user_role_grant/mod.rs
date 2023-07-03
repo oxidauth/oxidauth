@@ -24,7 +24,6 @@ impl InsertUserRoleGrant for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::user_role_grants::insert_authority::*;
     use sqlx::PgPool;
 
     use super::*;
@@ -42,9 +41,9 @@ mod tests {
         };
 
         match db.insert_user_role_grant(&insert_params).await {
-            Ok(authority) => {
-                assert_eq!(authority_id, authority.id);
-                assert_eq!(insert_params.name, authority.name);
+            Ok(user_role_grant) => {
+                assert_eq!(user_id, user_role_grant.user_id);
+                assert_eq!(role_id, user_role_grant.role_id);
             }
             Err(_) => unreachable!(),
         }
