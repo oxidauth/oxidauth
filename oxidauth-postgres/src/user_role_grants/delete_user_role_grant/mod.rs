@@ -21,3 +21,41 @@ impl DeleteUserRoleGrant for Database {
         Ok(result)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use oxidauth_repository::user_role_grants::insert_authority::*;
+    use sqlx::PgPool;
+
+    use super::*;
+
+    #[sqlx::test]
+    async fn it_should_delete_a_user_role_grant_successfully(pool: PgPool) {
+        let db = Database { pool };
+
+        let user_id = Uuid::new_v4();
+        let role_id = Uuid::new_v4();
+
+        let insert_params = InsertUserRoleGrantParams {
+            user_id: user_id,
+            role_id: role_id,
+        };
+
+        let delete_params = DeleteUserRoleGrantParams {
+            user_id: user_id,
+            role_id: role_id,
+        };
+
+        db.insert_authority(&insert_params)
+            .await
+            .expect("should be able to insert authority");
+
+        match db.delete_user_role_grant(&delete_params).await {
+            Ok(authority) => {
+                assert_eq!(authority_id, authority.id);
+                assert_eq!(insert_params.name, authority.name);
+            }
+            Err(_) => unreachable!(),
+        }
+    }
+}
