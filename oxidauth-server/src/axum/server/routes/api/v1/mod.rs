@@ -4,6 +4,7 @@ use sqlx::PgPool;
 pub mod authenticate;
 pub mod authorities;
 pub mod can;
+pub mod invitations;
 pub mod permissions;
 pub mod public_keys;
 pub mod refresh_tokens;
@@ -24,4 +25,5 @@ pub fn router(database: &PgPool) -> Router {
         .nest("/roles", roles::router(database))
         .nest("/settings", settings::router(database))
         .nest("/users", users::router(database))
+        .nest("/invitations", invitations::router(database))
 }

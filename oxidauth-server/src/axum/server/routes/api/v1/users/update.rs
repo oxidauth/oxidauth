@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 use uuid::Uuid;
 
 use crate::axum::Response;
@@ -36,15 +36,21 @@ pub async fn handler(
 
     updates.id = Some(params.user_id);
 
-    let current = sqlx::query_as::<_, UserRow>(by_id::QUERY)
-        .bind(params.user_id)
-        .fetch_one(&db)
-        .await;
+    let result = user_update(db, updates).await;
 
-    let current = match current {
-        Ok(user) => user,
-        Err(_error) => return Response::fail(String::from("user not found")).json(),
-    };
+    match result {
+        Ok(user) => Response::success(UserUpdateRes { user }).json(),
+        Err(error) => Response::fail(format!("error updating user: {}", error)).json(),
+    }
+}
+
+pub async fn user_update(db: PgPool, mut updates: UserUpdateRow) -> Result<UserRow, sqlx::Error> {
+    let mut db = db.begin().await?;
+
+    let current = sqlx::query_as::<_, UserRow>(by_id::QUERY)
+        .bind(updates.id)
+        .fetch_one(&mut db)
+        .await?;
 
     if updates.email.is_none() {
         updates.email = current.email;
@@ -65,16 +71,13 @@ pub async fn handler(
         .bind(updates.last_name)
         .bind(updates.status)
         .bind(updates.profile)
-        .fetch_one(&db)
-        .await;
+        .fetch_one(&mut db)
+        .await?;
 
-    match result {
-        Ok(user) => Response::success(UserUpdateRes { user }).json(),
-        Err(error) => Response::fail(format!("error updating user: {}", error)).json(),
-    }
+    Ok(result)
 }
 
-const QUERY: &'static str = r#"
+const QUERY: &str = r#"
     UPDATE users
     SET
         email = $2,

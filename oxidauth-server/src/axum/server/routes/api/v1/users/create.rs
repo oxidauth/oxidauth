@@ -81,7 +81,7 @@ pub async fn create_user_and_user_authorities(
     Ok((user, user_authorities))
 }
 
-const QUERY: &'static str = r#"
+const QUERY: &str = r#"
     INSERT INTO users (
         username, email,
         first_name, last_name,
