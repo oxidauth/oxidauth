@@ -28,6 +28,8 @@ async fn main() -> Result<(), BoxedError> {
     let database = PgPoolOptions::new().connect(&database_url).await?;
     println!("database setup");
 
+    sqlx::migrate!().run(&database).await?;
+
     println!("starting http server");
     axum::Server::new()
         .address(bind_addr)
