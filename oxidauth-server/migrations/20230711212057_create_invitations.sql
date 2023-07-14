@@ -6,4 +6,4 @@ CREATE TABLE invitations (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX refresh_tokens_user_id ON invitations(user_id);
+CREATE INDEX invitations_user_id ON invitations(user_id);
