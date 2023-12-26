@@ -1,6 +1,6 @@
-FROM --platform=$TARGETPLATFORM debian:11.7
+FROM --platform=$TARGETPLATFORM debian:12.1
 
-RUN apt-get update -y && apt-get upgrade -y && apt-get install openssl
+RUN apt-get update -y && apt-get upgrade -y
 
 COPY tmp/oxidauth-server /bin/oxidauth-server
 
