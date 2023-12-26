@@ -69,7 +69,7 @@ impl PublicKey {
     pub fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
         let mut rng = rand::thread_rng();
 
-        let data = self.0.encrypt(&mut rng, Pkcs1v15Encrypt, &data[..])?;
+        let data = self.0.encrypt(&mut rng, Pkcs1v15Encrypt, data)?;
 
         Ok(data)
     }
