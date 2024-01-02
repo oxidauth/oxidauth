@@ -10,6 +10,7 @@ readme = "README.md"
 
 [dependencies]
 oxidauth-kernel = { path = "../oxidauth-kernel" }
+oxidauth-services = { path = "../oxidauth-services" }
 
 axum = "0.6.18"
 axum-macros = "0.3.7"

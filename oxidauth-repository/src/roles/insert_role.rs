@@ -4,8 +4,10 @@ use super::RoleRow;
 
 #[async_trait]
 pub trait InsertRole: Send + Sync + 'static {
-    async fn insert_role(&self, insert_role: &InsertRoleParams)
-        -> Result<RoleRow, InsertRoleError>;
+    async fn insert_role(
+        &self,
+        insert_role: &InsertRoleParams,
+    ) -> Result<RoleRow, InsertRoleError>;
 }
 
 #[derive(Debug)]

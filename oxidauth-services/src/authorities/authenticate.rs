@@ -10,7 +10,10 @@ where
     P: AuthenticateParamsExtractor,
 {
     async fn authenticate(&self, params: P) -> Result<(), AuthenticateError> {
-        let client_id = params.client_id().await.map_err(|_| AuthenticateError {})?;
+        let client_id = params
+            .client_id()
+            .await
+            .map_err(|_| AuthenticateError {})?;
 
         todo!()
     }

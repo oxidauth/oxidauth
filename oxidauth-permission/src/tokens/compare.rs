@@ -34,24 +34,29 @@ pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
                 } else {
                     return false;
                 }
-            }
+            },
             (_, true, Single) => {
-                if let Some(advance) = advance_till(&[Period, Colon], &input[i..]) {
+                if let Some(advance) =
+                    advance_till(&[Period, Colon], &input[i..])
+                {
                     i += advance;
                 } else {
                     return false;
                 }
 
-                if let Some(advance) = advance_till(&[Period, Colon], &challenge[j..]) {
+                if let Some(advance) = advance_till(
+                    &[Period, Colon],
+                    &challenge[j..],
+                ) {
                     j += advance;
                 } else {
                     return false;
                 }
-            }
+            },
             (_, true, _) => {
                 i += 1;
                 j += 1;
-            }
+            },
             (_, false, _) => return false,
         }
     }
@@ -71,7 +76,9 @@ fn compare_tokens(t1: &Token, t2: &Token) -> bool {
 }
 
 fn advance_till(needles: &[Token], haystack: &[Token]) -> Option<usize> {
-    haystack.iter().position(|token| needles.contains(token))
+    haystack
+        .iter()
+        .position(|token| needles.contains(token))
 }
 
 #[cfg(test)]
@@ -106,7 +113,10 @@ mod tests {
 
     macro_rules! assert_compare {
         ($b:expr, $set:expr, $challenge:expr) => {
-            assert_eq!($b, compare(&$set, &$challenge));
+            assert_eq!(
+                $b,
+                compare(&$set, &$challenge)
+            );
         };
     }
 
@@ -270,22 +280,34 @@ mod tests {
         use Token::*;
 
         assert_eq!(
-            advance_till(&[Colon, Single], &[Single, Colon, Single, Colon]),
+            advance_till(
+                &[Colon, Single],
+                &[Single, Colon, Single, Colon]
+            ),
             Some(0),
         );
 
         assert_eq!(
-            advance_till(&[Colon], &[Single, Colon, Single, Colon]),
+            advance_till(
+                &[Colon],
+                &[Single, Colon, Single, Colon]
+            ),
             Some(1),
         );
 
         assert_eq!(
-            advance_till(&[Single], &[Single, Colon, Single, Colon]),
+            advance_till(
+                &[Single],
+                &[Single, Colon, Single, Colon]
+            ),
             Some(0),
         );
 
         assert_eq!(
-            advance_till(&[Double], &[Single, Colon, Single, Colon]),
+            advance_till(
+                &[Double],
+                &[Single, Colon, Single, Colon]
+            ),
             None,
         );
     }

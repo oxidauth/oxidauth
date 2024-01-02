@@ -15,8 +15,11 @@ pub struct AuthenticateError {}
 
 #[async_trait]
 pub trait AuthenticateParamsExtractor: Send + Sync + 'static {
-    async fn client_id(&self) -> Result<Uuid, AuthenticateParamsExtractorError>;
-    async fn user_identifier(&self) -> Result<String, AuthenticateParamsExtractorError>;
+    async fn client_id(&self)
+        -> Result<Uuid, AuthenticateParamsExtractorError>;
+    async fn user_identifier(
+        &self,
+    ) -> Result<String, AuthenticateParamsExtractorError>;
     async fn params(
         &self,
         authority: &Authority,

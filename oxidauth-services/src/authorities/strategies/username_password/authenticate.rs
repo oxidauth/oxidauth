@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use super::*;
 
-impl AuthenticateStrategy<UsernamePasswordAuthenticateInputs> for UsernamePasswordStrategy {
+impl AuthenticateStrategy<UsernamePasswordAuthenticateInputs>
+    for UsernamePasswordStrategy
+{
     type AuthorityParams = UsernamePasswordAuthorityParams;
     type UserAuthorityParams = UsernamePasswordUserAuthorityParams;
 
@@ -20,14 +22,21 @@ impl AuthenticateStrategy<UsernamePasswordAuthenticateInputs> for UsernamePasswo
 
         let password = format!(
             "{}:{}:{}:{}",
-            &params.username, &params.password, authority_params.pepper, addtl_pepper
+            &params.username,
+            &params.password,
+            authority_params.pepper,
+            addtl_pepper
         );
 
-        let password_hash = PasswordHash::new(&user_authority_params.password_hash)
-            .map_err(|_| AuthenticateStrategyError {})?;
+        let password_hash =
+            PasswordHash::new(&user_authority_params.password_hash)
+                .map_err(|_| AuthenticateStrategyError {})?;
 
         Argon2::default()
-            .verify_password(&password.into_bytes(), &password_hash)
+            .verify_password(
+                &password.into_bytes(),
+                &password_hash,
+            )
             .map_err(|_| AuthenticateStrategyError {})?;
 
         Ok(())

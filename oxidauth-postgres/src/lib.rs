@@ -2,13 +2,16 @@ use sqlx::PgPool;
 
 pub mod authorities;
 pub mod prelude;
+pub mod users;
 
 pub struct Database {
     pool: PgPool,
 }
 
 impl Database {
-    pub fn new(pool: PgPool) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    pub fn new(
+        pool: PgPool,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self { pool })
     }
 

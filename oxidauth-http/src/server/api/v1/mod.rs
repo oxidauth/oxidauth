@@ -1,5 +1,10 @@
+pub mod auth;
+pub mod users;
+
 use axum::Router;
 
-pub fn router() -> Router {
-    Router::new()
+use crate::provider::Provider;
+
+pub fn router() -> Router<Provider> {
+    Router::new().nest("/auth", auth::router())
 }

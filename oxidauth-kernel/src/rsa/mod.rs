@@ -2,7 +2,10 @@ use std::error::Error;
 
 use rsa::{
     pkcs1v15::Pkcs1v15Encrypt,
-    pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey, LineEnding},
+    pkcs8::{
+        DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey,
+        LineEnding,
+    },
     traits::PaddingScheme,
     RsaPrivateKey, RsaPublicKey,
 };
@@ -21,8 +24,8 @@ impl KeyPair {
     pub fn new() -> Result<Self, RsaError> {
         let mut rng = rand::thread_rng();
 
-        let private_key =
-            RsaPrivateKey::new(&mut rng, DEFAULT_BIT_SIZE).map_err(|_| RsaError {})?;
+        let private_key = RsaPrivateKey::new(&mut rng, DEFAULT_BIT_SIZE)
+            .map_err(|_| RsaError {})?;
 
         let public_key = RsaPublicKey::from(&private_key);
 
@@ -69,7 +72,11 @@ impl PublicKey {
     pub fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
         let mut rng = rand::thread_rng();
 
-        let data = self.0.encrypt(&mut rng, Pkcs1v15Encrypt, data)?;
+        let data = self.0.encrypt(
+            &mut rng,
+            Pkcs1v15Encrypt,
+            data,
+        )?;
 
         Ok(data)
     }
@@ -99,7 +106,9 @@ pub struct PrivateKey(RsaPrivateKey);
 
 impl PrivateKey {
     pub fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
-        let data = self.0.decrypt(Pkcs1v15Encrypt, &data)?;
+        let data = self
+            .0
+            .decrypt(Pkcs1v15Encrypt, &data)?;
 
         Ok(data)
     }

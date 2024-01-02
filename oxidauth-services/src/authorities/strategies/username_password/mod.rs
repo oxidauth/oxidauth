@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use super::{
-    AuthenticateStrategy, AuthenticateStrategyError, RegisterStrategy, RegisterStrategyError,
+    AuthenticateStrategy, AuthenticateStrategyError, RegisterStrategy,
+    RegisterStrategyError,
 };
 
 pub mod authenticate;

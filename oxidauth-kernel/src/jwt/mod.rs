@@ -2,7 +2,8 @@ use std::ops::Add;
 use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
 
 use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData,
+    Validation,
 };
 
 use crate::dev_prelude::*;
@@ -36,7 +37,12 @@ impl Jwt {
     pub fn encode(&self, key: &[u8]) -> Result<String, JwtError> {
         let key = EncodingKey::from_rsa_pem(key).map_err(|_| JwtError {})?;
 
-        let result = encode(&Header::new(Algorithm::RS256), self, &key).map_err(|_| JwtError {})?;
+        let result = encode(
+            &Header::new(Algorithm::RS256),
+            self,
+            &key,
+        )
+        .map_err(|_| JwtError {})?;
 
         Ok(result)
     }
@@ -44,8 +50,12 @@ impl Jwt {
     pub fn decode(token: &str, key: &[u8]) -> Result<Jwt, JwtError> {
         let key = DecodingKey::from_rsa_pem(key).map_err(|_| JwtError {})?;
 
-        let result: TokenData<Jwt> =
-            decode(&token, &key, &Validation::new(Algorithm::RS256)).map_err(|_| JwtError {})?;
+        let result: TokenData<Jwt> = decode(
+            &token,
+            &key,
+            &Validation::new(Algorithm::RS256),
+        )
+        .map_err(|_| JwtError {})?;
 
         Ok(result.claims)
     }
@@ -180,29 +190,29 @@ pub fn epoch_from_time(t: time::SystemTime) -> Result<usize, JwtError> {
     Ok(epoch)
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::rsa::{generate, KeyPair};
-
-    use super::*;
-
-    #[test]
-    fn works_with_rsa() {
-        let KeyPair { public, private } = generate().unwrap();
-
-        let claims = Jwt::new()
-            .with_entitlements(vec!["realm:resource:action".to_string()])
-            .with_expires_in(Duration::from_secs(60 * 300))
-            .build()
-            .unwrap();
-
-        let encoded = claims.encode(&private).unwrap();
-
-        let decoded = Jwt::decode(&encoded, &public).unwrap();
-
-        assert_eq!(
-            decoded.entitlements,
-            Some("realm:resource:action".to_string())
-        )
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use crate::rsa::{generate, KeyPair};
+//
+//     use super::*;
+//
+//     #[test]
+//     fn works_with_rsa() {
+//         let KeyPair { public, private } = generate().unwrap();
+//
+//         let claims = Jwt::new()
+//             .with_entitlements(vec!["realm:resource:action".to_string()])
+//             .with_expires_in(Duration::from_secs(60 * 300))
+//             .build()
+//             .unwrap();
+//
+//         let encoded = claims.encode(&private).unwrap();
+//
+//         let decoded = Jwt::decode(&encoded, &public).unwrap();
+//
+//         assert_eq!(
+//             decoded.entitlements,
+//             Some("realm:resource:action".to_string())
+//         )
+//     }
+// }

@@ -12,6 +12,9 @@ pub fn parse_very_very_long(c: &mut Criterion) {
     });
 }
 
-criterion_group!(very_long, parse_very_very_long);
+criterion_group!(
+    very_long,
+    parse_very_very_long
+);
 
 criterion_main!(very_long);

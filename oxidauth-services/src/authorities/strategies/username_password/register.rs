@@ -11,7 +11,9 @@ use super::{
     UsernamePasswordStrategy, UsernamePasswordUserAuthorityParams,
 };
 
-impl RegisterStrategy<UsernamePasswordRegisterInputs> for UsernamePasswordStrategy {
+impl RegisterStrategy<UsernamePasswordRegisterInputs>
+    for UsernamePasswordStrategy
+{
     type UserAuthorityParams = UsernamePasswordUserAuthorityParams;
 
     fn user_authority_params(
@@ -20,14 +22,18 @@ impl RegisterStrategy<UsernamePasswordRegisterInputs> for UsernamePasswordStrate
         params: UsernamePasswordRegisterInputs,
     ) -> Result<Self::UserAuthorityParams, RegisterStrategyError> {
         let authority_params: UsernamePasswordAuthorityParams =
-            serde_json::from_value(authority_params).map_err(|_| RegisterStrategyError {})?;
+            serde_json::from_value(authority_params)
+                .map_err(|_| RegisterStrategyError {})?;
 
-        let addtl_pepper =
-            get_var(authority_params.pepper_env_var_key).map_err(|_| RegisterStrategyError {})?;
+        let addtl_pepper = get_var(authority_params.pepper_env_var_key)
+            .map_err(|_| RegisterStrategyError {})?;
 
         let password = format!(
             "{}:{}:{}:{}",
-            &params.username, &params.password, authority_params.pepper, addtl_pepper
+            &params.username,
+            &params.password,
+            authority_params.pepper,
+            addtl_pepper
         );
 
         let salt = SaltString::generate(&mut OsRng);
@@ -38,7 +44,8 @@ impl RegisterStrategy<UsernamePasswordRegisterInputs> for UsernamePasswordStrate
             .map_err(|_| RegisterStrategyError {})?
             .to_string();
 
-        let user_authority_params = UsernamePasswordUserAuthorityParams { password_hash };
+        let user_authority_params =
+            UsernamePasswordUserAuthorityParams { password_hash };
 
         Ok(user_authority_params)
     }

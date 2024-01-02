@@ -3,11 +3,16 @@ use crate::dev_prelude::*;
 pub use super::UserAuthority;
 
 #[async_trait]
-pub trait FindUserAuthorityByAuthorityIdAndUserIdentifierService: Send + Sync + 'static {
+pub trait FindUserAuthorityByAuthorityIdAndUserIdentifierService:
+    Send + Sync + 'static
+{
     async fn find_user_authority_by_authority_id_and_user_identifier(
         &self,
         params: &FindUserAuthorityByAuthorityIdAndUserIdentifierParams,
-    ) -> Result<UserAuthority, FindUserAuthorityByAuthorityIdAndUserIdentifierError>;
+    ) -> Result<
+        UserAuthority,
+        FindUserAuthorityByAuthorityIdAndUserIdentifierError,
+    >;
 }
 
 #[derive(Debug)]

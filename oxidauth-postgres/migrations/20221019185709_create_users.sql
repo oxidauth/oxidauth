@@ -1,14 +1,14 @@
 CREATE TABLE users (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    kind VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL,
     username VARCHAR(64) NOT NULL UNIQUE,
     email VARCHAR(256),
     first_name VARCHAR(64),
     last_name VARCHAR(64),
     profile JSONB NOT NULL DEFAULT '{}'::jsonb,
-    kind VARCHAR(32) NOT NULL,
-    status VARCHAR(32) NOT NULL,
-    created_at TIMESTAMPZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX users_username_idx ON users(username);

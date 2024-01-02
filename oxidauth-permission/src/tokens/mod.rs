@@ -1,7 +1,7 @@
 pub mod compare;
 pub mod parse;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Token<'a> {
     Colon,
     Double,
@@ -20,4 +20,15 @@ enum Prev<'a> {
     Token(Token<'a>),
     Char,
     None,
+}
+
+pub fn validate(
+    challenge: &[Token<'_>],
+    permissions: &str,
+) -> Result<bool, PermissionParseErr> {
+    let parsed = parse::parse(permissions)?;
+
+    let passed = compare::compare(challenge, &parsed);
+
+    Ok(passed)
 }

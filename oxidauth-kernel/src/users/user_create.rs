@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use crate::dev_prelude::*;
 
-use super::*;
+pub use super::*;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserCreate {
     pub id: Option<Uuid>,
     pub kind: Option<UserKind>,
@@ -14,10 +16,41 @@ pub struct UserCreate {
     pub profile: Option<Value>,
 }
 
-#[async_trait]
-pub trait UserCreateService: Send + Sync + 'static {
-    async fn create_user(&self, params: &UserCreate) -> Result<User, CreateUserError>;
+pub const EMPTY_STR: &str = "";
+
+impl Default for UserCreate {
+    fn default() -> Self {
+        Self {
+            id: None,
+            kind: Some(UserKind::Human),
+            status: Some(UserStatus::Enabled),
+            username: EMPTY_STR.to_string(),
+            email: None,
+            first_name: None,
+            last_name: None,
+            profile: None,
+        }
+    }
 }
 
-#[derive(Debug)]
+impl From<&str> for UserCreate {
+    fn from(username: &str) -> Self {
+        Self {
+            username: username.to_owned(),
+            ..Default::default()
+        }
+    }
+}
+
+pub type CreateUserService = Arc<dyn CreateUserTrait>;
+
+#[async_trait]
+pub trait CreateUserTrait: Send + Sync + 'static {
+    async fn create_user(
+        &self,
+        params: &UserCreate,
+    ) -> Result<User, CreateUserError>;
+}
+
+#[derive(Debug, Serialize)]
 pub struct CreateUserError {}

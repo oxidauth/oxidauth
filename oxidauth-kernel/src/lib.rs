@@ -7,5 +7,6 @@ pub mod public_keys;
 pub mod refresh_tokens;
 pub mod roles;
 pub mod rsa;
+pub mod service;
 pub mod user_authority;
 pub mod users;

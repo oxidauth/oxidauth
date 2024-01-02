@@ -19,12 +19,17 @@ where
     async fn find_user_authority_by_authority_id_and_user_identifier(
         &self,
         params: &FindUserAuthorityByAuthorityIdAndUserIdentifierParams,
-    ) -> Result<UserAuthority, FindUserAuthorityByAuthorityIdAndUserIdentifierError> {
+    ) -> Result<
+        UserAuthority,
+        FindUserAuthorityByAuthorityIdAndUserIdentifierError,
+    > {
         let result = self
             .repo
             .query_user_authorities_by_authority_id_and_user_identifier(params)
             .await
-            .map_err(|_| FindUserAuthorityByAuthorityIdAndUserIdentifierError {})?;
+            .map_err(|_| {
+                FindUserAuthorityByAuthorityIdAndUserIdentifierError {}
+            })?;
 
         Ok(result)
     }

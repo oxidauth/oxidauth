@@ -1,13 +1,13 @@
-use crate::prelude::*;
+pub use oxidauth_kernel::users::User;
 
-use super::UserRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait QueryUserByUsername: Send + Sync + 'static {
     async fn query_user_by_username(
         &self,
         username: String,
-    ) -> Result<UserRow, QueryUserByUsernameError>;
+    ) -> Result<User, QueryUserByUsernameError>;
 }
 
 #[derive(Debug)]

@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.1
+    platform: $DOCKER_PLATFORM
+    ports:
+      - '5432:5432'
+    env_file:
+      - '.env'
+    volumes:
+      - 'postgres-data-vol:/var/lib/postgresql/data'
+
+volumes:
+  postgres-data-vol:
