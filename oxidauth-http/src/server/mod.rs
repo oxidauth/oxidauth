@@ -3,6 +3,7 @@ pub mod api;
 use std::{error::Error, net::SocketAddr};
 
 use axum::Router;
+use tokio::net::TcpListener;
 
 use crate::provider::Provider;
 
@@ -19,8 +20,9 @@ impl Server {
     pub async fn start(
         self,
     ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-        axum::Server::bind(&self.addr)
-            .serve(router(self.provider).into_make_service())
+        let tcp_listener = TcpListener::bind(self.addr).await?;
+
+        axum::serve(tcp_listener, router(self.provider).into_make_service())
             .await?;
 
         Ok(())

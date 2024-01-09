@@ -23,6 +23,7 @@ pub struct User {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum UserKind {
     Human,
     Api,
@@ -76,6 +77,7 @@ impl fmt::Display for ParseUserKindErr {
 impl std::error::Error for ParseUserKindErr {}
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum UserStatus {
     Enabled,
     Disabled,
