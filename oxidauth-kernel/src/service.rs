@@ -8,10 +8,9 @@ pub trait Service<Request>: Send + Sync + 'static {
     type Response;
     type Error;
 
-    fn call(
-        &self,
-        req: Request,
-    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send;
+    async fn call(&self, req: Request) -> Result<Self::Response, Self::Error>
+    where
+        Request: 'async_trait;
 }
 
 pub trait Layer<S> {
@@ -48,6 +47,7 @@ pub struct CanService<'a, S> {
     service: S,
 }
 
+#[async_trait]
 impl<S, Request> Service<Request> for CanService<'static, S>
 where
     S: Service<Request>,
@@ -89,6 +89,7 @@ mod tests {
     pub struct MockService;
     pub struct MockServiceParams(&'static str);
 
+    #[async_trait]
     impl Service<MockServiceParams> for MockService {
         type Response = ();
         type Error = ();

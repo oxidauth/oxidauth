@@ -5,6 +5,7 @@ use crate::Database;
 
 use super::{TryFromUserRowError, UserRow};
 
+#[async_trait]
 impl<'a> Service<&'a InsertUserParams> for Database {
     type Response = User;
 
