@@ -5,7 +5,7 @@ use std::{
 };
 
 use oxidauth_kernel::users::user_create::CreateUserService;
-use oxidauth_services::users::create::CreateUserUseCase;
+use oxidauth_usecases::users::create::CreateUserUseCase;
 
 #[derive(Default, Clone)]
 pub struct Provider {

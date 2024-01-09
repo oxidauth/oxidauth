@@ -1290,7 +1290,7 @@ dependencies = [
  "chrono",
  "oxidauth-kernel",
  "oxidauth-postgres",
- "oxidauth-services",
+ "oxidauth-usecases",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -1363,7 +1363,11 @@ name = "oxidauth-seed"
 version = "0.1.0"
 
 [[package]]
-name = "oxidauth-services"
+name = "oxidauth-telemetry"
+version = "0.1.0"
+
+[[package]]
+name = "oxidauth-usecases"
 version = "0.1.0"
 dependencies = [
  "argon2",
@@ -1376,10 +1380,6 @@ dependencies = [
  "serde_json",
  "uuid",
 ]
-
-[[package]]
-name = "oxidauth-telemetry"
-version = "0.1.0"
 
 [[package]]
 name = "parking_lot"
