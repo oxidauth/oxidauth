@@ -14,7 +14,6 @@ pub mod user_role_grants;
 pub mod users;
 
 pub mod prelude;
-pub mod users;
 
 #[derive(Clone)]
 pub struct Database {
