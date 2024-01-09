@@ -1,5 +1,6 @@
 pub mod authorities;
 pub mod dev_prelude;
+pub mod error;
 pub mod jwt;
 pub mod permissions;
 pub mod prelude;

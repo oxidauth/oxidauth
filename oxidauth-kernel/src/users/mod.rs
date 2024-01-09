@@ -1,4 +1,6 @@
 pub mod find_user_by_id;
+pub mod create_user;
+#[deprecated]
 pub mod user_create;
 
 use core::fmt;
