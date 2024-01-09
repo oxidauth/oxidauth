@@ -38,6 +38,7 @@ where
     }
 }
 
+#[async_trait]
 impl<A, U, UA, P> Service<P> for RegisterUseCase<A, U, UA>
 where
     A: FindAuthorityByClientIdService,
