@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use oxidauth_kernel::{service::Service, users::user_create::*};
 use oxidauth_repository::users::insert_user::InsertUserRepo;
 
@@ -17,20 +18,22 @@ where
     }
 }
 
-impl<'a, U> Service<&'a UserCreate> for CreateUserUseCase<U>
+#[async_trait]
+impl<U> CreateUserTrait for CreateUserUseCase<U>
 where
     U: InsertUserRepo,
 {
-    type Response = User;
-    type Error = CreateUserError;
-
-    async fn call(
+    async fn create_user(
         &self,
-        params: &'a UserCreate,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &UserCreate,
+    ) -> Result<User, CreateUserError> {
         self.users
             .call(params)
             .await
-            .map_err(|err| CreateUserError {})
+            .map_err(|err| {
+                dbg!(&err);
+
+                CreateUserError {}
+            })
     }
 }

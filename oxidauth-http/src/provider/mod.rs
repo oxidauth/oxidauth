@@ -4,7 +4,8 @@ use std::{
     sync::Arc,
 };
 
-use oxidauth_services::authorities::register::RegisterUseCase;
+use oxidauth_kernel::users::user_create::CreateUserService;
+use oxidauth_services::users::create::CreateUserUseCase;
 
 #[derive(Default, Clone)]
 pub struct Provider {
@@ -36,8 +37,17 @@ impl Provider {
     }
 }
 
-pub fn setup() -> Provider {
+pub async fn setup() -> Provider {
     let mut provider = Provider::new();
+
+    let db = oxidauth_postgres::Database::from_env()
+        .await
+        .unwrap();
+
+    let user_create_service: CreateUserService = Arc::new(
+        CreateUserUseCase::new(db.clone()),
+    );
+    provider.store(user_create_service);
 
     // let register_service = RegisterUseCase::new();
 

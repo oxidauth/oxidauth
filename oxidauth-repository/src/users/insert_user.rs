@@ -10,6 +10,15 @@ pub trait InsertUserRepo:
 {
 }
 
+impl<T> InsertUserRepo for T where
+    T: for<'a> Service<
+        &'a InsertUserParams,
+        Response = User,
+        Error = InsertUserError,
+    >
+{
+}
+
 // #[derive(Debug)]
 // pub struct InsertUserParams {
 //     pub id: Option<Uuid>,

@@ -1,10 +1,7 @@
-use std::{future::Future, sync::Arc};
+use std::future::Future;
 
 use async_trait::async_trait;
 use oxidauth_permission::{parse::parse, validate, PermissionParseErr, Token};
-
-pub type ArcService<Req, Res, Err> =
-    Arc<dyn Service<Req, Response = Res, Error = Err>>;
 
 #[async_trait]
 pub trait Service<Request>: Send + Sync + 'static {
@@ -14,7 +11,7 @@ pub trait Service<Request>: Send + Sync + 'static {
     fn call(
         &self,
         req: Request,
-    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send + Sized;
+    ) -> impl Future<Output = Result<Self::Response, Self::Error>> + Send;
 }
 
 pub trait Layer<S> {
@@ -54,7 +51,7 @@ pub struct CanService<'a, S> {
 impl<S, Request> Service<Request> for CanService<'static, S>
 where
     S: Service<Request>,
-    Request: Send + Sync + 'static,
+    Request: Send + 'static,
     Request: ExtractPermissions,
 {
     type Response = S::Response;

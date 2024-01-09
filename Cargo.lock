@@ -1289,6 +1289,7 @@ dependencies = [
  "axum-macros",
  "chrono",
  "oxidauth-kernel",
+ "oxidauth-postgres",
  "oxidauth-services",
  "rust_decimal",
  "serde",

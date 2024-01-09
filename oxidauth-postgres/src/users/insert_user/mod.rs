@@ -33,8 +33,8 @@ impl<'a> Service<&'a InsertUserParams> for Database {
             "./insert_user.sql"
         ))
         .bind(params.id)
-        .bind(&kind)
-        .bind(&status)
+        .bind(kind)
+        .bind(status)
         .bind(&params.username)
         .bind(&params.email)
         .bind(&params.first_name)
