@@ -1,21 +1,22 @@
 use axum::{extract::State, response::IntoResponse, Json};
-use oxidauth_kernel::users::user_create::*;
+use oxidauth_kernel::users::create_user::*;
 use serde::{Deserialize, Serialize};
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CreateUserReq {
-    pub user: UserCreate,
+    pub user: CreateUser,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct CreateUserRes {
     pub user: User,
 }
 
 #[axum_macros::debug_handler]
+#[tracing::instrument(name = "create_user_http", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<CreateUserReq>,
@@ -25,7 +26,7 @@ pub async fn handle(
     let service = provider.fetch::<CreateUserService>();
 
     let result = service
-        .create_user(&params.user)
+        .call(&params.user)
         .await;
 
     dbg!(&result);

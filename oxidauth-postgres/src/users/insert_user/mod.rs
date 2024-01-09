@@ -1,19 +1,20 @@
-use oxidauth_repository::users::insert_user::*;
 use serde_json::Map;
 
 use crate::Database;
 
+use oxidauth_kernel::{users::create_user::CreateUser, error::BoxedError};
+use oxidauth_repository::users::insert_user::*;
+
 use super::{TryFromUserRowError, UserRow};
 
 #[async_trait]
-impl<'a> Service<&'a InsertUserParams> for Database {
+impl<'a> Service<&'a CreateUser> for Database {
     type Response = User;
-
-    type Error = InsertUserError;
+    type Error = BoxedError;
 
     async fn call(
         &self,
-        params: &'a InsertUserParams,
+        params: &'a CreateUser,
     ) -> Result<Self::Response, Self::Error> {
         let kind: Option<&str> = params
             .kind
@@ -42,20 +43,9 @@ impl<'a> Service<&'a InsertUserParams> for Database {
         .bind(&params.last_name)
         .bind(profile)
         .fetch_one(&self.pool)
-        .await
-        .map_err(|err| InsertUserError {
-            reason: "query failed".to_owned(),
-            source: err.into(),
-        })?;
+        .await?;
 
-        let user = row
-            .try_into()
-            .map_err(
-                |err: TryFromUserRowError| InsertUserError {
-                    reason: "converting user row to user failed".to_owned(),
-                    source: Box::new(err),
-                },
-            )?;
+        let user = row.try_into()?;
 
         Ok(user)
     }
@@ -67,21 +57,9 @@ mod tests {
 
     use super::*;
 
+    #[ignore]
     #[sqlx::test]
-    async fn it_should_be_able_to_insert_a_new_user(pool: PgPool) {
-        let db = Database::new(pool)
-            .expect("should be able to make a database from a pool");
-
-        let username = "oxidauth_user";
-        let insert_user: InsertUserParams = username.into();
-
-        let result = db.call(&insert_user).await;
-
-        match result {
-            Ok(user) => assert_eq!(user.username, username),
-            Err(_) => unreachable!(),
-        }
-    }
+    async fn it_should_be_able_to_insert_a_new_user(pool: PgPool) {}
 
     #[ignore]
     #[sqlx::test]

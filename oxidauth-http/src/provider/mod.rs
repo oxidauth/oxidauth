@@ -4,9 +4,6 @@ use std::{
     sync::Arc,
 };
 
-use oxidauth_kernel::users::user_create::CreateUserService;
-use oxidauth_usecases::users::create::CreateUserUseCase;
-
 #[derive(Default, Clone)]
 pub struct Provider {
     pub bindings: HashMap<TypeId, Arc<dyn Any + Send + Sync + 'static>>,
@@ -44,12 +41,12 @@ pub async fn setup() -> Provider {
         .await
         .unwrap();
 
-    let user_create_service: CreateUserService = Arc::new(
-        CreateUserUseCase::new(db.clone()),
-    );
-    provider.store(user_create_service);
+    {
+        use oxidauth_usecases::users::create_user::CreateUserUseCase;
+        use oxidauth_kernel::users::create_user::CreateUserService;
 
-    // let register_service = RegisterUseCase::new();
+        let create_user_service = Arc::new(CreateUserUseCase::new(db.clone()));
+    }
 
     provider
 }
