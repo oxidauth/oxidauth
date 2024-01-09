@@ -1,5 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Serialize, Deserialize)]
@@ -20,18 +20,8 @@ where
 
 impl<P> Response<P>
 where
-    P: Serialize + DeserializeOwned,
+    P: Serialize,
 {
-    // pub fn new(success: bool) -> Self {
-    //     Self {
-    //         success,
-    //         payload: None,
-    //         errors: None,
-    //         warnings: None,
-    //         notices: None,
-    //     }
-    // }
-
     pub fn success() -> Self {
         Self {
             success: true,
@@ -58,8 +48,8 @@ where
         self
     }
 
-    pub fn error(mut self, err: impl TryInto<Value>) -> Self {
-        let Ok(err) = err.try_into() else {
+    pub fn error(mut self, err: impl Serialize) -> Self {
+        let Ok(err) = serde_json::to_value(err) else {
             return Response::fail()
                 .error("unable to serialize error to value");
         };
@@ -76,40 +66,41 @@ where
         self
     }
 
-    // pub fn warning(mut self, err: impl TryInto<Value>) -> Self {
-    //     let Ok(err) = err.try_into() else {
-    //         return Response::fail().error("unable to serialize to value");
-    //     };
-    //
-    //     if self.warnings.is_none() {
-    //         self.warnings = Some(vec![err]);
-    //     } else {
-    //         self.warnings.as_mut().unwrap().push(err);
-    //     }
-    //
-    //     self
-    // }
-
-    pub fn notice(mut self, err: impl TryInto<Value>) -> Self {
-        let Ok(err) = err.try_into() else {
-            return Response::fail().error("unable to serialize to value");
+    pub fn warning(mut self, warning: impl Serialize) -> Self {
+        let Ok(warning) = serde_json::to_value(warning) else {
+            return Response::fail()
+                .error("unable to serialize warning to value");
         };
 
-        if self.notices.is_none() {
-            self.notices = Some(vec![err]);
+        if self.warnings.is_none() {
+            self.warnings = Some(vec![warning]);
         } else {
-            self.notices
+            self.warnings
                 .as_mut()
                 .unwrap()
-                .push(err);
+                .push(warning);
         }
 
         self
     }
 
-    // pub fn to_json(self) -> impl IntoResponse {
-    //     Json(self)
-    // }
+    pub fn notice(mut self, notice: impl Serialize) -> Self {
+        let Ok(notice) = serde_json::to_value(notice) else {
+            return Response::fail()
+                .error("unable to serialize notice to value");
+        };
+
+        if self.notices.is_none() {
+            self.notices = Some(vec![notice]);
+        } else {
+            self.notices
+                .as_mut()
+                .unwrap()
+                .push(notice);
+        }
+
+        self
+    }
 }
 
 impl<P> IntoResponse for Response<P>
