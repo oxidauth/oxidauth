@@ -1,5 +1,5 @@
 [package]
-name = "oxidauth-services"
+name = "oxidauth-usecases"
 version = "0.1.0"
 edition = "2021"
 
