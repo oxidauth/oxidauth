@@ -46,6 +46,7 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::users::create_user::CreateUserService;
 
         let create_user_service = Arc::new(CreateUserUseCase::new(db.clone()));
+        provider.store::<CreateUserService>(create_user_service);
     }
 
     provider

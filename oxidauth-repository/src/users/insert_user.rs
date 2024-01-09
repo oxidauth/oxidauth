@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use std::error::Error;
+use std::sync::Arc;
 
-use oxidauth_kernel::{users::create_user::CreateUser, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, users::create_user::CreateUser};
 pub use oxidauth_kernel::{service::Service, users::User};
 
 pub use crate::prelude::*;
@@ -13,12 +13,15 @@ pub use crate::prelude::*;
 //         Error = BoxedError,
 //     >,
 // >;
-pub type InsertUserQuery =
-    dyn for<'a> Service<
-        &'a CreateUser,
-        Response = User,
-        Error = BoxedError,
-    >;
+pub trait InsertUserQuery:
+    for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
+{
+}
+
+impl<T> InsertUserQuery for T where
+    T: for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
+{
+}
 
 #[derive(Debug)]
 pub struct InsertUserError {
