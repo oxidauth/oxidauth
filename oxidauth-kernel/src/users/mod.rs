@@ -1,5 +1,6 @@
-pub mod find_user_by_id;
 pub mod create_user;
+pub mod find_user_by_id;
+pub mod find_user_by_username;
 #[deprecated]
 pub mod user_create;
 

@@ -1,25 +1,27 @@
-use oxidauth_repository::users::query_user_by_username::*;
+use oxidauth_repository::users::select_user_by_username_query::*;
 
 use crate::prelude::*;
 
 use super::UserRow;
 
 #[async_trait]
-impl QueryUserByUsername for Database {
-    async fn query_user_by_username(
+impl Service<String> for Database {
+    type Response = User;
+    type Error = BoxedError;
+
+    #[tracing::instrument(name = "select_user_by_id_query", skip(self))]
+    async fn call(
         &self,
         username: String,
-    ) -> Result<User, QueryUserByUsernameError> {
-        let result =
-            sqlx::query_as::<_, UserRow>(include_str!("./query_user_by_username.sql"))
-                .bind(username)
-                .fetch_one(&self.pool)
-                .await
-                .map_err(|_| QueryUserByUsernameError {})?;
+    ) -> Result<Self::Response, Self::Error> {
+        let result = sqlx::query_as::<_, UserRow>(include_str!(
+            "./select_user_by_username_query.sql"
+        ))
+        .bind(username)
+        .fetch_one(&self.pool)
+        .await?;
 
-        let user = result
-            .try_into()
-            .map_err(|_| QueryUserByUsernameError {})?;
+        let user = result.try_into()?;
 
         Ok(user)
     }
@@ -38,13 +40,12 @@ mod tests {
         // let db = Database { pool };
         //
         // let user_id = Uuid::new_v4();
-        // let username = "Test".to_string();
         //
         // let insert_params = InsertUserParams {
         //     id: Some(user_id),
         //     kind: Some("Test".to_string()),
         //     status: Some("Test".to_string()),
-        //     username: username,
+        //     username: "Test".to_string(),
         //     email: Some("test@test.com".to_string()),
         //     first_name: Some("TestFirst".to_string()),
         //     last_name: Some("TestLast".to_string()),
@@ -55,12 +56,13 @@ mod tests {
         //     .await
         //     .expect("should be able to insert user");
         //
-        // match db.query_user_by_username(username).await {
+        // match db.query_user_by_id(user_id).await {
         //     Ok(user) => {
         //         assert_eq!(user_id, user.id);
         //         assert_eq!(insert_params.last_name, user.last_name);
         //         assert_eq!(insert_params.kind, user.kind);
         //         assert_eq!(insert_params.email, user.email);
+        //         assert_eq!(insert_params.username, user.username);
         //     }
         //     Err(_) => unreachable!(),
         // }
