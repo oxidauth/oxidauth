@@ -1,22 +1,15 @@
-use crate::prelude::*;
+use oxidauth_kernel::error::BoxedError;
+pub use oxidauth_kernel::{service::Service, permissions::Permission};
 
-pub use super::PermissionRow;
+pub use crate::prelude::*;
 
-#[async_trait]
-pub trait InsertPermission: Send + Sync + 'static {
-    async fn insert_permission(
-        &self,
-        params: &InsertPermissionParams,
-    ) -> Result<PermissionRow, InsertPermissionError>;
+pub trait InsertPermissionQuery:
+    for<'a> Service<&'a str, Response = Permission, Error = BoxedError>
+{
 }
 
-#[derive(Debug)]
-pub struct InsertPermissionParams {
-    pub id: Option<Uuid>,
-    pub realm: String,
-    pub resource: String,
-    pub action: String,
+impl<T> InsertPermissionQuery for T where
+    T: for<'a> Service<&'a str, Response = Permission, Error = BoxedError>
+{
 }
 
-#[derive(Debug)]
-pub struct InsertPermissionError {}

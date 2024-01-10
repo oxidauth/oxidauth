@@ -61,5 +61,13 @@ pub async fn setup() -> Provider {
         provider.store::<FindUserByIdService>(find_user_by_id_service);
     }
 
+    {
+        use oxidauth_usecases::permissions::create_permission::CreatePermissionUseCase;
+        use oxidauth_kernel::permissions::create_permission::CreatePermissionService;
+
+        let create_permission_service = Arc::new(CreatePermissionUseCase::new(db.clone()));
+        provider.store::<CreatePermissionService>(create_permission_service);
+    }
+
     provider
 }

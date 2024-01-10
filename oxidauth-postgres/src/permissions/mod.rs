@@ -6,6 +6,7 @@ pub mod query_permission_by_parts;
 pub mod query_permissions_by_realm;
 pub mod update_permission;
 
+use oxidauth_kernel::permissions::Permission;
 use oxidauth_repository::permissions::PermissionRow as RepoPermissionRow;
 
 use crate::prelude::*;
@@ -32,3 +33,14 @@ impl From<PermissionRow> for RepoPermissionRow {
         }
     }
 }
+
+impl Into<Permission> for PermissionRow {
+    fn into(self) -> Permission {
+        Permission {
+            realm: self.realm,
+            resource: self.resource,
+            action: self.action,
+        }
+    }
+}
+
