@@ -42,11 +42,23 @@ pub async fn setup() -> Provider {
         .unwrap();
 
     {
-        use oxidauth_usecases::users::create_user::CreateUserUseCase;
         use oxidauth_kernel::users::create_user::CreateUserService;
+        use oxidauth_usecases::users::create_user::CreateUserUseCase;
 
-        let create_user_service = Arc::new(CreateUserUseCase::new(db.clone()));
+        let create_user_service = Arc::new(CreateUserUseCase::new(
+            db.clone(),
+        ));
         provider.store::<CreateUserService>(create_user_service);
+    }
+
+    {
+        use oxidauth_kernel::users::find_user_by_id::FindUserByIdService;
+        use oxidauth_usecases::users::find_user_by_id::FindUserByIdUseCase;
+
+        let find_user_by_id_service = Arc::new(FindUserByIdUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<FindUserByIdService>(find_user_by_id_service);
     }
 
     provider

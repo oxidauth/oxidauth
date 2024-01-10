@@ -1,21 +1,24 @@
-use oxidauth_repository::users::query_user_by_id::*;
+use oxidauth_repository::users::select_user_by_id_query::*;
 
 use crate::prelude::*;
 
 use super::UserRow;
 
 #[async_trait]
-impl QueryUserById for Database {
-    async fn query_user_by_id(&self, id: Uuid) -> Result<User, QueryUserByIdError> {
-        let result = sqlx::query_as::<_, UserRow>(include_str!("./query_user_by_id.sql"))
-            .bind(id)
-            .fetch_one(&self.pool)
-            .await
-            .map_err(|_| QueryUserByIdError {})?;
+impl Service<Uuid> for Database {
+    type Response = User;
+    type Error = BoxedError;
 
-        let user = result
-            .try_into()
-            .map_err(|_| QueryUserByIdError {})?;
+    #[tracing::instrument(name = "select_user_by_id_query", skip(self))]
+    async fn call(&self, user_id: Uuid) -> Result<Self::Response, Self::Error> {
+        let result = sqlx::query_as::<_, UserRow>(include_str!(
+            "./select_user_by_id_query.sql"
+        ))
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        let user = result.try_into()?;
 
         Ok(user)
     }

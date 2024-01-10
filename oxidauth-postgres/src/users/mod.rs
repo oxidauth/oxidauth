@@ -7,8 +7,8 @@ use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
 
 pub mod insert_user;
 pub mod query_user_by_email;
-pub mod query_user_by_id;
 pub mod query_user_by_username;
+pub mod select_user_by_id_query;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct UserRow {
@@ -84,4 +84,3 @@ impl From<ParseUserStatusErr> for TryFromUserRowError {
         TryFromUserRowError::ParseUserStatusErr(err)
     }
 }
-
