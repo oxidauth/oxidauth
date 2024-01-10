@@ -1,15 +1,29 @@
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
+use std::sync::Arc;
+use uuid::Uuid;
 
-pub mod create_permission;
+use crate::error::BoxedError;
+pub use crate::service::Service;
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Permission {
+pub use super::Permission;
+
+pub type CreatePermissionService = Arc<
+    dyn for<'a> Service<
+        &'a str,
+        Response = Permission,
+        Error = BoxedError,
+    >,
+>;
+
+#[derive(Debug, Deserialize)]
+pub struct CreatePermission {
+    pub id: Option<Uuid>,
     pub realm: String,
     pub resource: String,
     pub action: String,
 }
 
-impl<'a> TryFrom<&'a str> for Permission {
+impl<'a> TryFrom<&'a str> for CreatePermission {
     type Error = String;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
@@ -31,7 +45,8 @@ impl<'a> TryFrom<&'a str> for Permission {
             }
         }
 
-        Ok(Permission {
+        Ok(CreatePermission {
+            id: None,
             realm: parts[0].to_owned(),
             resource: parts[1].to_owned(),
             action: parts[2].to_owned(),
@@ -39,7 +54,7 @@ impl<'a> TryFrom<&'a str> for Permission {
     }
 }
 
-impl<'a> TryFrom<&'a String> for Permission {
+impl<'a> TryFrom<&'a String> for CreatePermission {
     type Error = String;
 
     fn try_from(value: &'a String) -> Result<Self, Self::Error> {
@@ -49,7 +64,7 @@ impl<'a> TryFrom<&'a String> for Permission {
     }
 }
 
-impl TryFrom<String> for Permission {
+impl TryFrom<String> for CreatePermission {
     type Error = String;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
