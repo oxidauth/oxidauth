@@ -6,5 +6,5 @@ use crate::provider::Provider;
 
 pub fn router() -> Router<Provider> {
     Router::new()
-        .route("/", post(create_permission::handle))
+        .route("/:permission", post(create_permission::handle))
 }

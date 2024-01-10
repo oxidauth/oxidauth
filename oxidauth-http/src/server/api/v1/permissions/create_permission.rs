@@ -1,4 +1,4 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{extract::{Path, State}, response::IntoResponse};
 use oxidauth_kernel::permissions::create_permission::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use serde::{Deserialize, Serialize};
@@ -20,7 +20,7 @@ pub struct CreatePermissionRes {
 #[tracing::instrument(name = "create_permission_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
-    Json(params): Json<CreatePermissionReq>,
+    Path(params): Path<CreatePermissionReq>,
 ) -> impl IntoResponse {
     let service = provider.fetch::<CreatePermissionService>();
 
