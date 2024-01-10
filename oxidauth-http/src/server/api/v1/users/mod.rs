@@ -1,5 +1,6 @@
 pub mod create_user;
 pub mod find_user_by_id;
+pub mod find_user_by_username;
 
 use axum::{
     routing::{get, post},
@@ -14,5 +15,9 @@ pub fn router() -> Router<Provider> {
         .route(
             "/:user_id",
             get(find_user_by_id::handle),
+        )
+        .route(
+            "/by_username/:username",
+            get(find_user_by_username::handle),
         )
 }
