@@ -5,13 +5,14 @@ use crate::Database;
 use oxidauth_kernel::{users::{create_user::CreateUser, UserKind, UserStatus}, error::BoxedError};
 use oxidauth_repository::users::insert_user::*;
 
-use super::{TryFromUserRowError, UserRow};
+use super::UserRow;
 
 #[async_trait]
 impl<'a> Service<&'a CreateUser> for Database {
     type Response = User;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "insert_user_query", skip(self))]
     async fn call(
         &self,
         params: &'a CreateUser,
