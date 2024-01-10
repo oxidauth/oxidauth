@@ -22,9 +22,10 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum UserKind {
+    #[default]
     Human,
     Api,
 }
@@ -76,9 +77,10 @@ impl fmt::Display for ParseUserKindErr {
 
 impl std::error::Error for ParseUserKindErr {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum UserStatus {
+    #[default]
     Enabled,
     Disabled,
 }

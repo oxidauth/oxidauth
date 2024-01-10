@@ -2,7 +2,7 @@ use serde_json::Map;
 
 use crate::Database;
 
-use oxidauth_kernel::{users::create_user::CreateUser, error::BoxedError};
+use oxidauth_kernel::{users::{create_user::CreateUser, UserKind, UserStatus}, error::BoxedError};
 use oxidauth_repository::users::insert_user::*;
 
 use super::{TryFromUserRowError, UserRow};
@@ -16,14 +16,14 @@ impl<'a> Service<&'a CreateUser> for Database {
         &self,
         params: &'a CreateUser,
     ) -> Result<Self::Response, Self::Error> {
-        let kind: Option<&str> = params
-            .kind
-            .as_ref()
-            .map(|v| v.into());
-        let status: Option<&str> = params
-            .status
-            .as_ref()
-            .map(|v| v.into());
+        let kind: &str = match &params.kind {
+            Some(kind) => kind.into(),
+            None => (&UserKind::default()).into(),
+        };
+        let status: &str = match &params.status {
+            Some(status) => status.into(),
+            None => (&UserStatus::default()).into(),
+        };
 
         let map = &Value::Object(Map::new());
         let profile = params
