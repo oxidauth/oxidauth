@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use uuid::Uuid;
 
 use oxidauth_kernel::{
     error::BoxedError, service::Service, users::find_user_by_username::*,
@@ -23,7 +22,7 @@ where
 }
 
 #[async_trait]
-impl<T> Service<String> for FindUserByUsernameUseCase<T>
+impl<T> Service<FindUserByUsername> for FindUserByUsernameUseCase<T>
 where
     T: SelectUserByUsernameQuery,
 {
@@ -31,7 +30,12 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "find_user_by_username_usecase", skip(self))]
-    async fn call(&self, req: String) -> Result<Self::Response, Self::Error> {
-        self.users.call(req).await
+    async fn call(
+        &self,
+        req: FindUserByUsername,
+    ) -> Result<Self::Response, Self::Error> {
+        self.users
+            .call(req.username)
+            .await
     }
 }
