@@ -99,5 +99,13 @@ pub async fn setup() -> Provider {
         provider.store::<FindPermissionByPartsService>(find_permission_by_parts_service);
     }
 
+    {
+        use oxidauth_usecases::permissions::list_all_permissions::ListAllPermissionsUseCase;
+        use oxidauth_kernel::permissions::list_all_permissions::ListAllPermissionsService;
+
+        let list_all_permissions_service = Arc::new(ListAllPermissionsUseCase::new(db.clone()));
+        provider.store::<ListAllPermissionsService>(list_all_permissions_service);
+    }
+
     provider
 }
