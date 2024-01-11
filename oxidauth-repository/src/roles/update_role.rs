@@ -1,20 +1,14 @@
-use crate::prelude::*;
+use oxidauth_kernel::roles::update_role::UpdateRole;
+pub use oxidauth_kernel::{service::Service, roles::Role};
 
-pub use super::RoleRow;
+pub use crate::prelude::*;
 
-#[async_trait]
-pub trait UpdateRole: Send + Sync + 'static {
-    async fn update_role(
-        &self,
-        update_role: &UpdateRoleParams,
-    ) -> Result<RoleRow, UpdateRoleError>;
+pub trait UpdateRoleQuery:
+    for<'a> Service<&'a UpdateRole, Response = Role, Error = BoxedError>
+{
 }
 
-#[derive(Debug)]
-pub struct UpdateRoleParams {
-    pub id: Uuid,
-    pub name: String,
+impl<T> UpdateRoleQuery for T where
+    T: for<'a> Service<&'a UpdateRole, Response = Role, Error = BoxedError>
+{
 }
-
-#[derive(Debug)]
-pub struct UpdateRoleError {}
