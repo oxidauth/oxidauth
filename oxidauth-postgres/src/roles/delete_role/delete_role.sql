@@ -1,0 +1,4 @@
+DELETE FROM roles
+WHERE id = $1
+RETURNING *
+

@@ -181,5 +181,15 @@ pub async fn setup() -> Provider {
         provider.store::<UpdateRoleService>(update_role_service);
     }
 
+    {
+        use oxidauth_kernel::roles::delete_role::DeleteRoleService;
+        use oxidauth_usecases::roles::delete_role::DeleteRoleUseCase;
+
+        let delete_role_service = Arc::new(DeleteRoleUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<DeleteRoleService>(delete_role_service);
+    }
+
     provider
 }
