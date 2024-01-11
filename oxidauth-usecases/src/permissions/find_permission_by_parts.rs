@@ -27,7 +27,7 @@ where
     type Response = Permission;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "find_permission_usecase", skip(self))]
+    #[tracing::instrument(name = "find_permission_by_parts_usecase", skip(self))]
     async fn call(&self, req: &'a FindPermissionByParts) -> Result<Self::Response, Self::Error> {
         self.permissions
             .call(req)
