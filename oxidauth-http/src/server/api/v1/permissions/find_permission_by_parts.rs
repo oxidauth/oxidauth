@@ -38,7 +38,7 @@ pub async fn handle(
         },
         Err(err) => {
             info!(
-                message = "failed to create permission",
+                message = "failed to find permission by parts",
                 err = ?err,
             );
 
