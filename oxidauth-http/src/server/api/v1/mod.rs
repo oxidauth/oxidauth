@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod permissions;
 pub mod users;
+pub mod roles;
 
 use axum::Router;
 
@@ -11,4 +12,5 @@ pub fn router() -> Router<Provider> {
         .nest("/auth", auth::router())
         .nest("/users", users::router())
         .nest("/permissions", permissions::router())
+        .nest("/roles", roles::router())
 }

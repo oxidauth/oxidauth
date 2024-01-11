@@ -12,7 +12,7 @@ impl<'a> Service<&'a CreatePermission> for Database {
     type Response = Permission;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "insert_user_query", skip(self))]
+    #[tracing::instrument(name = "insert_permission_query", skip(self))]
     async fn call(
         &self,
         params: &'a CreatePermission,
