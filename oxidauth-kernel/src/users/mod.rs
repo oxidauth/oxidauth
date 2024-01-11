@@ -116,7 +116,7 @@ impl FromStr for UserStatus {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Username(pub String);
 
 #[derive(Debug)]
