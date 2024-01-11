@@ -1,15 +1,15 @@
-use oxidauth_kernel::error::BoxedError;
+use oxidauth_kernel::permissions::create_permission::CreatePermission;
 pub use oxidauth_kernel::{service::Service, permissions::Permission};
 
 pub use crate::prelude::*;
 
 pub trait InsertPermissionQuery:
-    for<'a> Service<&'a str, Response = Permission, Error = BoxedError>
+    for<'a> Service<&'a CreatePermission, Response = Permission, Error = BoxedError>
 {
 }
 
 impl<T> InsertPermissionQuery for T where
-    T: for<'a> Service<&'a str, Response = Permission, Error = BoxedError>
+    T: for<'a> Service<&'a CreatePermission, Response = Permission, Error = BoxedError>
 {
 }
 

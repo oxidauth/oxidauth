@@ -1,4 +1,6 @@
-use oxidauth_kernel::{error::BoxedError, permissions::create_permission::CreatePermission};
+use oxidauth_kernel::{
+    error::BoxedError, permissions::create_permission::CreatePermission,
+};
 use oxidauth_repository::permissions::insert_permission::*;
 
 use crate::prelude::*;
@@ -6,21 +8,25 @@ use crate::prelude::*;
 use super::PermissionRow;
 
 #[async_trait]
-impl<'a> Service<&'a str> for Database {
+impl<'a> Service<&'a CreatePermission> for Database {
     type Response = Permission;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "insert_user_query", skip(self))]
-    async fn call(&self, params: &'a str) -> Result<Permission, BoxedError> {
-        let params: CreatePermission = params.try_into()?;
+    async fn call(
+        &self,
+        params: &'a CreatePermission,
+    ) -> Result<Permission, BoxedError> {
+        let perm_string = &params.permission;
+        let permission: Permission = perm_string.try_into()?;
 
         let result = sqlx::query_as::<_, PermissionRow>(include_str!(
             "insert_permission.sql"
         ))
-        .bind(&params.id)
-        .bind(&params.realm)
-        .bind(&params.resource)
-        .bind(&params.action)
+        .bind(None::<Uuid>)
+        .bind(&permission.realm)
+        .bind(&permission.resource)
+        .bind(&permission.action)
         .fetch_one(&self.pool)
         .await?;
 

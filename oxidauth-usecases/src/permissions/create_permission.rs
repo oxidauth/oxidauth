@@ -20,7 +20,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a str> for CreatePermissionUseCase<T>
+impl<'a, T> Service<&'a CreatePermission> for CreatePermissionUseCase<T>
 where
     T: InsertPermissionQuery,
 {
@@ -28,7 +28,7 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "create_permission_usecase", skip(self))]
-    async fn call(&self, req: &'a str) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, req: &'a CreatePermission) -> Result<Self::Response, Self::Error> {
         self.permissions
             .call(req)
             .await
