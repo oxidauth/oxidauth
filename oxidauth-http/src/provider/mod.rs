@@ -52,6 +52,16 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::users::update_user::UpdateUserService;
+        use oxidauth_usecases::users::update_user::UpdateUserUseCase;
+
+        let update_user_service = Arc::new(UpdateUserUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<UpdateUserService>(update_user_service);
+    }
+
+    {
         use oxidauth_kernel::users::find_user_by_id::FindUserByIdService;
         use oxidauth_usecases::users::find_user_by_id::FindUserByIdUseCase;
 
