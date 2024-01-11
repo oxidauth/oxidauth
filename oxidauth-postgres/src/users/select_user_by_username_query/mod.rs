@@ -5,19 +5,19 @@ use crate::prelude::*;
 use super::UserRow;
 
 #[async_trait]
-impl Service<Username> for Database {
+impl<'a> Service<&'a Username> for Database {
     type Response = User;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "select_user_by_id_query", skip(self))]
     async fn call(
         &self,
-        username: Username,
+        username: &'a Username,
     ) -> Result<Self::Response, Self::Error> {
         let result = sqlx::query_as::<_, UserRow>(include_str!(
             "./select_user_by_username_query.sql"
         ))
-        .bind(username.0)
+        .bind(&username.0)
         .fetch_one(&self.pool)
         .await?;
 

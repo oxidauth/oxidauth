@@ -23,7 +23,7 @@ where
 }
 
 #[async_trait]
-impl<T> Service<Uuid> for FindUserByIdUseCase<T>
+impl<'a, T> Service<&'a FindUserById> for FindUserByIdUseCase<T>
 where
     T: SelectUserByIdQuery,
 {
@@ -31,7 +31,10 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "find_user_by_id_usecase", skip(self))]
-    async fn call(&self, req: Uuid) -> Result<Self::Response, Self::Error> {
+    async fn call(
+        &self,
+        req: &'a FindUserById,
+    ) -> Result<Self::Response, Self::Error> {
         self.users.call(req).await
     }
 }

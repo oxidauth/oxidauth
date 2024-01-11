@@ -39,7 +39,7 @@ pub async fn handle(
     info!("provided FindUserByUsernameService");
 
     let result = service
-        .call(params.into())
+        .call(&params.into())
         .await;
 
     match result {

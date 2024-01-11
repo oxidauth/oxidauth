@@ -16,6 +16,15 @@ pub struct FindUserByIdReq {
     pub user_id: Uuid,
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<FindUserById> for FindUserByIdReq {
+    fn into(self) -> FindUserById {
+        FindUserById {
+            user_id: self.user_id,
+        }
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct FindUserByIdRes {
     pub user: User,
@@ -31,7 +40,7 @@ pub async fn handle(
     info!("provided FindUserByIdService");
 
     let result = service
-        .call(params.user_id)
+        .call(&params.into())
         .await;
 
     match result {

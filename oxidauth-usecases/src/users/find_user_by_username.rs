@@ -22,7 +22,7 @@ where
 }
 
 #[async_trait]
-impl<T> Service<FindUserByUsername> for FindUserByUsernameUseCase<T>
+impl<'a, T> Service<&'a FindUserByUsername> for FindUserByUsernameUseCase<T>
 where
     T: SelectUserByUsernameQuery,
 {
@@ -32,10 +32,10 @@ where
     #[tracing::instrument(name = "find_user_by_username_usecase", skip(self))]
     async fn call(
         &self,
-        req: FindUserByUsername,
+        req: &'a FindUserByUsername,
     ) -> Result<Self::Response, Self::Error> {
         self.users
-            .call(req.username)
+            .call(&req.username)
             .await
     }
 }
