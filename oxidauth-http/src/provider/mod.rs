@@ -72,6 +72,16 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::users::delete_user_by_id::DeleteUserByIdService;
+        use oxidauth_usecases::users::delete_user_by_id::DeleteUserByIdUseCase;
+
+        let delete_user_by_id_service = Arc::new(DeleteUserByIdUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<DeleteUserByIdService>(delete_user_by_id_service);
+    }
+
+    {
         use oxidauth_kernel::users::find_user_by_username::FindUserByUsernameService;
         use oxidauth_usecases::users::find_user_by_username::FindUserByUsernameUseCase;
 
@@ -102,19 +112,24 @@ pub async fn setup() -> Provider {
     }
 
     {
-        use oxidauth_usecases::permissions::find_permission_by_parts::FindPermissionByPartsUseCase;
         use oxidauth_kernel::permissions::find_permission_by_parts::FindPermissionByPartsService;
+        use oxidauth_usecases::permissions::find_permission_by_parts::FindPermissionByPartsUseCase;
 
-        let find_permission_by_parts_service = Arc::new(FindPermissionByPartsUseCase::new(db.clone()));
-        provider.store::<FindPermissionByPartsService>(find_permission_by_parts_service);
+        let find_permission_by_parts_service =
+            Arc::new(FindPermissionByPartsUseCase::new(db.clone()));
+        provider.store::<FindPermissionByPartsService>(
+            find_permission_by_parts_service,
+        );
     }
 
     {
-        use oxidauth_usecases::permissions::list_all_permissions::ListAllPermissionsUseCase;
         use oxidauth_kernel::permissions::list_all_permissions::ListAllPermissionsService;
+        use oxidauth_usecases::permissions::list_all_permissions::ListAllPermissionsUseCase;
 
-        let list_all_permissions_service = Arc::new(ListAllPermissionsUseCase::new(db.clone()));
-        provider.store::<ListAllPermissionsService>(list_all_permissions_service);
+        let list_all_permissions_service =
+            Arc::new(ListAllPermissionsUseCase::new(db.clone()));
+        provider
+            .store::<ListAllPermissionsService>(list_all_permissions_service);
     }
 
     {

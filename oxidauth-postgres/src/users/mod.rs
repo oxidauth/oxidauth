@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
 
+pub mod delete_user_by_id_query;
 pub mod insert_user;
 pub mod query_user_by_email;
 pub mod select_all_users_query;
