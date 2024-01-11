@@ -140,5 +140,16 @@ pub async fn setup() -> Provider {
         provider.store::<DeletePermissionService>(delete_permission_service);
     }
 
+    {
+        use oxidauth_kernel::roles::create_role::CreateRoleService;
+        use oxidauth_usecases::roles::create_role::CreateRoleUseCase;
+
+        let create_role_service = Arc::new(CreateRoleUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<CreateRoleService>(create_role_service);
+    }
+
+
     provider
 }

@@ -3,6 +3,7 @@ pub mod insert_role;
 pub mod query_role_by_id;
 pub mod update_role;
 
+use oxidauth_kernel::roles::Role;
 use oxidauth_repository::roles::RoleRow as RepoRoleRow;
 
 use crate::prelude::*;
@@ -13,6 +14,15 @@ pub struct RoleRow {
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl Into<Role> for RoleRow {
+    fn into(self) -> Role {
+        Role {
+            id: self.id,
+            name: self.name,
+        }
+    }
 }
 
 impl From<RoleRow> for RepoRoleRow {

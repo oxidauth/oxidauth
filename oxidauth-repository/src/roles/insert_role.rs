@@ -1,20 +1,14 @@
-use crate::prelude::*;
+use oxidauth_kernel::roles::create_role::CreateRole;
+pub use oxidauth_kernel::{service::Service, roles::Role};
 
-pub use super::RoleRow;
+pub use crate::prelude::*;
 
-#[async_trait]
-pub trait InsertRole: Send + Sync + 'static {
-    async fn insert_role(
-        &self,
-        insert_role: &InsertRoleParams,
-    ) -> Result<RoleRow, InsertRoleError>;
+pub trait InsertRoleQuery:
+    for<'a> Service<&'a CreateRole, Response = Role, Error = BoxedError>
+{
 }
 
-#[derive(Debug)]
-pub struct InsertRoleParams {
-    pub id: Option<Uuid>,
-    pub name: String,
+impl<T> InsertRoleQuery for T where
+    T: for<'a> Service<&'a CreateRole, Response = Role, Error = BoxedError>
+{
 }
-
-#[derive(Debug)]
-pub struct InsertRoleError {}
