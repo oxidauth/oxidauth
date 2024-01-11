@@ -14,7 +14,7 @@ pub struct FindPermissionByPartsRes {
     pub permission: Permission,
 }
 
-#[tracing::instrument(name = "create_permission_handler", skip(provider))]
+#[tracing::instrument(name = "find_permission_by_parts_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<FindPermissionByPartsReq>,
