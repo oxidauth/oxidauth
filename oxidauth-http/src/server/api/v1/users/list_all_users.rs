@@ -41,7 +41,7 @@ pub async fn handle(
     match result {
         Ok(users) => {
             info!(
-                message = "successfully found user by id",
+                message = "successfully listing all users",
                 users = ?users,
             );
 
@@ -49,7 +49,7 @@ pub async fn handle(
         },
         Err(err) => {
             info!(
-                message = "failed to find user by id",
+                message = "failed to list all users",
                 err = ?err,
             );
 
