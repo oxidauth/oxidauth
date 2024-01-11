@@ -150,6 +150,16 @@ pub async fn setup() -> Provider {
         provider.store::<CreateRoleService>(create_role_service);
     }
 
+    {
+        use oxidauth_kernel::roles::find_role_by_id::FindRoleByIdService;
+        use oxidauth_usecases::roles::find_role_by_id::FindRoleByIdUseCase;
+
+        let find_role_by_id_service =
+            Arc::new(FindRoleByIdUseCase::new(db.clone()));
+        provider.store::<FindRoleByIdService>(
+            find_role_by_id_service,
+        );
+    }
 
     provider
 }
