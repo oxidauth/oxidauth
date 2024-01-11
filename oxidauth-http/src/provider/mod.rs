@@ -107,5 +107,13 @@ pub async fn setup() -> Provider {
         provider.store::<ListAllPermissionsService>(list_all_permissions_service);
     }
 
+    {
+        use oxidauth_usecases::permissions::delete_permission::DeletePermissionUseCase;
+        use oxidauth_kernel::permissions::delete_permission::DeletePermissionService;
+
+        let delete_permission_service = Arc::new(DeletePermissionUseCase::new(db.clone()));
+        provider.store::<DeletePermissionService>(delete_permission_service);
+    }
+
     provider
 }
