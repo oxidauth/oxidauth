@@ -6,16 +6,16 @@ pub use crate::service::Service;
 
 pub use super::Permission;
 
-pub type CreatePermissionService = Arc<
+pub type FindPermissionByPartsService = Arc<
     dyn for<'a> Service<
-        &'a CreatePermission,
+        &'a FindPermissionByParts,
         Response = Permission,
         Error = BoxedError,
     >,
 >;
 
 #[derive(Debug, Deserialize)]
-pub struct CreatePermission {
+pub struct FindPermissionByParts {
     pub permission: String,
 }
 
