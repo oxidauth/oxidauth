@@ -1,11 +1,12 @@
 pub mod create_user;
+pub mod delete_user_by_id;
 pub mod find_user_by_id;
 pub mod find_user_by_username;
 pub mod list_all_users;
 pub mod update_user;
 
 use axum::{
-    routing::{get, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 
@@ -25,6 +26,10 @@ pub fn router() -> Router<Provider> {
         .route(
             "/:user_id",
             put(update_user::handle),
+        )
+        .route(
+            "/:user_id",
+            delete(delete_user_by_id::handle),
         )
         .route(
             "/by_username/:username",
