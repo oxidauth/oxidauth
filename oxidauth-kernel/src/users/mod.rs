@@ -117,6 +117,9 @@ impl FromStr for UserStatus {
 }
 
 #[derive(Debug)]
+pub struct Username(pub String);
+
+#[derive(Debug)]
 pub struct ParseUserStatusErr {
     unknown: String,
 }

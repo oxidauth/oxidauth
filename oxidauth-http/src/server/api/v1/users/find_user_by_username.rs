@@ -2,8 +2,8 @@ use axum::{
     extract::{Path, State},
     response::IntoResponse,
 };
-use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::find_user_by_username::*;
+use oxidauth_kernel::{error::IntoOxidAuthError, users::Username};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
@@ -13,6 +13,15 @@ use crate::response::Response;
 #[derive(Debug, Deserialize)]
 pub struct FindUserByUsernameReq {
     pub username: String,
+}
+
+#[allow(clippy::from_over_into)]
+impl Into<FindUserByUsername> for FindUserByUsernameReq {
+    fn into(self) -> FindUserByUsername {
+        FindUserByUsername {
+            username: Username(self.username),
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -30,7 +39,7 @@ pub async fn handle(
     info!("provided FindUserByUsernameService");
 
     let result = service
-        .call(params.username)
+        .call(params.into())
         .await;
 
     match result {
