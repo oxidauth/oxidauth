@@ -30,7 +30,7 @@ pub async fn handle(
     match result {
         Ok(permission) => {
             info!(
-                message = "successfully created permission",
+                message = "successfully found permission by parts",
                 permission = ?permission,
             );
 
