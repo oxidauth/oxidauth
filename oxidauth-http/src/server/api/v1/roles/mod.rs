@@ -3,6 +3,7 @@ pub mod delete_role;
 pub mod find_role_by_id;
 pub mod list_all_roles;
 pub mod update_role;
+pub mod roles;
 
 use axum::{routing::{delete, get, post}, Router};
 
@@ -15,4 +16,5 @@ pub fn router() -> Router<Provider> {
         .route("/:role_id", get(find_role_by_id::handle))
         .route("/:role_id", post(update_role::handle))
         .route("/:role_id", delete(delete_role::handle))
+        .nest("/:parent_id/roles", roles::router())
 }
