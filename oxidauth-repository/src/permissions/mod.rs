@@ -6,15 +6,3 @@ pub mod query_permissions_by_realm;
 pub mod select_all_permissions;
 pub mod select_permission_by_parts;
 pub mod update_permission;
-
-use crate::prelude::*;
-
-#[derive(Debug)]
-pub struct PermissionRow {
-    pub id: Uuid,
-    pub realm: String,
-    pub resource: String,
-    pub action: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}

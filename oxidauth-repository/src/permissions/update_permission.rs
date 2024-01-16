@@ -1,13 +1,13 @@
-use crate::prelude::*;
+pub use oxidauth_kernel::permissions::Permission;
 
-pub use super::PermissionRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait UpdatePermission: Send + Sync + 'static {
     async fn update_permission(
         &self,
         params: &UpdatePermissionParams,
-    ) -> Result<PermissionRow, UpdatePermissionError>;
+    ) -> Result<Permission, UpdatePermissionError>;
 }
 
 #[derive(Debug)]

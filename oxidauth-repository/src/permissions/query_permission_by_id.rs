@@ -1,13 +1,13 @@
-use crate::prelude::*;
+pub use oxidauth_kernel::permissions::Permission;
 
-pub use super::PermissionRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait QueryPermissionById: Send + Sync + 'static {
     async fn query_permission_by_id(
         &self,
         permission_id: Uuid,
-    ) -> Result<PermissionRow, QueryPermissionByIdError>;
+    ) -> Result<Permission, QueryPermissionByIdError>;
 }
 
 #[derive(Debug)]

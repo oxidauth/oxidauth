@@ -1,13 +1,13 @@
-use crate::prelude::*;
+pub use oxidauth_kernel::permissions::Permission;
 
-pub use super::PermissionRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait QueryPermissionsByRealm: Send + Sync + 'static {
     async fn query_permissions_by_realm(
         &self,
         realm: String,
-    ) -> Result<Vec<PermissionRow>, QueryPermissionsByRealmError>;
+    ) -> Result<Vec<Permission>, QueryPermissionsByRealmError>;
 }
 
 #[derive(Debug)]

@@ -1,11 +1,10 @@
 use oxidauth_kernel::{
-    error::BoxedError, permissions::delete_permission::DeletePermission,
+    error::BoxedError,
+    permissions::{delete_permission::DeletePermission, RawPermission},
 };
 use oxidauth_repository::permissions::delete_permission::*;
 
 use crate::prelude::*;
-
-use super::PermissionRow;
 
 #[async_trait]
 impl<'a> Service<&'a DeletePermission> for Database {
@@ -18,9 +17,9 @@ impl<'a> Service<&'a DeletePermission> for Database {
         params: &'a DeletePermission,
     ) -> Result<Permission, BoxedError> {
         let perm_string = &params.permission;
-        let permission: Permission = perm_string.try_into()?;
+        let permission: RawPermission = perm_string.try_into()?;
 
-        let result = sqlx::query_as::<_, PermissionRow>(include_str!(
+        let result = sqlx::query_as::<_, Permission>(include_str!(
             "delete_permission.sql"
         ))
         .bind(&permission.realm)

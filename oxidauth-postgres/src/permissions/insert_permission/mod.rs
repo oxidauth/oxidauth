@@ -1,11 +1,10 @@
 use oxidauth_kernel::{
-    error::BoxedError, permissions::create_permission::CreatePermission,
+    error::BoxedError,
+    permissions::{create_permission::CreatePermission, RawPermission},
 };
 use oxidauth_repository::permissions::insert_permission::*;
 
 use crate::prelude::*;
-
-use super::PermissionRow;
 
 #[async_trait]
 impl<'a> Service<&'a CreatePermission> for Database {
@@ -18,9 +17,9 @@ impl<'a> Service<&'a CreatePermission> for Database {
         params: &'a CreatePermission,
     ) -> Result<Permission, BoxedError> {
         let perm_string = &params.permission;
-        let permission: Permission = perm_string.try_into()?;
+        let permission: RawPermission = perm_string.try_into()?;
 
-        let result = sqlx::query_as::<_, PermissionRow>(include_str!(
+        let result = sqlx::query_as::<_, Permission>(include_str!(
             "insert_permission.sql"
         ))
         .bind(None::<Uuid>)
