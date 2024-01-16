@@ -1,5 +1,5 @@
 use oxidauth_kernel::permissions::delete_permission::DeletePermission;
-pub use oxidauth_kernel::{service::Service, permissions::Permission};
+pub use oxidauth_kernel::{permissions::Permission, service::Service};
 
 pub use crate::prelude::*;
 
@@ -9,6 +9,10 @@ pub trait DeletePermissionQuery:
 }
 
 impl<T> DeletePermissionQuery for T where
-    T: for<'a> Service<&'a DeletePermission, Response = Permission, Error = BoxedError>
+    T: for<'a> Service<
+        &'a DeletePermission,
+        Response = Permission,
+        Error = BoxedError,
+    >
 {
 }
