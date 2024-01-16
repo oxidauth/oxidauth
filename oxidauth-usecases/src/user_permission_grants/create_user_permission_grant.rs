@@ -20,7 +20,7 @@ where
 {
     users: U,
     permissions: P,
-    user_permissions: UP,
+    user_permission_grants: UP,
 }
 
 impl<U, P, UP> CreateUserPermissionGrantUseCase<U, P, UP>
@@ -29,11 +29,11 @@ where
     P: SelectPermissionByPartsQuery,
     UP: InsertUserPermissionGrantQuery,
 {
-    pub fn new(users: U, permissions: P, user_permissions: UP) -> Self {
+    pub fn new(users: U, permissions: P, user_permission_grants: UP) -> Self {
         Self {
             users,
             permissions,
-            user_permissions,
+            user_permission_grants,
         }
     }
 }
@@ -72,7 +72,7 @@ where
             .await?;
 
         let grant = self
-            .user_permissions
+            .user_permission_grants
             .call(&CreateUserPermissionGrant {
                 user_id: user.id,
                 permission_id: permission.id,
