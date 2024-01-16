@@ -133,11 +133,29 @@ pub async fn setup() -> Provider {
     }
 
     {
-        use oxidauth_usecases::permissions::delete_permission::DeletePermissionUseCase;
         use oxidauth_kernel::permissions::delete_permission::DeletePermissionService;
+        use oxidauth_usecases::permissions::delete_permission::DeletePermissionUseCase;
 
-        let delete_permission_service = Arc::new(DeletePermissionUseCase::new(db.clone()));
+        let delete_permission_service = Arc::new(DeletePermissionUseCase::new(
+            db.clone(),
+        ));
         provider.store::<DeletePermissionService>(delete_permission_service);
+    }
+
+    {
+        use oxidauth_kernel::user_permission_grants::create_user_permission_grant::CreateUserPermissionGrantService;
+        use oxidauth_usecases::user_permission_grants::create_user_permission_grant::CreateUserPermissionGrantUseCase;
+
+        let create_user_permission_grant_service = Arc::new(
+            CreateUserPermissionGrantUseCase::new(
+                db.clone(),
+                db.clone(),
+                db.clone(),
+            ),
+        );
+        provider.store::<CreateUserPermissionGrantService>(
+            create_user_permission_grant_service,
+        );
     }
 
     {
@@ -154,21 +172,20 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::roles::find_role_by_id::FindRoleByIdService;
         use oxidauth_usecases::roles::find_role_by_id::FindRoleByIdUseCase;
 
-        let find_role_by_id_service =
-            Arc::new(FindRoleByIdUseCase::new(db.clone()));
-        provider.store::<FindRoleByIdService>(
-            find_role_by_id_service,
-        );
+        let find_role_by_id_service = Arc::new(FindRoleByIdUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<FindRoleByIdService>(find_role_by_id_service);
     }
 
     {
         use oxidauth_kernel::roles::list_all_roles::ListAllRolesService;
         use oxidauth_usecases::roles::list_all_roles::ListAllRolesUseCase;
 
-        let list_all_roles_service =
-            Arc::new(ListAllRolesUseCase::new(db.clone()));
-        provider
-            .store::<ListAllRolesService>(list_all_roles_service);
+        let list_all_roles_service = Arc::new(ListAllRolesUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<ListAllRolesService>(list_all_roles_service);
     }
 
     {

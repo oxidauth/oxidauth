@@ -1,16 +1,19 @@
+use oxidauth_kernel::user_permission_grants::UserPermissionGrant;
 use oxidauth_repository::user_permission_grants::delete_user_permission_grant::*;
 
 use crate::prelude::*;
+
+use super::PgUserPermissionGrant;
 
 #[async_trait]
 impl DeleteUserPermissionGrant for Database {
     async fn delete_user_permission_grant(
         &self,
         params: &DeleteUserPermissionGrantParams,
-    ) -> Result<UserPermissionGrantRow, DeleteUserPermissionGrantError> {
-        let result = sqlx::query_as::<_, super::UserPermissionGrantRow>(include_str!(
-            "./delete_user_permission_grant.sql"
-        ))
+    ) -> Result<UserPermissionGrant, DeleteUserPermissionGrantError> {
+        let result = sqlx::query_as::<_, super::PgUserPermissionGrant>(
+            include_str!("./delete_user_permission_grant.sql"),
+        )
         .bind(params.user_id)
         .bind(params.permission_id)
         .fetch_one(&self.pool)
@@ -31,7 +34,9 @@ mod tests {
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_delete_a_user_permission_grant_successfully(pool: PgPool) {
+    async fn it_should_delete_a_user_permission_grant_successfully(
+        pool: PgPool,
+    ) {
         // let db = Database { pool };
         //
         // let user_id = Uuid::new_v4();

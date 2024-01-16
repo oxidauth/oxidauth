@@ -1,13 +1,13 @@
-use crate::prelude::*;
+use oxidauth_kernel::user_permission_grants::UserPermissionGrant;
 
-pub use super::UserPermissionGrantRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait DeleteUserPermissionGrant: Send + Sync + 'static {
     async fn delete_user_permission_grant(
         &self,
         params: &DeleteUserPermissionGrantParams,
-    ) -> Result<UserPermissionGrantRow, DeleteUserPermissionGrantError>;
+    ) -> Result<UserPermissionGrant, DeleteUserPermissionGrantError>;
 }
 
 #[derive(Debug)]

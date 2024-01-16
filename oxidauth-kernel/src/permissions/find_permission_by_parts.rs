@@ -18,4 +18,3 @@ pub type FindPermissionByPartsService = Arc<
 pub struct FindPermissionByParts {
     pub permission: String,
 }
-

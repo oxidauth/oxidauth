@@ -1,3 +1,5 @@
+pub mod permissions;
+
 pub mod create_user;
 pub mod delete_user_by_id;
 pub mod find_user_by_id;
@@ -34,5 +36,9 @@ pub fn router() -> Router<Provider> {
         .route(
             "/by_username/:username",
             get(find_user_by_username::handle),
+        )
+        .nest(
+            "/permissions",
+            permissions::router(),
         )
 }
