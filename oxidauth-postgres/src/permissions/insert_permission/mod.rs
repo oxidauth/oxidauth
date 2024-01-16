@@ -6,6 +6,8 @@ use oxidauth_repository::permissions::insert_permission::*;
 
 use crate::prelude::*;
 
+use super::PgPermission;
+
 #[async_trait]
 impl<'a> Service<&'a CreatePermission> for Database {
     type Response = Permission;
@@ -19,7 +21,7 @@ impl<'a> Service<&'a CreatePermission> for Database {
         let perm_string = &params.permission;
         let permission: RawPermission = perm_string.try_into()?;
 
-        let result = sqlx::query_as::<_, Permission>(include_str!(
+        let result = sqlx::query_as::<_, PgPermission>(include_str!(
             "insert_permission.sql"
         ))
         .bind(None::<Uuid>)

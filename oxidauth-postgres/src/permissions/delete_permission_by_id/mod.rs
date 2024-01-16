@@ -2,13 +2,15 @@ use oxidauth_repository::permissions::delete_permission_by_id::*;
 
 use crate::prelude::*;
 
+use super::PgPermission;
+
 #[async_trait]
 impl DeletePermissionById for Database {
     async fn delete_permission_by_id(
         &self,
         permission_id: Uuid,
     ) -> Result<Permission, DeletePermissionByIdError> {
-        let result = sqlx::query_as::<_, Permission>(include_str!(
+        let result = sqlx::query_as::<_, PgPermission>(include_str!(
             "./delete_permission_by_id.sql"
         ))
         .bind(permission_id)
