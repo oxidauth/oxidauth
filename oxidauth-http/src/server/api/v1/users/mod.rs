@@ -38,7 +38,7 @@ pub fn router() -> Router<Provider> {
             get(find_user_by_username::handle),
         )
         .nest(
-            "/permissions",
+            "/:user_id/permissions",
             permissions::router(),
         )
 }

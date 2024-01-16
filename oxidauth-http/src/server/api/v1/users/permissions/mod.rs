@@ -8,7 +8,7 @@ use axum::{
 
 pub fn router() -> Router<Provider> {
     Router::new().route(
-        "/",
+        "/:permission",
         post(create_user_permission::handle),
     )
 }
