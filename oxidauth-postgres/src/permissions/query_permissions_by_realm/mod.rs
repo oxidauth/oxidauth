@@ -2,13 +2,15 @@ use oxidauth_repository::permissions::query_permissions_by_realm::*;
 
 use crate::prelude::*;
 
+use super::PgPermission;
+
 #[async_trait]
 impl QueryPermissionsByRealm for Database {
     async fn query_permissions_by_realm(
         &self,
         realm: String,
     ) -> Result<Vec<Permission>, QueryPermissionsByRealmError> {
-        let result = sqlx::query_as::<_, Permission>(include_str!(
+        let result = sqlx::query_as::<_, PgPermission>(include_str!(
             "./query_permissions_by_realm.sql"
         ))
         .bind(realm)

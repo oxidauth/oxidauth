@@ -7,7 +7,7 @@ pub mod delete_permission;
 pub mod find_permission_by_parts;
 pub mod list_all_permissions;
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Permission {
     pub id: Uuid,
     pub realm: String,

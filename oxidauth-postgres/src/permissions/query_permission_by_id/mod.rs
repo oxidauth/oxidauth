@@ -2,13 +2,15 @@ use oxidauth_repository::permissions::query_permission_by_id::*;
 
 use crate::prelude::*;
 
+use super::PgPermission;
+
 #[async_trait]
 impl QueryPermissionById for Database {
     async fn query_permission_by_id(
         &self,
         permission_id: Uuid,
     ) -> Result<Permission, QueryPermissionByIdError> {
-        let result = sqlx::query_as::<_, Permission>(include_str!(
+        let result = sqlx::query_as::<_, PgPermission>(include_str!(
             "./query_permission_by_id.sql"
         ))
         .bind(permission_id)
