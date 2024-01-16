@@ -1,20 +1,33 @@
-use crate::prelude::*;
+use std::error::Error;
 
-pub use super::UserPermissionGrantRow;
+use oxidauth_kernel::user_permission_grants::{
+    create_user_permission_grant::CreateUserPermissionGrant,
+    UserPermissionGrant,
+};
+pub use oxidauth_kernel::{service::Service, users::User};
 
-#[async_trait]
-pub trait InsertUserPermissionGrant: Send + Sync + 'static {
-    async fn insert_user_permission_grant(
-        &self,
-        params: &InsertUserPermissionGrantParams,
-    ) -> Result<UserPermissionGrantRow, InsertUserPermissionGrantError>;
+pub use crate::prelude::*;
+
+pub trait InsertUserPermissionGrantQuery:
+    for<'a> Service<
+    &'a CreateUserPermissionGrant,
+    Response = UserPermissionGrant,
+    Error = BoxedError,
+>
+{
+}
+
+impl<T> InsertUserPermissionGrantQuery for T where
+    T: for<'a> Service<
+        &'a CreateUserPermissionGrant,
+        Response = UserPermissionGrant,
+        Error = BoxedError,
+    >
+{
 }
 
 #[derive(Debug)]
-pub struct InsertUserPermissionGrantParams {
-    pub user_id: Uuid,
-    pub permission_id: Uuid,
+pub struct InsertUserPermissionGrantError {
+    pub reason: String,
+    pub source: Box<dyn Error>,
 }
-
-#[derive(Debug)]
-pub struct InsertUserPermissionGrantError {}

@@ -1,24 +1,40 @@
+use crate::Database;
+
+use oxidauth_kernel::{
+    error::BoxedError,
+    user_permission_grants::{
+        create_user_permission_grant::CreateUserPermissionGrant,
+        UserPermissionGrant,
+    },
+};
 use oxidauth_repository::user_permission_grants::insert_user_permission_grant::*;
 
-use crate::prelude::*;
+use super::PgUserPermissionGrant;
 
 #[async_trait]
-impl InsertUserPermissionGrant for Database {
-    async fn insert_user_permission_grant(
+impl<'a> Service<&'a CreateUserPermissionGrant> for Database {
+    type Response = UserPermissionGrant;
+    type Error = BoxedError;
+
+    #[tracing::instrument(
+        name = "insert_user_permission_grant_query",
+        skip(self)
+    )]
+    async fn call(
         &self,
-        params: &InsertUserPermissionGrantParams,
-    ) -> Result<UserPermissionGrantRow, InsertUserPermissionGrantError> {
-        let result = sqlx::query_as::<_, super::UserPermissionGrantRow>(include_str!(
+        params: &'a CreateUserPermissionGrant,
+    ) -> Result<Self::Response, Self::Error> {
+        let row = sqlx::query_as::<_, PgUserPermissionGrant>(include_str!(
             "./insert_user_permission_grant.sql"
         ))
-        .bind(params.user_id)
-        .bind(params.permission_id)
+        .bind(&params.user_id)
+        .bind(&params.permission_id)
         .fetch_one(&self.pool)
-        .await
-        .map(Into::into)
-        .map_err(|_| InsertUserPermissionGrantError {})?;
+        .await?;
 
-        Ok(result)
+        let user_permission_grant = row.try_into()?;
+
+        Ok(user_permission_grant)
     }
 }
 
@@ -30,23 +46,8 @@ mod tests {
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_insert_a_user_permission_grant_successfully(pool: PgPool) {
-        // let db = Database { pool };
-        //
-        // let user_id = Uuid::new_v4();
-        // let permission_id = Uuid::new_v4();
-        //
-        // let insert_params = InsertUserRoleGrantParams {
-        //     user_id: user_id,
-        //     permission_id: permission_id,
-        // };
-        //
-        // match db.insert_user_permission_grant(&insert_params).await {
-        //     Ok(user_permission_grant) => {
-        //         assert_eq!(user_id, user_permission_grant.user_id);
-        //         assert_eq!(permission_id, user_permission_grant.permission_id);
-        //     }
-        //     Err(_) => unreachable!(),
-        // }
+    async fn it_should_be_able_to_insert_a_new_user_permission_grant(
+        pool: PgPool,
+    ) {
     }
 }
