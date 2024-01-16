@@ -1,5 +1,7 @@
-use axum::extract::Path;
-use axum::{extract::State, response::IntoResponse};
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_permission_grants::create_user_permission_grant::*;
 use serde::{Deserialize, Serialize};
@@ -27,7 +29,7 @@ pub async fn handle(
 ) -> impl IntoResponse {
     let service = provider.fetch::<CreateUserPermissionGrantService>();
 
-    info!("provided CreateUserPermissionService");
+    info!("provided CreateUserPermissionGrantService");
 
     let result = service
         .call(&CreateUserPermission {
