@@ -1,3 +1,5 @@
+use oxidauth_kernel::user_role_grants::UserRoleGrant;
+
 use crate::prelude::*;
 
 pub use super::UserRoleGrantRow;
@@ -7,7 +9,7 @@ pub trait DeleteUserRoleGrant: Send + Sync + 'static {
     async fn delete_user_role_grant(
         &self,
         params: &DeleteUserRoleGrantParams,
-    ) -> Result<UserRoleGrantRow, DeleteUserRoleGrantError>;
+    ) -> Result<UserRoleGrant, DeleteUserRoleGrantError>;
 }
 
 #[derive(Debug)]

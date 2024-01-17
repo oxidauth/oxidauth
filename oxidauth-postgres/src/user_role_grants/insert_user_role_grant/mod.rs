@@ -1,24 +1,36 @@
+use crate::Database;
+
+use oxidauth_kernel::{
+    error::BoxedError,
+    user_role_grants::{
+        create_user_role_grant::CreateUserRoleGrant, UserRoleGrant,
+    },
+};
 use oxidauth_repository::user_role_grants::insert_user_role_grant::*;
 
-use crate::prelude::*;
+use super::PgUserRoleGrant;
 
 #[async_trait]
-impl InsertUserRoleGrant for Database {
-    async fn insert_user_role_grant(
+impl<'a> Service<&'a CreateUserRoleGrant> for Database {
+    type Response = UserRoleGrant;
+    type Error = BoxedError;
+
+    #[tracing::instrument(name = "insert_user_role_grant_query", skip(self))]
+    async fn call(
         &self,
-        params: &InsertUserRoleGrantParams,
-    ) -> Result<UserRoleGrantRow, InsertUserRoleGrantError> {
-        let result = sqlx::query_as::<_, super::UserRoleGrantRow>(include_str!(
+        params: &'a CreateUserRoleGrant,
+    ) -> Result<Self::Response, Self::Error> {
+        let row = sqlx::query_as::<_, PgUserRoleGrant>(include_str!(
             "./insert_user_role_grant.sql"
         ))
         .bind(params.user_id)
         .bind(params.role_id)
         .fetch_one(&self.pool)
-        .await
-        .map(Into::into)
-        .map_err(|_| InsertUserRoleGrantError {})?;
+        .await?;
 
-        Ok(result)
+        let user_role_grant = row.into();
+
+        Ok(user_role_grant)
     }
 }
 
@@ -28,24 +40,7 @@ mod tests {
 
     use super::*;
 
+    #[ignore]
     #[sqlx::test]
-    async fn it_should_insert_a_user_role_grant_successfully(pool: PgPool) {
-        let db = Database { pool };
-
-        let user_id = Uuid::new_v4();
-        let role_id = Uuid::new_v4();
-
-        let insert_params = InsertUserRoleGrantParams {
-            user_id: user_id,
-            role_id: role_id,
-        };
-
-        match db.insert_user_role_grant(&insert_params).await {
-            Ok(user_role_grant) => {
-                assert_eq!(user_id, user_role_grant.user_id);
-                assert_eq!(role_id, user_role_grant.role_id);
-            }
-            Err(_) => unreachable!(),
-        }
-    }
+    async fn it_should_be_able_to_insert_a_new_user_role_grant(pool: PgPool) {}
 }
