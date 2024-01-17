@@ -250,6 +250,17 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::user_role_grants::list_user_role_grants_by_user_id::ListUserRoleGrantsByUserIdService;
+        use oxidauth_usecases::user_role_grants::list_user_role_grants_by_user_id::ListUserRoleGrantsByUserIdUseCase;
+
+        let list_user_role_grants_by_user_id_service =
+            Arc::new(ListUserRoleGrantsByUserIdUseCase::new(db.clone()));
+        provider.store::<ListUserRoleGrantsByUserIdService>(
+            list_user_role_grants_by_user_id_service,
+        );
+    }
+
+    {
         use oxidauth_kernel::role_role_grants::create_role_role_grant::CreateRoleRoleGrantService;
         use oxidauth_usecases::role_role_grants::create_role_role_grant::CreateRoleRoleGrantUseCase;
 
