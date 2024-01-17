@@ -7,7 +7,7 @@ impl DeleteRolePermissionGrant for Database {
     async fn delete_role_permission_grant(
         &self,
         params: &DeleteRolePermissionGrantParams,
-    ) -> Result<RolePermissionGrantRow, DeleteRolePermissionGrantError> {
+    ) -> Result<RolePermissionGrant, DeleteRolePermissionGrantError> {
         todo!()
         // let result = sqlx::query_as::<_, super::PgRolePermissionGrant>(include_str!(
         //     "./delete_role_permission_grant.sql"
