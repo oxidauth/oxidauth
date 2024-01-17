@@ -1,22 +1,32 @@
-use oxidauth_kernel::user_role_grants::UserRoleGrant;
+use std::error::Error;
 
-use crate::prelude::*;
+use oxidauth_kernel::user_role_grants::{
+    delete_user_role_grant::DeleteUserRoleGrant, UserRoleGrant,
+};
+pub use oxidauth_kernel::{service::Service, users::User};
 
-pub use super::UserRoleGrantRow;
+pub use crate::prelude::*;
 
-#[async_trait]
-pub trait DeleteUserRoleGrant: Send + Sync + 'static {
-    async fn delete_user_role_grant(
-        &self,
-        params: &DeleteUserRoleGrantParams,
-    ) -> Result<UserRoleGrant, DeleteUserRoleGrantError>;
+pub trait DeleteUserRoleGrantQuery:
+    for<'a> Service<
+    &'a DeleteUserRoleGrant,
+    Response = UserRoleGrant,
+    Error = BoxedError,
+>
+{
+}
+
+impl<T> DeleteUserRoleGrantQuery for T where
+    T: for<'a> Service<
+        &'a DeleteUserRoleGrant,
+        Response = UserRoleGrant,
+        Error = BoxedError,
+    >
+{
 }
 
 #[derive(Debug)]
-pub struct DeleteUserRoleGrantParams {
-    pub user_id: Uuid,
-    pub role_id: Uuid,
+pub struct DeleteUserRoleGrantError {
+    pub reason: String,
+    pub source: Box<dyn Error>,
 }
-
-#[derive(Debug)]
-pub struct DeleteUserRoleGrantError {}
