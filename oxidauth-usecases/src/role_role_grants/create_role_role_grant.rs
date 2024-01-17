@@ -40,7 +40,7 @@ where
     type Response = RoleRoleGrantDetail;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "create_role_usecase", skip(self))]
+    #[tracing::instrument(name = "create_role_role_grant_usecase", skip(self))]
     async fn call(
         &self,
         req: &'a CreateRoleRoleGrant,

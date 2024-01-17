@@ -6,6 +6,7 @@ pub mod permissions;
 pub mod prelude;
 pub mod public_keys;
 pub mod refresh_tokens;
+pub mod role_permission_grants;
 pub mod role_role_grants;
 pub mod roles;
 pub mod rsa;
