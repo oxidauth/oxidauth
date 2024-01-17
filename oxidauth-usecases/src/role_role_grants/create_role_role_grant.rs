@@ -37,7 +37,7 @@ where
     T: InsertRoleRoleGrantQuery,
     R: SelectRoleByIdQuery,
 {
-    type Response = CreateRoleRoleGrantResponse;
+    type Response = RoleRoleGrantDetail;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "create_role_usecase", skip(self))]
@@ -61,6 +61,6 @@ where
             .call(req)
             .await?;
 
-        Ok(CreateRoleRoleGrantResponse { child, grant })
+        Ok(RoleRoleGrantDetail { role: child, grant })
     }
 }

@@ -15,7 +15,7 @@ impl<'a> Service<&'a DeleteRole> for Database {
         &self,
         params: &'a DeleteRole,
     ) -> Result<Role, BoxedError> {
-        let result = sqlx::query_as::<_, RoleRow>(include_str!("./delete_role.sql"))
+        let result = sqlx::query_as::<_, PgRole>(include_str!("./delete_role.sql"))
             .bind(&params.role_id)
             .fetch_one(&self.pool)
             .await?;

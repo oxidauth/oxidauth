@@ -15,7 +15,7 @@ impl<'a> Service<&'a UpdateRole> for Database {
         &self,
         params: &'a UpdateRole,
     ) -> Result<Role, BoxedError> {
-        let result = sqlx::query_as::<_, RoleRow>(include_str!("./update_role.sql"))
+        let result = sqlx::query_as::<_, PgRole>(include_str!("./update_role.sql"))
             .bind(&params.role_id)
             .bind(&params.name)
             .fetch_one(&self.pool)
