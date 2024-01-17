@@ -1,20 +1,20 @@
 pub mod delete_user_role_grant;
 pub mod insert_user_role_grant;
 
-use oxidauth_repository::user_role_grants::UserRoleGrantRow as RepoUserRoleGrantRow;
+use oxidauth_kernel::user_role_grants::UserRoleGrant;
 
 use crate::prelude::*;
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct UserRoleGrantRow {
+pub struct PgUserRoleGrant {
     pub user_id: Uuid,
     pub role_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<UserRoleGrantRow> for RepoUserRoleGrantRow {
-    fn from(value: UserRoleGrantRow) -> Self {
+impl From<PgUserRoleGrant> for UserRoleGrant {
+    fn from(value: PgUserRoleGrant) -> Self {
         Self {
             user_id: value.user_id,
             role_id: value.role_id,

@@ -1,4 +1,5 @@
 pub mod permissions;
+pub mod roles;
 
 pub mod create_user;
 pub mod delete_user_by_id;
@@ -40,5 +41,9 @@ pub fn router() -> Router<Provider> {
         .nest(
             "/:user_id/permissions",
             permissions::router(),
+        )
+        .nest(
+            "/:user_id/roles",
+            roles::router(),
         )
 }
