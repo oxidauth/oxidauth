@@ -1,9 +1,10 @@
 pub mod create_user_permission;
+pub mod delete_user_permission;
 pub mod list_user_permissions_by_user_id;
 
 use crate::provider::Provider;
 use axum::{
-    routing::{delete, get, post, put},
+    routing::{delete, get, post},
     Router,
 };
 
@@ -16,5 +17,9 @@ pub fn router() -> Router<Provider> {
         .route(
             "/:permission",
             post(create_user_permission::handle),
+        )
+        .route(
+            "/:permission",
+            delete(delete_user_permission::handle),
         )
 }
