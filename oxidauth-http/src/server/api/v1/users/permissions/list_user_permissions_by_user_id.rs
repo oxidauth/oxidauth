@@ -51,7 +51,7 @@ pub async fn handle(
     match result {
         Ok(user_permission_grants) => {
             info!(
-                message = "successfully listing user permission grantsby user_id",
+                message = "successfully listing user permission grants by user_id",
                 user_permission_grants = ?user_permission_grants,
             );
 
