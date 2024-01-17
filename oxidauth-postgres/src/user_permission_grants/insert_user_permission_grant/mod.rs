@@ -27,12 +27,12 @@ impl<'a> Service<&'a CreateUserPermissionGrant> for Database {
         let row = sqlx::query_as::<_, PgUserPermissionGrant>(include_str!(
             "./insert_user_permission_grant.sql"
         ))
-        .bind(&params.user_id)
-        .bind(&params.permission_id)
+        .bind(params.user_id)
+        .bind(params.permission_id)
         .fetch_one(&self.pool)
         .await?;
 
-        let user_permission_grant = row.try_into()?;
+        let user_permission_grant = row.into();
 
         Ok(user_permission_grant)
     }
