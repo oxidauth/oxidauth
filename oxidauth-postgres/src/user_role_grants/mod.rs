@@ -45,6 +45,8 @@ impl From<PgUserRole> for UserRole {
             role: Role {
                 id: value.role_id,
                 name: value.name,
+                created_at: value.created_at,
+                updated_at: value.updated_at,
             },
             grant: UserRoleGrant {
                 user_id: value.user_id,
