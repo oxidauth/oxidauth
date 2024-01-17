@@ -10,11 +10,11 @@ use oxidauth_kernel::{
 use crate::prelude::*;
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct PgRolePermissionGrant {
-    pub role_id: Uuid,
-    pub permission_id: Uuid,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+struct PgRolePermissionGrant {
+    role_id: Uuid,
+    permission_id: Uuid,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
 }
 
 impl From<PgRolePermissionGrant> for RolePermissionGrant {
@@ -29,16 +29,16 @@ impl From<PgRolePermissionGrant> for RolePermissionGrant {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct PgRolePermissionGrantDetail {
-    pub role_id: Uuid,
-    pub permission_id: Uuid,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-    pub realm: String,
-    pub resource: String,
-    pub action: String,
-    pub permission_created_at: DateTime<Utc>,
-    pub permission_updated_at: DateTime<Utc>,
+struct PgRolePermissionGrantDetail {
+    role_id: Uuid,
+    permission_id: Uuid,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+    realm: String,
+    resource: String,
+    action: String,
+    permission_created_at: DateTime<Utc>,
+    permission_updated_at: DateTime<Utc>,
 }
 
 impl From<PgRolePermissionGrantDetail> for RolePermissionGrantDetail {
