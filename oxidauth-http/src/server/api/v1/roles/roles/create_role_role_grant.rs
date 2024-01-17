@@ -50,7 +50,7 @@ pub async fn handle(
                 res = ?res,
             );
 
-            Response::success().payload(CreateRoleRoleGrantRes { child: res.child, grant: res.grant })
+            Response::success().payload(CreateRoleRoleGrantRes { child: res.role, grant: res.grant })
         },
         Err(err) => {
             info!(

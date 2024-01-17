@@ -26,8 +26,8 @@ impl<'a> Service<&'a FindRoleById> for Database {
 pub(crate) async fn select_role_by_id(
     conn: &mut PgConnection,
     role_id: Uuid,
-) -> Result<RoleRow, BoxedError> {
-    let result = sqlx::query_as::<_, RoleRow>(include_str!(
+) -> Result<PgRole, BoxedError> {
+    let result = sqlx::query_as::<_, PgRole>(include_str!(
         "./select_role_by_id.sql"
     ))
     .bind(role_id)

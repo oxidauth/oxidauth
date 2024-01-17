@@ -15,7 +15,7 @@ impl<'a> Service<&'a ListAllRoles> for Database {
         &self,
         _params: &'a ListAllRoles,
     ) -> Result<Vec<Role>, BoxedError> {
-        let result = sqlx::query_as::<_, RoleRow>(include_str!("./select_all_roles.sql"))
+        let result = sqlx::query_as::<_, PgRole>(include_str!("./select_all_roles.sql"))
             .fetch_all(&self.pool)
             .await?
             .into_iter()

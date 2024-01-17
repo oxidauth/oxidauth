@@ -11,24 +11,26 @@ use oxidauth_repository::roles::RoleRow as RepoRoleRow;
 use crate::prelude::*;
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct RoleRow {
+pub struct PgRole {
     pub id: Uuid,
     pub name: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-impl Into<Role> for RoleRow {
+impl Into<Role> for PgRole {
     fn into(self) -> Role {
         Role {
             id: self.id,
             name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
         }
     }
 }
 
-impl From<RoleRow> for RepoRoleRow {
-    fn from(value: RoleRow) -> Self {
+impl From<PgRole> for RepoRoleRow {
+    fn from(value: PgRole) -> Self {
         Self {
             id: value.id,
             name: value.name,

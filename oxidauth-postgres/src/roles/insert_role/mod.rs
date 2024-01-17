@@ -15,7 +15,7 @@ impl<'a> Service<&'a CreateRole> for Database {
         &self,
         params: &'a CreateRole,
     ) -> Result<Role, BoxedError> {
-        let result = sqlx::query_as::<_, RoleRow>(include_str!("./insert_role.sql"))
+        let result = sqlx::query_as::<_, PgRole>(include_str!("./insert_role.sql"))
             .bind(None::<Uuid>)
             .bind(&params.name)
             .fetch_one(&self.pool)

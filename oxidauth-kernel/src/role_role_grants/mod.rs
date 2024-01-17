@@ -2,7 +2,9 @@ use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-pub mod list_all_role_role_grants;
+use crate::roles::Role;
+
+pub mod list_role_role_grants_by_parent_id;
 pub mod create_role_role_grant;
 pub mod delete_role_role_grant;
 
@@ -12,4 +14,10 @@ pub struct RoleRoleGrant {
     pub child_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RoleRoleGrantDetail {
+    pub role: Role,
+    pub grant: RoleRoleGrant,
 }
