@@ -292,5 +292,16 @@ pub async fn setup() -> Provider {
         );
     }
 
+    {
+        use oxidauth_kernel::role_permission_grants::create_role_permission_grant::CreateRolePermissionGrantService;
+        use oxidauth_usecases::role_permission_grants::create_role_permission_grant::CreateRolePermissionGrantUseCase;
+
+        let create_role_permission_grant_service =
+            Arc::new(CreateRolePermissionGrantUseCase::new(db.clone(), db.clone(), db.clone()));
+        provider.store::<CreateRolePermissionGrantService>(
+            create_role_permission_grant_service,
+        );
+    }
+
     provider
 }

@@ -8,16 +8,17 @@ impl DeleteRolePermissionGrant for Database {
         &self,
         params: &DeleteRolePermissionGrantParams,
     ) -> Result<RolePermissionGrantRow, DeleteRolePermissionGrantError> {
-        let result = sqlx::query_as::<_, super::RolePermissionGrantRow>(include_str!(
-            "./delete_role_permission_grant.sql"
-        ))
-        .bind(params.role_id)
-        .bind(params.permission_id)
-        .fetch_one(&self.pool)
-        .await
-        .map(Into::into)
-        .map_err(|_| DeleteRolePermissionGrantError {})?;
-
-        Ok(result)
+        todo!()
+        // let result = sqlx::query_as::<_, super::PgRolePermissionGrant>(include_str!(
+        //     "./delete_role_permission_grant.sql"
+        // ))
+        // .bind(params.role_id)
+        // .bind(params.permission_id)
+        // .fetch_one(&self.pool)
+        // .await
+        // .map(Into::into)
+        // .map_err(|_| DeleteRolePermissionGrantError {})?;
+        //
+        // Ok(result)
     }
 }
