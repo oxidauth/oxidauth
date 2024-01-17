@@ -1,4 +1,4 @@
-DELETE FROM role_permissions_grants
+DELETE FROM role_permission_grants
 WHERE role_id = $1
-OR WHERE permission_id = $2
-returning *
+AND permission_id = $2
+RETURNING *
