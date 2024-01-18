@@ -102,6 +102,16 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::user_authorities::create_user_authority::CreateUserAuthorityService;
+        use oxidauth_usecases::user_authorities::create_user_authority::CreateUserAuthorityUseCase;
+
+        let create_user_authority_service =
+            Arc::new(CreateUserAuthorityUseCase::new(db.clone()));
+        provider
+            .store::<CreateUserAuthorityService>(create_user_authority_service);
+    }
+
+    {
         use oxidauth_kernel::permissions::create_permission::CreatePermissionService;
         use oxidauth_usecases::permissions::create_permission::CreatePermissionUseCase;
 

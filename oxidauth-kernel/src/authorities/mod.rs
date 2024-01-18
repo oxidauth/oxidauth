@@ -63,7 +63,11 @@ impl FromStr for AuthorityStatus {
         match s {
             ENABLED => Ok(AuthorityStatus::Enabled),
             DISABLED => Ok(AuthorityStatus::Disabled),
-            status => Err(format!("invalid authority status: {}", status).into()),
+            status => Err(format!(
+                "invalid authority status: {}",
+                status
+            )
+            .into()),
         }
     }
 }
@@ -96,7 +100,13 @@ impl FromStr for AuthorityStrategy {
         let res = match s {
             USERNAME_PASSWORD => AuthorityStrategy::UsernamePassword,
             SINGLE_USE_TOKEN => AuthorityStrategy::SingleUseToken,
-            strategy => return Err(format!("invalid authority strategy: {}", strategy).into()),
+            strategy => {
+                return Err(format!(
+                    "invalid authority strategy: {}",
+                    strategy
+                )
+                .into())
+            },
         };
 
         Ok(res)
