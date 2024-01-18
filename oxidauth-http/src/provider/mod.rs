@@ -196,6 +196,16 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::user_authorities::delete_user_authority::DeleteUserAuthorityService;
+        use oxidauth_usecases::user_authorities::delete_user_authority::DeleteUserAuthorityUseCase;
+
+        let delete_user_authority_service =
+            Arc::new(DeleteUserAuthorityUseCase::new(db.clone()));
+        provider
+            .store::<DeleteUserAuthorityService>(delete_user_authority_service);
+    }
+
+    {
         use oxidauth_kernel::roles::create_role::CreateRoleService;
         use oxidauth_usecases::roles::create_role::CreateRoleUseCase;
 
@@ -320,8 +330,13 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::role_permission_grants::create_role_permission_grant::CreateRolePermissionGrantService;
         use oxidauth_usecases::role_permission_grants::create_role_permission_grant::CreateRolePermissionGrantUseCase;
 
-        let create_role_permission_grant_service =
-            Arc::new(CreateRolePermissionGrantUseCase::new(db.clone(), db.clone(), db.clone()));
+        let create_role_permission_grant_service = Arc::new(
+            CreateRolePermissionGrantUseCase::new(
+                db.clone(),
+                db.clone(),
+                db.clone(),
+            ),
+        );
         provider.store::<CreateRolePermissionGrantService>(
             create_role_permission_grant_service,
         );
@@ -331,8 +346,13 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::role_permission_grants::create_role_permission_grant::CreateRolePermissionGrantService;
         use oxidauth_usecases::role_permission_grants::create_role_permission_grant::CreateRolePermissionGrantUseCase;
 
-        let create_role_permission_grant_service =
-            Arc::new(CreateRolePermissionGrantUseCase::new(db.clone(), db.clone(), db.clone()));
+        let create_role_permission_grant_service = Arc::new(
+            CreateRolePermissionGrantUseCase::new(
+                db.clone(),
+                db.clone(),
+                db.clone(),
+            ),
+        );
         provider.store::<CreateRolePermissionGrantService>(
             create_role_permission_grant_service,
         );
@@ -353,8 +373,13 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::role_permission_grants::delete_role_permission_grant::DeleteRolePermissionGrantService;
         use oxidauth_usecases::role_permission_grants::delete_role_permission_grant::DeleteRolePermissionGrantUseCase;
 
-        let delete_role_permission_grant_service =
-            Arc::new(DeleteRolePermissionGrantUseCase::new(db.clone(), db.clone(), db.clone()));
+        let delete_role_permission_grant_service = Arc::new(
+            DeleteRolePermissionGrantUseCase::new(
+                db.clone(),
+                db.clone(),
+                db.clone(),
+            ),
+        );
         provider.store::<DeleteRolePermissionGrantService>(
             delete_role_permission_grant_service,
         );
