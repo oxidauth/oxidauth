@@ -1,3 +1,4 @@
+pub mod create_user_authority;
 pub mod delete_user_authority;
 pub mod find_user_authority_by_authority_and_user_identifier;
 pub mod find_user_authority_by_user_id_and_authority_id;
