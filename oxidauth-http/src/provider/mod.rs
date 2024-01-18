@@ -206,6 +206,18 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityIdService;
+        use oxidauth_usecases::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityIdUseCase;
+
+        let find_user_authority_by_user_id_and_authority_id_service = Arc::new(
+            FindUserAuthorityByUserIdAndAuthorityIdUseCase::new(db.clone()),
+        );
+        provider.store::<FindUserAuthorityByUserIdAndAuthorityIdService>(
+            find_user_authority_by_user_id_and_authority_id_service,
+        );
+    }
+
+    {
         use oxidauth_kernel::roles::create_role::CreateRoleService;
         use oxidauth_usecases::roles::create_role::CreateRoleUseCase;
 
