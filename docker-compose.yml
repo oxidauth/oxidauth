@@ -1,6 +1,30 @@
 version: '3.8'
 
 services:
+  oxidauth-http:
+    working_dir: '/home/rust/src/oxidauth'
+    command: /bin/bash -c 'cargo watch -c -- cargo run --bin oxidauth-http'
+    image: registry.vizerapp.cloud/lib/rust-dev:$RUST_DEV_IMAGE_VERSION
+    platform: $DOCKER_PLATFORM
+    stdin_open: true
+    tty: true
+    environment:
+      CARGO_TARGET_DIR: /home/rust/shared_target
+      VIRTUAL_HOST: api.oxidauth.test
+    env_file:
+      - .env
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    volumes:
+      - "target-vol:/home/rust/shared_target"
+      - ".:/home/rust/src/oxidauth:cached"
+    networks:
+      default:
+        aliases:
+          - api.oxidauth.test
+
   postgres:
     image: postgres:16.1
     platform: $DOCKER_PLATFORM
@@ -10,6 +34,12 @@ services:
       - '.env'
     volumes:
       - 'postgres-data-vol:/var/lib/postgresql/data'
+    networks:
+      default:
+        aliases:
+          - postgres.oxidauth.test
+
 
 volumes:
+  target-vol:
   postgres-data-vol:
