@@ -3,12 +3,12 @@ pub mod insert_user_authority;
 pub mod query_user_authorities_by_user_id;
 pub mod update_user_authority;
 
-use oxidauth_repository::user_authorities::UserAuthorityRow as RepoUserAuthorityRow;
+use oxidauth_kernel::user_authorities::UserAuthority;
 
 use crate::prelude::*;
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct UserAuthorityRow {
+struct PgUserAuthority {
     pub user_id: Uuid,
     pub authority_id: Uuid,
     pub user_identifier: String,
@@ -17,8 +17,8 @@ pub struct UserAuthorityRow {
     pub updated_at: DateTime<Utc>,
 }
 
-impl From<UserAuthorityRow> for RepoUserAuthorityRow {
-    fn from(value: UserAuthorityRow) -> Self {
+impl From<PgUserAuthority> for UserAuthority {
+    fn from(value: PgUserAuthority) -> Self {
         Self {
             user_id: value.user_id,
             authority_id: value.authority_id,

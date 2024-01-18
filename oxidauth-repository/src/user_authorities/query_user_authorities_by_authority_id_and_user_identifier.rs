@@ -1,4 +1,4 @@
-use oxidauth_kernel::user_authority::find_user_authority_by_authority_and_user_identifier::FindUserAuthorityByAuthorityIdAndUserIdentifierParams;
+use oxidauth_kernel::user_authorities::find_user_authority_by_authority_and_user_identifier::FindUserAuthorityByAuthorityIdAndUserIdentifierParams;
 
 use crate::prelude::*;
 

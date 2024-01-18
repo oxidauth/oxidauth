@@ -1,3 +1,4 @@
+pub mod authorities;
 pub mod permissions;
 pub mod roles;
 
@@ -37,6 +38,10 @@ pub fn router() -> Router<Provider> {
         .route(
             "/by_username/:username",
             get(find_user_by_username::handle),
+        )
+        .nest(
+            "/:user_id/authorities",
+            authorities::router(),
         )
         .nest(
             "/:user_id/permissions",

@@ -186,6 +186,16 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::user_authorities::update_user_authority::UpdateUserAuthorityService;
+        use oxidauth_usecases::user_authorities::update_user_authority::UpdateUserAuthorityUseCase;
+
+        let update_user_authority_service =
+            Arc::new(UpdateUserAuthorityUseCase::new(db.clone()));
+        provider
+            .store::<UpdateUserAuthorityService>(update_user_authority_service);
+    }
+
+    {
         use oxidauth_kernel::roles::create_role::CreateRoleService;
         use oxidauth_usecases::roles::create_role::CreateRoleUseCase;
 

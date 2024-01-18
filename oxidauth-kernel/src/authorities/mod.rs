@@ -2,7 +2,7 @@ pub mod authenticate;
 pub mod find_authority_by_client_id;
 pub mod register;
 
-pub use crate::user_authority::UserAuthority;
+pub use crate::user_authorities::UserAuthority;
 pub use authenticate::*;
 pub use register::*;
 
