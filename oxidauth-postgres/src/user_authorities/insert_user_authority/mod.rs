@@ -2,13 +2,15 @@ use oxidauth_repository::user_authorities::insert_user_authority::*;
 
 use crate::prelude::*;
 
+use super::PgUserAuthority;
+
 #[async_trait]
 impl InsertUserAuthority for Database {
     async fn insert_user_authority(
         &self,
         params: &InsertUserAuthorityParams,
     ) -> Result<UserAuthorityRow, InsertUserAuthorityError> {
-        let result = sqlx::query_as::<_, super::UserAuthorityRow>(include_str!(
+        let result = sqlx::query_as::<_, PgUserAuthority>(include_str!(
             "./insert_user_authority.sql"
         ))
         .bind(&params.user_id)

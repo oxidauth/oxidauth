@@ -1,4 +1,4 @@
-use oxidauth_kernel::user_authority::find_user_authority_by_authority_and_user_identifier::*;
+use oxidauth_kernel::user_authorities::find_user_authority_by_authority_and_user_identifier::*;
 use oxidauth_repository::user_authorities::query_user_authorities_by_authority_id_and_user_identifier::QueryUserAuthoritiesByAuthorityIdAndUserIdentifier;
 
 use crate::dev_prelude::*;

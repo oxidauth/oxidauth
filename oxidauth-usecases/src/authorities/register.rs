@@ -4,7 +4,7 @@ use oxidauth_kernel::{
         register::*,
     },
     service::Service,
-    user_authority::user_authority_create::{
+    user_authorities::user_authority_create::{
         UserAuthorityCreate, UserAuthorityCreateService,
     },
     users::user_create::CreateUserTrait,

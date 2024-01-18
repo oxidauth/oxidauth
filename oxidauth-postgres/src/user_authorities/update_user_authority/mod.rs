@@ -1,25 +1,50 @@
-use oxidauth_repository::user_authorities::update_user_authority::*;
+use crate::Database;
 
-use crate::prelude::*;
+use oxidauth_kernel::{
+    error::BoxedError,
+    user_authorities::{
+        update_user_authority::UpdateUserAuthority, UserAuthority,
+    },
+};
+use oxidauth_repository::users::insert_user::*;
+
+use super::PgUserAuthority;
 
 #[async_trait]
-impl UpdateUserAuthorityByUserId for Database {
-    async fn update_user_authority_by_user_id(
+impl<'a> Service<&'a UpdateUserAuthority> for Database {
+    type Response = UserAuthority;
+    type Error = BoxedError;
+
+    #[tracing::instrument(name = "update_user_authority_query", skip(self))]
+    async fn call(
         &self,
-        params: &UpdateUserAuthorityByUserIdParams,
-    ) -> Result<UserAuthorityRow, UpdateUserAuthorityError> {
-        let result = sqlx::query_as::<_, super::UserAuthorityRow>(include_str!(
+        params: &'a UpdateUserAuthority,
+    ) -> Result<Self::Response, Self::Error> {
+        let row = sqlx::query_as::<_, PgUserAuthority>(include_str!(
             "./update_user_authority.sql"
         ))
-        .bind(&params.user_id)
-        .bind(&params.authority_id)
-        .bind(&params.user_identifier)
+        .bind(params.user_id)
+        .bind(params.authority_id)
         .bind(&params.params)
         .fetch_one(&self.pool)
-        .await
-        .map(Into::into)
-        .map_err(|_| UpdateUserAuthorityError {})?;
+        .await?;
 
-        Ok(result)
+        let user_authority = row.into();
+
+        Ok(user_authority)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use sqlx::PgPool;
+
+    use super::*;
+
+    #[ignore]
+    #[sqlx::test]
+    async fn it_should_be_able_to_update_an_existing_user_authority(
+        pool: PgPool,
+    ) {
     }
 }
