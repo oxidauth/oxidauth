@@ -13,7 +13,9 @@ use uuid::Uuid;
 
 use crate::{
     axum::server::routes::api::v1::{
-        authorities::{all::AuthorityRow, by_authority_strategy::authority_by_strategy},
+        authorities::{
+            all::AuthorityRow, by_authority_strategy::authority_by_strategy,
+        },
         refresh_tokens::exchange::refresh_token_create,
         users::{
             authorities::{
@@ -46,12 +48,21 @@ pub trait Registrar: Send + Sync {
     async fn register(
         &self,
         register_params: Value,
-    ) -> Result<(UserCreateRow, UserAuthorityCreate), Error>;
+    ) -> Result<
+        (
+            UserCreateRow,
+            UserAuthorityCreate,
+        ),
+        Error,
+    >;
 }
 
 #[async_trait]
 pub trait Authenticator: Send + Sync {
-    async fn user_identifier_from_request(&self, params: Value) -> Result<String, Error>;
+    async fn user_identifier_from_request(
+        &self,
+        params: Value,
+    ) -> Result<String, Error>;
 
     async fn authenticate(
         &self,
@@ -80,14 +91,19 @@ impl From<&str> for AuthorityStrategy {
     }
 }
 
-pub async fn register(db: &mut PgConnection, request: Request) -> Result<Response, Error> {
+pub async fn register(
+    db: &mut PgConnection,
+    request: Request,
+) -> Result<Response, Error> {
     let authority = authority_by_strategy(db, &request.strategy)
         .await
         .map_err(|err| err.to_string())?;
 
     let registrar = authority_factory(&authority, &request.strategy).await?;
 
-    let (user, user_authority) = registrar.register(request.params).await?;
+    let (user, user_authority) = registrar
+        .register(request.params)
+        .await?;
 
     let user = user_create(db, user).await?;
 
@@ -100,7 +116,10 @@ pub async fn register(db: &mut PgConnection, request: Request) -> Result<Respons
     Ok(result)
 }
 
-pub async fn authenticate(db: &mut PgConnection, request: Request) -> Result<Response, String> {
+pub async fn authenticate(
+    db: &mut PgConnection,
+    request: Request,
+) -> Result<Response, String> {
     let authority = authority_by_strategy(db, &request.strategy)
         .await
         .map_err(|err| err.to_string())?;
@@ -119,13 +138,20 @@ pub async fn authenticate(db: &mut PgConnection, request: Request) -> Result<Res
         .map_err(|err| err.to_string())?;
 
     authenticator
-        .authenticate(request.params, &user_authority)
+        .authenticate(
+            request.params,
+            &user_authority,
+        )
         .await
         .map_err(|err| err.to_string())?;
 
-    let result = jwt_and_refresh_token(db, &authority, user_authority.user_id)
-        .await
-        .map_err(|err| err.to_string())?;
+    let result = jwt_and_refresh_token(
+        db,
+        &authority,
+        user_authority.user_id,
+    )
+    .await
+    .map_err(|err| err.to_string())?;
 
     Ok(result)
 }
@@ -135,9 +161,12 @@ pub async fn jwt_and_refresh_token(
     authority: &AuthorityRow,
     user_id: Uuid,
 ) -> Result<Response, Error> {
-    let permissions = permissions_as_tree(db, PermissionSourceID::User(user_id))
-        .await?
-        .permissions;
+    let permissions = permissions_as_tree(
+        db,
+        PermissionSourceID::User(user_id),
+    )
+    .await?
+    .permissions;
 
     let private_key = private_key_most_recent(db).await?;
 
@@ -152,14 +181,29 @@ pub async fn jwt_and_refresh_token(
         .build()
         .map_err(|err| format!("unable to build jwt: {}", err))?
         .encode(&private_key)
-        .map_err(|err| format!("unable to encode jwt: {}", err))?;
+        .map_err(|err| {
+            format!(
+                "unable to encode jwt: {}",
+                err
+            )
+        })?;
 
-    let refresh_token_exp_at = epoch_from_now(authority.settings.refresh_token_ttl)?;
+    let refresh_token_exp_at = epoch_from_now(
+        authority
+            .settings
+            .refresh_token_ttl,
+    )?;
 
-    let refresh_token_exp_at = NaiveDateTime::from_timestamp(refresh_token_exp_at as i64, 0);
+    let refresh_token_exp_at =
+        NaiveDateTime::from_timestamp(refresh_token_exp_at as i64, 0);
 
-    let refresh_token =
-        refresh_token_create(db, user_id, authority.id, refresh_token_exp_at).await?;
+    let refresh_token = refresh_token_create(
+        db,
+        user_id,
+        authority.id,
+        refresh_token_exp_at,
+    )
+    .await?;
 
     Ok(Response {
         jwt,
@@ -179,7 +223,9 @@ pub async fn authority_factory(
     .await
 }
 
-pub async fn private_keys_all(db: &mut PgConnection) -> Result<Vec<PrivateKeyRow>, sqlx::Error> {
+pub async fn private_keys_all(
+    db: &mut PgConnection,
+) -> Result<Vec<PrivateKeyRow>, sqlx::Error> {
     let result = sqlx::query_as::<_, PrivateKeyRow>(PRIVATE_KEYS_ALL_QUERY)
         .fetch_all(db)
         .await?;
@@ -197,7 +243,9 @@ const PRIVATE_KEYS_ALL_QUERY: &str = r#"
     ORDER BY created_at DESC
 "#;
 
-pub async fn private_key_most_recent(db: &mut PgConnection) -> Result<PrivateKeyRow, sqlx::Error> {
+pub async fn private_key_most_recent(
+    db: &mut PgConnection,
+) -> Result<PrivateKeyRow, sqlx::Error> {
     let result = sqlx::query_as::<_, PrivateKeyRow>(PRIVATE_KEY_QUERY)
         .fetch_one(db)
         .await?;
@@ -234,10 +282,11 @@ pub async fn user_authority_by_user_identifier(
     db: &mut PgConnection,
     identifier: String,
 ) -> Result<UserAuthority, Error> {
-    let result = sqlx::query_as::<_, UserAuthority>(USER_AUTHORITY_BY_IDENTIFIER_QUERY)
-        .bind(identifier)
-        .fetch_one(db)
-        .await?;
+    let result =
+        sqlx::query_as::<_, UserAuthority>(USER_AUTHORITY_BY_IDENTIFIER_QUERY)
+            .bind(identifier)
+            .fetch_one(db)
+            .await?;
 
     Ok(result)
 }

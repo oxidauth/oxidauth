@@ -4,6 +4,8 @@ use std::{
     sync::Arc,
 };
 
+use oxidauth_kernel::error::BoxedError;
+
 #[derive(Default, Clone)]
 pub struct Provider {
     pub bindings: HashMap<TypeId, Arc<dyn Any + Send + Sync + 'static>>,
@@ -34,12 +36,12 @@ impl Provider {
     }
 }
 
-pub async fn setup() -> Provider {
+pub async fn setup() -> Result<Provider, BoxedError> {
     let mut provider = Provider::new();
 
-    let db = oxidauth_postgres::Database::from_env()
-        .await
-        .unwrap();
+    let db = oxidauth_postgres::Database::from_env().await?;
+
+    db.migrate().await?;
 
     {
         use oxidauth_kernel::users::create_user::CreateUserService;
@@ -495,11 +497,12 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::authorities::find_authority_by_strategy::FindAuthorityByStrategyService;
         use oxidauth_usecases::authorities::find_authority_by_strategy::FindAuthorityByStrategyUseCase;
 
-        let find_authority_by_strategy_service = Arc::new(FindAuthorityByStrategyUseCase::new(
-            db.clone(),
-        ));
-        provider.store::<FindAuthorityByStrategyService>(find_authority_by_strategy_service);
+        let find_authority_by_strategy_service =
+            Arc::new(FindAuthorityByStrategyUseCase::new(db.clone()));
+        provider.store::<FindAuthorityByStrategyService>(
+            find_authority_by_strategy_service,
+        );
     }
 
-    provider
+    Ok(provider)
 }

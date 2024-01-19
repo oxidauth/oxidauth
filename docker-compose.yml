@@ -11,10 +11,10 @@ services:
     environment:
       CARGO_TARGET_DIR: /home/rust/shared_target
       VIRTUAL_HOST: api.oxidauth.test
+    ports:
+      - "80"
     env_file:
       - .env
-    links:
-      - postgres
     depends_on:
       - postgres
     volumes:

@@ -30,7 +30,7 @@ impl Database {
     pub async fn from_env(
     ) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
         let pool = PgPool::connect(
-            "postgres://oxidauth:oxidauth@127.0.0.1:5432/oxidauth",
+            "postgres://oxidauth:oxidauth@postgres.oxidauth.test:5432/oxidauth",
         )
         .await?;
 
@@ -40,6 +40,14 @@ impl Database {
     pub async fn ping(&self) -> Result<(), sqlx::Error> {
         sqlx::query_as::<_, (i64,)>("SELECT (1)")
             .fetch_one(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn migrate(&self) -> Result<(), sqlx::Error> {
+        sqlx::migrate!()
+            .run(&self.pool)
             .await?;
 
         Ok(())
