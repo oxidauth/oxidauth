@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use crate::{dev_prelude::*, users::user_create::UserCreate};
 
 #[async_trait]
