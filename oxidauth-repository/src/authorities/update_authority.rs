@@ -1,25 +1,14 @@
-use crate::prelude::*;
+pub use oxidauth_kernel::authorities::update_authority::UpdateAuthority;
+pub use oxidauth_kernel::{service::Service, authorities::Authority};
 
-pub use super::AuthorityRow;
+pub use crate::prelude::*;
 
-#[async_trait]
-pub trait UpdateAuthority: Send + Sync + 'static {
-    async fn update_authority(
-        &self,
-        params: &UpdateAuthorityParams,
-    ) -> Result<AuthorityRow, UpdateAuthorityError>;
+pub trait UpdateAuthorityQuery:
+    for<'a> Service<&'a UpdateAuthority, Response = Authority, Error = BoxedError>
+{
 }
 
-#[derive(Debug)]
-pub struct UpdateAuthorityParams {
-    pub id: Uuid,
-    pub name: String,
-    pub client_key: Uuid,
-    pub status: String,
-    pub strategy: String,
-    pub settings: serde_json::Value,
-    pub params: serde_json::Value,
+impl<T> UpdateAuthorityQuery for T where
+    T: for<'a> Service<&'a UpdateAuthority, Response = Authority, Error = BoxedError>
+{
 }
-
-#[derive(Debug)]
-pub struct UpdateAuthorityError {}

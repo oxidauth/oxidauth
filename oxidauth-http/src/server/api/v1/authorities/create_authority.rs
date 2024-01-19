@@ -20,14 +20,14 @@ pub struct CreateAuthorityRes {
 #[tracing::instrument(name = "create_authority_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
-    Json(params): Json<CreateAuthorityReq>,
+    Json(mut params): Json<CreateAuthorityReq>,
 ) -> impl IntoResponse {
     let service = provider.fetch::<CreateAuthorityService>();
 
     info!("provided CreateAuthorityService");
 
     let result = service
-        .call(&params.authority)
+        .call(&mut params.authority)
         .await;
 
     match result {
@@ -49,4 +49,3 @@ pub async fn handle(
         },
     }
 }
-

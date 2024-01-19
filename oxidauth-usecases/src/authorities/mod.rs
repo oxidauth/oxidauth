@@ -5,3 +5,4 @@ pub mod find_authority_by_id;
 pub mod list_all_authorities;
 pub mod register;
 pub mod strategies;
+pub mod update_authority;

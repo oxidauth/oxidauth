@@ -9,16 +9,17 @@ pub use crate::service::Service;
 
 pub use super::{Authority, AuthorityStatus, AuthorityStrategy, AuthoritySettings};
 
-pub type CreateAuthorityService = Arc<
+pub type UpdateAuthorityService = Arc<
     dyn for<'a> Service<
-        &'a mut CreateAuthority,
+        &'a mut UpdateAuthority,
         Response = Authority,
         Error = BoxedError,
     >,
 >;
 
 #[derive(Debug, Deserialize)]
-pub struct CreateAuthority {
+pub struct UpdateAuthority {
+    pub id: Option<Uuid>,
     pub name: String,
     pub client_key: Option<Uuid>,
     pub status: Option<AuthorityStatus>,
