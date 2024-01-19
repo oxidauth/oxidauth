@@ -5,8 +5,10 @@ pub mod query_user_authorities_by_user_id;
 pub mod select_user_authority_by_user_id_and_authority_id;
 pub mod update_user_authority;
 
+use std::str::FromStr;
+
 use oxidauth_kernel::{
-    authorities::Authority,
+    authorities::{Authority, AuthorityStatus, AuthorityStrategy},
     user_authorities::{UserAuthority, UserAuthorityWithAuthority},
 };
 
@@ -72,13 +74,11 @@ impl TryFrom<PgUserAuthorityWithAuthority> for UserAuthorityWithAuthority {
                 id: value.authority_id,
                 name: value.authority_name,
                 client_key: value.authority_client_key,
-                status: value
-                    .authority_status
-                    .try_into()?,
-                strategy: value
-                    .authority_strategy
-                    .try_into()?,
-                settings: value.authority_settings,
+                status: AuthorityStatus::from_str(&value.authority_status)?,
+                strategy: AuthorityStrategy::from_str(
+                    &value.authority_strategy,
+                )?,
+                settings: serde_json::from_value(value.authority_settings)?,
                 params: value.authority_params,
                 created_at: value.authority_created_at,
                 updated_at: value.authority_updated_at,
