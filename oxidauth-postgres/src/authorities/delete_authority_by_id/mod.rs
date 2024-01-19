@@ -9,7 +9,7 @@ impl DeleteAuthorityById for Database {
         authority_id: Uuid,
     ) -> Result<AuthorityRow, DeleteAuthorityByIdError> {
         let result =
-            sqlx::query_as::<_, super::AuthorityRow>(include_str!("./delete_authority_by_id.sql"))
+            sqlx::query_as::<_, super::PgAuthority>(include_str!("./delete_authority_by_id.sql"))
                 .bind(authority_id)
                 .fetch_one(&self.pool)
                 .await

@@ -6,7 +6,7 @@ use crate::prelude::*;
 impl QueryAllAuthorities for Database {
     async fn query_all_authorities(&self) -> Result<Vec<AuthorityRow>, QueryAllAuthoritiesError> {
         let result =
-            sqlx::query_as::<_, super::AuthorityRow>(include_str!("./query_all_authorities.sql"))
+            sqlx::query_as::<_, super::PgAuthority>(include_str!("./query_all_authorities.sql"))
                 .fetch_all(&self.pool)
                 .await
                 .map_err(|_| QueryAllAuthoritiesError {})?

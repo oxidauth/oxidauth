@@ -9,7 +9,7 @@ impl UpdateAuthority for Database {
         params: &UpdateAuthorityParams,
     ) -> Result<AuthorityRow, UpdateAuthorityError> {
         let result =
-            sqlx::query_as::<_, super::AuthorityRow>(include_str!("./update_authority.sql"))
+            sqlx::query_as::<_, super::PgAuthority>(include_str!("./update_authority.sql"))
                 .bind(&params.id)
                 .bind(&params.name)
                 .bind(&params.client_key)
