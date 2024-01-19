@@ -1,20 +1,25 @@
+use oxidauth_kernel::public_keys::PublicKey;
 use oxidauth_repository::public_keys::delete_public_key_by_id::*;
 
 use crate::prelude::*;
+
+use super::PgPublicKey;
 
 #[async_trait]
 impl DeletePublicKeyById for Database {
     async fn delete_public_key_by_id(
         &self,
         public_key_id: Uuid,
-    ) -> Result<PublicKeyRow, DeletePublicKeyByIdError> {
-        let result =
-            sqlx::query_as::<_, super::PublicKeyRow>(include_str!("./delete_public_key_by_id.sql"))
-                .bind(public_key_id)
-                .fetch_one(&self.pool)
-                .await
-                .map(Into::into)
-                .map_err(|_| DeletePublicKeyByIdError {})?;
+    ) -> Result<PublicKey, DeletePublicKeyByIdError> {
+        let result = sqlx::query_as::<_, PgPublicKey>(include_str!(
+            "./delete_public_key_by_id.sql"
+        ))
+        .bind(public_key_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|_| DeletePublicKeyByIdError {})?
+        .try_into()
+        .map_err(|_| DeletePublicKeyByIdError {})?;
 
         Ok(result)
     }
@@ -42,11 +47,21 @@ mod tests {
             .await
             .expect("should be able to insert public_key");
 
-        match db.delete_public_key_by_id(public_key_id).await {
+        match db
+            .delete_public_key_by_id(public_key_id)
+            .await
+        {
             Ok(public_key) => {
+                let insert_public_key =
+                    String::from_utf8(insert_params.public_key)
+                        .expect("can parse from utf8");
+
                 assert_eq!(public_key_id, public_key.id);
-                assert_eq!(insert_params.public_key, public_key.public_key);
-            }
+                assert_eq!(
+                    insert_public_key,
+                    public_key.public_key
+                );
+            },
             Err(_) => unreachable!(),
         }
     }

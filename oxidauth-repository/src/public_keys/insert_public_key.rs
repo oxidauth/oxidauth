@@ -1,13 +1,13 @@
-use crate::prelude::*;
+use oxidauth_kernel::public_keys::PublicKey;
 
-pub use super::PublicKeyRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait InsertPublicKey: Send + Sync + 'static {
     async fn insert_public_key(
         &self,
         params: &InsertPublicKeyParams,
-    ) -> Result<PublicKeyRow, InsertPublicKeyError>;
+    ) -> Result<PublicKey, InsertPublicKeyError>;
 }
 
 #[derive(Debug)]

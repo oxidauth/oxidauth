@@ -431,10 +431,11 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityByIdService;
         use oxidauth_usecases::authorities::find_authority_by_id::FindAuthorityByIdUseCase;
 
-        let find_authority_by_id_service = Arc::new(FindAuthorityByIdUseCase::new(
-            db.clone(),
-        ));
-        provider.store::<FindAuthorityByIdService>(find_authority_by_id_service);
+        let find_authority_by_id_service = Arc::new(
+            FindAuthorityByIdUseCase::new(db.clone()),
+        );
+        provider
+            .store::<FindAuthorityByIdService>(find_authority_by_id_service);
     }
 
     {
@@ -451,10 +452,21 @@ pub async fn setup() -> Provider {
         use oxidauth_kernel::authorities::list_all_authorities::ListAllAuthoritiesService;
         use oxidauth_usecases::authorities::list_all_authorities::ListAllAuthoritiesUseCase;
 
-        let list_all_authorities_service = Arc::new(ListAllAuthoritiesUseCase::new(
-            db.clone(),
-        ));
-        provider.store::<ListAllAuthoritiesService>(list_all_authorities_service);
+        let list_all_authorities_service =
+            Arc::new(ListAllAuthoritiesUseCase::new(db.clone()));
+        provider
+            .store::<ListAllAuthoritiesService>(list_all_authorities_service);
+    }
+
+    {
+        use oxidauth_kernel::public_keys::find_public_key_by_id::FindPublicKeyByIdService;
+        use oxidauth_usecases::public_keys::find_public_key_by_id::FindPublicKeyByIdUseCase;
+
+        let find_public_key_by_id_service = Arc::new(
+            FindPublicKeyByIdUseCase::new(db.clone()),
+        );
+        provider
+            .store::<FindPublicKeyByIdService>(find_public_key_by_id_service);
     }
 
     {
