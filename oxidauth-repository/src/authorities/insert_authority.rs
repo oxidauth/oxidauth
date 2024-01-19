@@ -1,25 +1,14 @@
-use crate::prelude::*;
+pub use oxidauth_kernel::authorities::create_authority::CreateAuthority;
+pub use oxidauth_kernel::{service::Service, authorities::Authority};
 
-pub use super::AuthorityRow;
+pub use crate::prelude::*;
 
-#[async_trait]
-pub trait InsertAuthority: Send + Sync + 'static {
-    async fn insert_authority(
-        &self,
-        params: &InsertAuthorityParams,
-    ) -> Result<AuthorityRow, InsertAuthorityError>;
+pub trait InsertAuthorityQuery:
+    for<'a> Service<&'a CreateAuthority, Response = Authority, Error = BoxedError>
+{
 }
 
-#[derive(Debug)]
-pub struct InsertAuthorityParams {
-    pub id: Option<Uuid>,
-    pub name: String,
-    pub client_key: Uuid,
-    pub status: String,
-    pub strategy: String,
-    pub settings: serde_json::Value,
-    pub params: serde_json::Value,
+impl<T> InsertAuthorityQuery for T where
+    T: for<'a> Service<&'a CreateAuthority, Response = Authority, Error = BoxedError>
+{
 }
-
-#[derive(Debug)]
-pub struct InsertAuthorityError {}

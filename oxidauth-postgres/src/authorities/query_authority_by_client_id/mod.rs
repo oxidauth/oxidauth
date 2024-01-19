@@ -8,7 +8,7 @@ impl QueryAuthorityByClientId for Database {
         &self,
         client_id: Uuid,
     ) -> Result<AuthorityRow, QueryAuthorityByClientIdError> {
-        let result = sqlx::query_as::<_, super::AuthorityRow>(include_str!(
+        let result = sqlx::query_as::<_, super::PgAuthority>(include_str!(
             "./query_authority_by_client_id.sql"
         ))
         .bind(client_id)

@@ -397,5 +397,15 @@ pub async fn setup() -> Provider {
         );
     }
 
+    {
+        use oxidauth_kernel::authorities::create_authority::CreateAuthorityService;
+        use oxidauth_usecases::authorities::create_authority::CreateAuthorityUseCase;
+
+        let create_authority_service = Arc::new(CreateAuthorityUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<CreateAuthorityService>(create_authority_service);
+    }
+
     provider
 }

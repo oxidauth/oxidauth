@@ -1,4 +1,9 @@
+use std::{fmt, str::FromStr};
+
+use serde::Serialize;
+
 pub mod authenticate;
+pub mod create_authority;
 pub mod find_authority_by_client_id;
 pub mod register;
 
@@ -15,13 +20,20 @@ pub struct Authority {
     pub client_key: Uuid,
     pub status: AuthorityStatus,
     pub strategy: AuthorityStrategy,
-    pub settings: Value,
+    pub settings: AuthoritySettings,
     pub params: Value,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuthoritySettings {
+    pub jwt_ttl: std::time::Duration,
+    pub refresh_token_ttl: std::time::Duration,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AuthorityStatus {
     Enabled,
     Disabled,
@@ -30,19 +42,31 @@ pub enum AuthorityStatus {
 const ENABLED: &str = "enabled";
 const DISABLED: &str = "disabled";
 
-impl TryFrom<String> for AuthorityStatus {
-    type Error = BoxedError;
+impl fmt::Display for AuthorityStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use AuthorityStatus::*;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.as_ref() {
-            ENABLED => Ok(Self::Enabled),
-            DISABLED => Ok(Self::Disabled),
-            _ => Err("invalid authority status".into()),
+        match self {
+            Enabled => write!(f, "{}", ENABLED),
+            Disabled => write!(f, "{}", DISABLED),
         }
     }
 }
 
-#[derive(Debug, Serialize)]
+impl FromStr for AuthorityStatus {
+    type Err = BoxedError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            ENABLED => Ok(AuthorityStatus::Enabled),
+            DISABLED => Ok(AuthorityStatus::Disabled),
+            status => Err(format!("invalid authority status: {}", status).into()),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AuthorityStrategy {
     UsernamePassword,
     SingleUseToken,
@@ -51,14 +75,27 @@ pub enum AuthorityStrategy {
 const USERNAME_PASSWORD: &str = "username_password";
 const SINGLE_USE_TOKEN: &str = "single_use_token";
 
-impl TryFrom<String> for AuthorityStrategy {
-    type Error = BoxedError;
+impl fmt::Display for AuthorityStrategy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use AuthorityStrategy::*;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.as_ref() {
-            USERNAME_PASSWORD => Ok(Self::UsernamePassword),
-            SINGLE_USE_TOKEN => Ok(Self::SingleUseToken),
-            _ => Err("invalid authority strategy".into()),
+        match self {
+            UsernamePassword => write!(f, "{}", USERNAME_PASSWORD),
+            SingleUseToken => write!(f, "{}", SINGLE_USE_TOKEN),
         }
+    }
+}
+
+impl FromStr for AuthorityStrategy {
+    type Err = BoxedError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let res = match s {
+            USERNAME_PASSWORD => AuthorityStrategy::UsernamePassword,
+            SINGLE_USE_TOKEN => AuthorityStrategy::SingleUseToken,
+            strategy => return Err(format!("invalid authority strategy: {}", strategy).into()),
+        };
+
+        Ok(res)
     }
 }
