@@ -468,5 +468,15 @@ pub async fn setup() -> Provider {
         provider.store::<UpdateAuthorityService>(update_authority_service);
     }
 
+    {
+        use oxidauth_kernel::authorities::find_authority_by_strategy::FindAuthorityByStrategyService;
+        use oxidauth_usecases::authorities::find_authority_by_strategy::FindAuthorityByStrategyUseCase;
+
+        let find_authority_by_strategy_service = Arc::new(FindAuthorityByStrategyUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<FindAuthorityByStrategyService>(find_authority_by_strategy_service);
+    }
+
     provider
 }
