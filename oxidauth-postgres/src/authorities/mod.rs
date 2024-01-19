@@ -4,6 +4,7 @@ pub mod delete_authority;
 pub mod insert_authority;
 pub mod query_authority_by_client_id;
 pub mod select_all_authorities;
+pub mod select_authority_by_strategy;
 pub mod select_authority_by_id;
 pub mod update_authority;
 
