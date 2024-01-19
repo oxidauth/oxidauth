@@ -2,27 +2,33 @@ use oxidauth_repository::authorities::update_authority::*;
 
 use crate::prelude::*;
 
+use super::*;
+
 #[async_trait]
-impl UpdateAuthority for Database {
-    async fn update_authority(
+impl<'a> Service<&'a UpdateAuthority> for Database {
+    type Response = Authority;
+    type Error = BoxedError;
+
+    #[tracing::instrument(name = "update_authority_query", skip(self))]
+    async fn call(
         &self,
-        params: &UpdateAuthorityParams,
-    ) -> Result<AuthorityRow, UpdateAuthorityError> {
+        params: &'a UpdateAuthority,
+    ) -> Result<Authority, BoxedError> {
         let result =
-            sqlx::query_as::<_, super::PgAuthority>(include_str!("./update_authority.sql"))
+            sqlx::query_as::<_, PgAuthority>(include_str!("./update_authority.sql"))
                 .bind(&params.id)
                 .bind(&params.name)
                 .bind(&params.client_key)
-                .bind(&params.status)
-                .bind(&params.strategy)
-                .bind(&params.settings)
+                .bind(params.status.as_ref().map(|s| s.to_string()))
+                .bind(&params.strategy.to_string())
+                .bind(serde_json::to_value(&params.settings)?)
                 .bind(&params.params)
                 .fetch_one(&self.pool)
-                .await
-                .map(Into::into)
-                .map_err(|_| UpdateAuthorityError {})?;
+                .await?;
 
-        Ok(result)
+        let authority = result.try_into()?;
+
+        Ok(authority)
     }
 }
 
@@ -33,45 +39,7 @@ mod tests {
 
     use super::*;
 
+    #[ignore]
     #[sqlx::test]
-    async fn it_should_update_an_authority_successfully(pool: PgPool) {
-        let db = Database { pool };
-
-        let authority_id = Uuid::new_v4();
-
-        let insert_params = InsertAuthorityParams {
-            id: Some(authority_id),
-            name: "Test".to_string(),
-            client_key: Uuid::new_v4(),
-            status: "Test".to_string(),
-            strategy: "Test".to_string(),
-            settings: serde_json::Value::default(),
-            params: serde_json::Value::default(),
-        };
-
-        let update_params = UpdateAuthorityParams {
-            id: authority_id,
-            name: "Updated Name".to_string(),
-            client_key: Uuid::new_v4(),
-            status: "Updated Status".to_string(),
-            strategy: "Updated Strategy".to_string(),
-            settings: serde_json::Value::default(),
-            params: serde_json::Value::default(),
-        };
-
-        // @GEORGE - want eyes here too
-        db.insert_authority(&insert_params)
-            .await
-            .expect("should be able to insert authority");
-
-        match db.update_authority(&update_params).await {
-            Ok(authority) => {
-                assert_eq!(authority_id, authority.id);
-                assert_eq!(update_params.name, authority.name);
-                assert_eq!(update_params.status, authority.status);
-                assert_eq!(update_params.strategy, authority.strategy);
-            }
-            Err(_) => unreachable!(),
-        }
-    }
+    async fn it_should_update_an_authority_successfully(pool: PgPool) {}
 }

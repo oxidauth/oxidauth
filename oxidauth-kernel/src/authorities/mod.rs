@@ -8,6 +8,7 @@ pub mod delete_authority;
 pub mod find_authority_by_id;
 pub mod find_authority_by_client_id;
 pub mod list_all_authorities;
+pub mod update_authority;
 pub mod register;
 
 pub use crate::user_authorities::UserAuthority;

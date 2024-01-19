@@ -19,7 +19,7 @@ impl<'a> Service<&'a CreateAuthority> for Database {
                 .bind(None::<Uuid>)
                 .bind(&params.name)
                 .bind(&params.client_key)
-                .bind(&params.status.to_string())
+                .bind(params.status.as_ref().map(|s| s.to_string()))
                 .bind(&params.strategy.to_string())
                 .bind(serde_json::to_value(&params.settings)?)
                 .bind(&params.params)
