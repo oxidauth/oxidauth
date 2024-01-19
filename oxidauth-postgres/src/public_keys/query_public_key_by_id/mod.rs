@@ -1,20 +1,25 @@
+use oxidauth_kernel::public_keys::PublicKey;
 use oxidauth_repository::public_keys::query_public_key_by_id::*;
 
 use crate::prelude::*;
+
+use super::PgPublicKey;
 
 #[async_trait]
 impl QueryPublicKeyById for Database {
     async fn query_public_key_by_id(
         &self,
         public_key_id: Uuid,
-    ) -> Result<PublicKeyRow, QueryPublicKeyByIdError> {
-        let result =
-            sqlx::query_as::<_, super::PublicKeyRow>(include_str!("./query_public_key_by_id.sql"))
-                .bind(public_key_id)
-                .fetch_one(&self.pool)
-                .await
-                .map(Into::into)
-                .map_err(|_| QueryPublicKeyByIdError {})?;
+    ) -> Result<PublicKey, QueryPublicKeyByIdError> {
+        let result = sqlx::query_as::<_, PgPublicKey>(include_str!(
+            "./query_public_key_by_id.sql"
+        ))
+        .bind(public_key_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|_| QueryPublicKeyByIdError {})?
+        .try_into()
+        .map_err(|_| QueryPublicKeyByIdError {})?;
 
         Ok(result)
     }
@@ -43,11 +48,20 @@ mod tests {
             .await
             .expect("should be able to insert public_key");
 
-        match db.query_public_key_by_id(public_key_id).await {
+        match db
+            .query_public_key_by_id(public_key_id)
+            .await
+        {
             Ok(public_key) => {
+                let insert_key = String::from_utf8(insert_params.public_key)
+                    .expect("can parse from utf8");
+
                 assert_eq!(public_key_id, public_key.id);
-                assert_eq!(insert_params.public_key, public_key.public_key);
-            }
+                assert_eq!(
+                    insert_key,
+                    public_key.public_key
+                );
+            },
             Err(_) => unreachable!(),
         }
     }

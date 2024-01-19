@@ -1,12 +1,12 @@
-use crate::prelude::*;
+use oxidauth_kernel::public_keys::PublicKey;
 
-pub use super::PublicKeyRow;
+use crate::prelude::*;
 
 #[async_trait]
 pub trait QueryAllPublicKeys: Send + Sync + 'static {
     async fn query_all_public_keys(
         &self,
-    ) -> Result<Vec<PublicKeyRow>, QueryAllPublicKeysError>;
+    ) -> Result<Vec<PublicKey>, QueryAllPublicKeysError>;
 }
 
 #[derive(Debug)]
