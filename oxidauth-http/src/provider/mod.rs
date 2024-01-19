@@ -470,6 +470,17 @@ pub async fn setup() -> Provider {
     }
 
     {
+        use oxidauth_kernel::public_keys::list_all_public_keys::ListAllPublicKeysService;
+        use oxidauth_usecases::public_keys::list_all_public_keys::ListAllPublicKeysUseCase;
+
+        let list_all_public_keys_service = Arc::new(
+            ListAllPublicKeysUseCase::new(db.clone()),
+        );
+        provider
+            .store::<ListAllPublicKeysService>(list_all_public_keys_service);
+    }
+
+    {
         use oxidauth_kernel::authorities::update_authority::UpdateAuthorityService;
         use oxidauth_usecases::authorities::update_authority::UpdateAuthorityUseCase;
 

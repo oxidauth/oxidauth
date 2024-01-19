@@ -3,6 +3,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 pub mod find_public_key_by_id;
+pub mod list_all_public_keys;
 
 #[derive(Debug, Serialize)]
 pub struct PublicKey {
