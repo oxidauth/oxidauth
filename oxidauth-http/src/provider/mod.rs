@@ -417,5 +417,15 @@ pub async fn setup() -> Provider {
         provider.store::<FindAuthorityByIdService>(find_authority_by_id_service);
     }
 
+    {
+        use oxidauth_kernel::authorities::delete_authority::DeleteAuthorityService;
+        use oxidauth_usecases::authorities::delete_authority::DeleteAuthorityUseCase;
+
+        let delete_authority_service = Arc::new(DeleteAuthorityUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<DeleteAuthorityService>(delete_authority_service);
+    }
+
     provider
 }

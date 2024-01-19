@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-pub mod delete_authority_by_id;
+pub mod delete_authority;
 pub mod insert_authority;
 pub mod query_all_authorities;
 pub mod query_authority_by_client_id;
