@@ -28,7 +28,7 @@ impl<'a, T> Service<&'a ListRolePermissionGrantsByRoleId>
 where
     T: SelectRolePermissionGrantsByRoleIdQuery,
 {
-    type Response = Vec<RolePermissionGrantDetail>;
+    type Response = Vec<RolePermission>;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "list_role_permission_grants_by_role_id_usecase", skip(self))]

@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod authorities;
 pub mod permissions;
 pub mod prelude;

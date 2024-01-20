@@ -6,13 +6,12 @@ use uuid::Uuid;
 use crate::error::BoxedError;
 pub use crate::service::Service;
 
-pub use super::RolePermissionGrant;
-pub use super::RolePermissionGrantDetail;
+pub use super::{RolePermission, RolePermissionGrant};
 
 pub type CreateRolePermissionGrantService = Arc<
     dyn for<'a> Service<
         &'a CreateRolePermissionGrant,
-        Response = RolePermissionGrantDetail,
+        Response = RolePermission,
         Error = BoxedError,
     >,
 >;

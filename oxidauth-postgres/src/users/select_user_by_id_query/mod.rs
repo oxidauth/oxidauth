@@ -1,4 +1,5 @@
 use oxidauth_repository::users::select_user_by_id_query::*;
+use sqlx::PgConnection;
 
 use crate::prelude::*;
 
@@ -14,17 +15,29 @@ impl<'a> Service<&'a FindUserById> for Database {
         &self,
         user_id: &'a FindUserById,
     ) -> Result<Self::Response, Self::Error> {
-        let result = sqlx::query_as::<_, UserRow>(include_str!(
-            "./select_user_by_id_query.sql"
-        ))
-        .bind(user_id.user_id)
-        .fetch_one(&self.pool)
-        .await?;
+        let mut conn = self.pool.acquire().await?;
+
+        let result =
+            select_user_by_id_query(&mut conn, user_id.user_id).await?;
 
         let user = result.try_into()?;
 
         Ok(user)
     }
+}
+
+pub async fn select_user_by_id_query(
+    conn: &mut PgConnection,
+    user_id: Uuid,
+) -> Result<UserRow, BoxedError> {
+    let result = sqlx::query_as::<_, UserRow>(include_str!(
+        "./select_user_by_id_query.sql"
+    ))
+    .bind(user_id)
+    .fetch_one(conn)
+    .await?;
+
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -36,35 +49,5 @@ mod tests {
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_a_user_by_id_successfully(pool: PgPool) {
-        // let db = Database { pool };
-        //
-        // let user_id = Uuid::new_v4();
-        //
-        // let insert_params = InsertUserParams {
-        //     id: Some(user_id),
-        //     kind: Some("Test".to_string()),
-        //     status: Some("Test".to_string()),
-        //     username: "Test".to_string(),
-        //     email: Some("test@test.com".to_string()),
-        //     first_name: Some("TestFirst".to_string()),
-        //     last_name: Some("TestLast".to_string()),
-        //     profile: Some(serde_json::Value::default()),
-        // };
-        //
-        // db.insert_user(&insert_params)
-        //     .await
-        //     .expect("should be able to insert user");
-        //
-        // match db.query_user_by_id(user_id).await {
-        //     Ok(user) => {
-        //         assert_eq!(user_id, user.id);
-        //         assert_eq!(insert_params.last_name, user.last_name);
-        //         assert_eq!(insert_params.kind, user.kind);
-        //         assert_eq!(insert_params.email, user.email);
-        //         assert_eq!(insert_params.username, user.username);
-        //     }
-        //     Err(_) => unreachable!(),
-        // }
-    }
+    async fn it_should_query_a_user_by_id_successfully(pool: PgPool) {}
 }

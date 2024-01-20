@@ -4,11 +4,11 @@ pub use oxidauth_kernel::service::Service;
 pub use crate::prelude::*;
 
 pub trait SelectRolePermissionGrantsByRoleIdQuery:
-    for<'a> Service<&'a ListRolePermissionGrantsByRoleId, Response = Vec<RolePermissionGrantDetail>, Error = BoxedError>
+    for<'a> Service<&'a ListRolePermissionGrantsByRoleId, Response = Vec<RolePermission>, Error = BoxedError>
 {
 }
 
 impl<T> SelectRolePermissionGrantsByRoleIdQuery for T where
-    T: for<'a> Service<&'a ListRolePermissionGrantsByRoleId, Response = Vec<RolePermissionGrantDetail>, Error = BoxedError>
+    T: for<'a> Service<&'a ListRolePermissionGrantsByRoleId, Response = Vec<RolePermission>, Error = BoxedError>
 {
 }

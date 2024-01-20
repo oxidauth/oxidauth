@@ -46,7 +46,7 @@ where
     R: SelectRoleByIdQuery,
     P: SelectPermissionByPartsQuery,
 {
-    type Response = RolePermissionGrantDetail;
+    type Response = RolePermission;
     type Error = BoxedError;
 
     #[tracing::instrument(
@@ -75,6 +75,6 @@ where
             .call(&InsertRolePermissionGrant { role_id: req.role_id, permission_id: permission.id })
             .await?;
 
-        Ok(RolePermissionGrantDetail { permission, grant })
+        Ok(RolePermission { permission, grant })
     }
 }

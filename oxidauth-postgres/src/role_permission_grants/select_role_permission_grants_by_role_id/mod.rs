@@ -7,19 +7,23 @@ use super::*;
 
 #[async_trait]
 impl<'a> Service<&'a ListRolePermissionGrantsByRoleId> for Database {
-    type Response = Vec<RolePermissionGrantDetail>;
+    type Response = Vec<RolePermission>;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "select_role_role_grants_by_parent_id_query", skip(self))]
+    #[tracing::instrument(
+        name = "select_role_permission_grants_by_role_id_query",
+        skip(self)
+    )]
     async fn call(
         &self,
         params: &'a ListRolePermissionGrantsByRoleId,
-    ) -> Result<Vec<RolePermissionGrantDetail>, BoxedError> {
-        let result = sqlx::query_as::<_, PgRolePermissionGrantDetail>(include_str!(
-            "./select_role_permission_grants_by_role_id.sql"
-        ))
-        .bind(&params.role_id)
-        .fetch_all(&self.pool)
+    ) -> Result<Vec<RolePermission>, BoxedError> {
+        let mut conn = self.pool.acquire().await?;
+
+        let result = select_role_permission_grants_by_role_id_query(
+            &mut conn,
+            params.role_id,
+        )
         .await?;
 
         let role_role_grant = result
@@ -29,4 +33,18 @@ impl<'a> Service<&'a ListRolePermissionGrantsByRoleId> for Database {
 
         Ok(role_role_grant)
     }
+}
+
+pub async fn select_role_permission_grants_by_role_id_query(
+    conn: &mut PgConnection,
+    role_id: Uuid,
+) -> Result<Vec<PgRolePermission>, BoxedError> {
+    let result = sqlx::query_as::<_, PgRolePermission>(
+        include_str!("./select_role_permission_grants_by_role_id.sql"),
+    )
+    .bind(role_id)
+    .fetch_all(conn)
+    .await?;
+
+    Ok(result)
 }

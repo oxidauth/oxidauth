@@ -1,6 +1,7 @@
 use sqlx::PgPool;
 use std::error::Error;
 
+pub mod auth;
 pub mod authorities;
 pub mod permissions;
 pub mod public_keys;
