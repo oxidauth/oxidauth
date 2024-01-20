@@ -4,7 +4,7 @@ pub mod select_role_permission_grants_by_role_id;
 
 use oxidauth_kernel::{
     permissions::Permission,
-    role_permission_grants::{RolePermissionGrant, RolePermissionGrantDetail},
+    role_permission_grants::{RolePermissionGrant, RolePermission},
 };
 
 use crate::prelude::*;
@@ -29,7 +29,7 @@ impl From<PgRolePermissionGrant> for RolePermissionGrant {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-struct PgRolePermissionGrantDetail {
+pub struct PgRolePermission {
     role_id: Uuid,
     permission_id: Uuid,
     created_at: DateTime<Utc>,
@@ -41,8 +41,8 @@ struct PgRolePermissionGrantDetail {
     permission_updated_at: DateTime<Utc>,
 }
 
-impl From<PgRolePermissionGrantDetail> for RolePermissionGrantDetail {
-    fn from(pg: PgRolePermissionGrantDetail) -> Self {
+impl From<PgRolePermission> for RolePermission {
+    fn from(pg: PgRolePermission) -> Self {
         Self {
             permission: Permission {
                 id: pg.permission_id,

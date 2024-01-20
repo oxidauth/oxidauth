@@ -23,7 +23,7 @@ impl From<ListRolePermissionGrantsByRoleIdReq> for ListRolePermissionGrantsByRol
 
 #[derive(Debug, Serialize)]
 pub struct ListRolePermissionGrantsByRoleIdRes {
-    pub permissions: Vec<RolePermissionGrantDetail>,
+    pub permissions: Vec<RolePermission>,
 }
 
 #[tracing::instrument(name = "list_role_permission_grants_by_role_id_handler", skip(provider))]

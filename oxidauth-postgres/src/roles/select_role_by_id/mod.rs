@@ -15,7 +15,7 @@ impl<'a> Service<&'a FindRoleById> for Database {
     async fn call(&self, params: &'a FindRoleById) -> Result<Role, BoxedError> {
         let mut conn = self.pool.acquire().await?;
 
-        let result = select_role_by_id(&mut conn, params.role_id).await?;
+        let result = select_role_by_id_query(&mut conn, params.role_id).await?;
 
         let role = result.into();
 
@@ -23,7 +23,7 @@ impl<'a> Service<&'a FindRoleById> for Database {
     }
 }
 
-pub(crate) async fn select_role_by_id(
+pub async fn select_role_by_id_query(
     conn: &mut PgConnection,
     role_id: Uuid,
 ) -> Result<PgRole, BoxedError> {
