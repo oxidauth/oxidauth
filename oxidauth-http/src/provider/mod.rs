@@ -504,5 +504,15 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         );
     }
 
+    {
+        // use oxidauth_kernel::public_keys::create_public_key::CreatePublicKeyService;
+        // use oxidauth_usecases::public_keys::create_public_key::CreatePublicKeyUseCase;
+        //
+        // let create_public_key_service = Arc::new(CreatePublicKeyUseCase::new(
+        //     db.clone(),
+        // ));
+        // provider.store::<CreatePublicKeyService>(create_public_key_service);
+    }
+
     Ok(provider)
 }

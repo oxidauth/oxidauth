@@ -1,14 +1,14 @@
-use std::error::Error;
-
+use crate::error::BoxedError;
+use base64::prelude::*;
 use rsa::{
-    pkcs1v15::Pkcs1v15Encrypt,
     pkcs8::{
         DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey,
         LineEnding,
     },
-    traits::PaddingScheme,
-    RsaPrivateKey, RsaPublicKey,
+    Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
 };
+
+use std::error::Error;
 
 const DEFAULT_BIT_SIZE: usize = 4096;
 
@@ -17,36 +17,30 @@ pub struct KeyPair {
     pub private: Vec<u8>,
 }
 
-#[derive(Debug)]
-pub struct RsaError {}
-
 impl KeyPair {
-    pub fn new() -> Result<Self, RsaError> {
+    pub fn new() -> Result<KeyPair, BoxedError> {
         let mut rng = rand::thread_rng();
 
-        let private_key = RsaPrivateKey::new(&mut rng, DEFAULT_BIT_SIZE)
-            .map_err(|_| RsaError {})?;
-
+        let private_key = RsaPrivateKey::new(&mut rng, DEFAULT_BIT_SIZE)?;
         let public_key = RsaPublicKey::from(&private_key);
 
-        let private_pem = private_key
-            .to_pkcs8_pem(LineEnding::LF)
-            .map_err(|_| RsaError {})?;
-
-        let public_pem = public_key
-            .to_public_key_pem(LineEnding::LF)
-            .map_err(|_| RsaError {})?;
+        let private_pem = private_key.to_pkcs8_pem(LineEnding::LF)?;
+        let public_pem = public_key.to_public_key_pem(LineEnding::LF)?;
 
         let private: Vec<u8> = private_pem.to_string().into();
-
         let public: Vec<u8> = public_pem.into();
 
         Ok(KeyPair { public, private })
     }
 
     pub fn base64_encode(&self) -> Base64KeyPair {
-        let public: Vec<u8> = base64::encode(&self.public).into();
-        let private: Vec<u8> = base64::encode(&self.private).into();
+        let public: Vec<u8> = BASE64_STANDARD
+            .encode(&self.public)
+            .into();
+
+        let private: Vec<u8> = BASE64_STANDARD
+            .encode(&self.private)
+            .into();
 
         Base64KeyPair { public, private }
     }
@@ -95,7 +89,7 @@ impl TryFrom<&[u8]> for PublicKey {
     type Error = Box<dyn Error>;
 
     fn try_from(raw: &[u8]) -> Result<Self, Self::Error> {
-        let pem = String::from_utf8(base64::decode(raw)?)?;
+        let pem = String::from_utf8(BASE64_STANDARD.decode(raw)?)?;
         let key = RsaPublicKey::from_public_key_pem(&pem)?;
 
         Ok(PublicKey(key))
@@ -108,7 +102,7 @@ impl PrivateKey {
     pub fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
         let data = self
             .0
-            .decrypt(Pkcs1v15Encrypt, &data)?;
+            .decrypt(Pkcs1v15Encrypt, data)?;
 
         Ok(data)
     }
@@ -127,31 +121,35 @@ impl TryFrom<&[u8]> for PrivateKey {
     type Error = Box<dyn Error>;
 
     fn try_from(raw: &[u8]) -> Result<Self, Self::Error> {
-        let pem = String::from_utf8(base64::decode(raw)?)?;
+        let pem = String::from_utf8(BASE64_STANDARD.decode(raw)?)?;
         let key = RsaPrivateKey::from_pkcs8_pem(&pem)?;
 
         Ok(PrivateKey(key))
     }
 }
 
-// #[cfg(test)]
-// #[cfg(feature = "rsa-test")]
-// mod tests {
-//     use super::*;
-//
-//     #[test]
-//     fn test_encrypt_and_decrypt() {
-//         let Base64KeyPair { public, private } = generate().unwrap().base64_encode();
-//
-//         let data = b"hello world!";
-//
-//         let private: PrivateKey = private.try_into().unwrap();
-//         let public: PublicKey = public.try_into().unwrap();
-//
-//         let encrypted = public.encrypt(data).unwrap();
-//
-//         let decrypted = private.decrypt(&encrypted).unwrap();
-//
-//         assert_eq!(decrypted, data);
-//     }
-// }
+#[cfg(test)]
+#[cfg(feature = "rsa-test")]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encrypt_and_decrypt() {
+        let Base64KeyPair { public, private } = generate()
+            .unwrap()
+            .base64_encode();
+
+        let data = b"hello world!";
+
+        let private: PrivateKey = private.try_into().unwrap();
+        let public: PublicKey = public.try_into().unwrap();
+
+        let encrypted = public.encrypt(data).unwrap();
+
+        let decrypted = private
+            .decrypt(&encrypted)
+            .unwrap();
+
+        assert_eq!(decrypted, data);
+    }
+}
