@@ -44,6 +44,21 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     db.migrate().await?;
 
     {
+        use oxidauth_kernel::auth::register::RegisterService;
+        use oxidauth_usecases::auth::register::RegisterUseCase;
+
+        let register_service = Arc::new(RegisterUseCase::new(
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+        ));
+        provider.store::<RegisterService>(register_service);
+    }
+
+    {
         use oxidauth_kernel::users::create_user::CreateUserService;
         use oxidauth_usecases::users::create_user::CreateUserUseCase;
 

@@ -8,7 +8,7 @@ pub mod user_authority_create;
 
 use crate::{authorities::Authority, dev_prelude::*};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserAuthority {
     pub user_id: Uuid,
     pub authority_id: Uuid,
