@@ -74,12 +74,14 @@ impl FromStr for AuthorityStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AuthorityStrategy {
     UsernamePassword,
     SingleUseToken,
 }
+
+impl AuthorityStrategy {}
 
 const USERNAME_PASSWORD: &str = "username_password";
 const SINGLE_USE_TOKEN: &str = "single_use_token";

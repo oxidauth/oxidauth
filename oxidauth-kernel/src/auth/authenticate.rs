@@ -53,7 +53,7 @@ impl fmt::Display for ParseAuthorityStrategyError {
 impl From<&AuthenticateParams> for FindAuthorityByStrategy {
     fn from(value: &AuthenticateParams) -> Self {
         Self {
-            strategy: value.strategy.clone(),
+            strategy: value.strategy,
         }
     }
 }
