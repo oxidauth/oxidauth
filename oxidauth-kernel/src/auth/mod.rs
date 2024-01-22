@@ -1,4 +1,5 @@
 pub mod authenticate;
+pub mod register;
 pub mod tree;
 
 use async_trait::async_trait;
@@ -6,12 +7,22 @@ use serde_json::Value;
 
 use crate::{
     authorities::UserAuthority, dev_prelude::BoxedError,
-    user_authorities::user_authority_create::UserAuthorityCreate,
+    user_authorities::create_user_authority::CreateUserAuthority,
+    users::create_user::CreateUser,
 };
 
 #[async_trait]
 pub trait Registrar: UserAuthorityFromRequest + Send + Sync + 'static {
-    async fn register(&self, params: Value);
+    async fn register(
+        &self,
+        params: Value,
+    ) -> Result<
+        (
+            CreateUser,
+            CreateUserAuthority,
+        ),
+        BoxedError,
+    >;
 }
 
 #[async_trait]
