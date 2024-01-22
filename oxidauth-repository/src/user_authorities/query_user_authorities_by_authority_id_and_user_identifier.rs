@@ -21,4 +21,7 @@ pub type QueryUserAuthoritiesByAuthorityIdAndUserIdentifierParams =
     FindUserAuthorityByAuthorityIdAndUserIdentifierParams;
 
 #[derive(Debug)]
-pub struct QueryUserAuthoritiesByAuthorityIdAndUserIdentifierError {}
+pub struct QueryUserAuthoritiesByAuthorityIdAndUserIdentifierError {
+    pub user_identifier: String,
+    pub authority_id: Uuid,
+}

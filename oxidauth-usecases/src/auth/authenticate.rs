@@ -1,33 +1,42 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
-    auth::authenticate::{AuthenticateParams, AuthenticateResponse},
+    auth::{
+        authenticate::{AuthenticateParams, AuthenticateResponse},
+        Authenticator,
+    },
+    authorities::{Authority, AuthorityStrategy},
     error::BoxedError,
     service::Service,
 };
-use oxidauth_repository::authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery;
+use oxidauth_repository::{authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery, user_authorities::select_user_authorities_by_authority_id_and_user_identifier::SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery};
 
-pub struct AuthenticateUseCase<T>
+pub struct AuthenticateUseCase<T, U>
 where
     T: SelectAuthorityByStrategyQuery,
+    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
 {
     authority_by_strategy: T,
+    user_authority: U,
 }
 
-impl<T> AuthenticateUseCase<T>
+impl<T, U> AuthenticateUseCase<T, U>
 where
     T: SelectAuthorityByStrategyQuery,
+    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
 {
-    pub fn new(authority_by_strategy: T) -> Self {
+    pub fn new(authority_by_strategy: T, user_authority: U) -> Self {
         Self {
             authority_by_strategy,
+            user_authority,
         }
     }
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a AuthenticateParams> for AuthenticateUseCase<T>
+impl<'a, T, U> Service<&'a AuthenticateParams> for AuthenticateUseCase<T, U>
 where
     T: SelectAuthorityByStrategyQuery,
+    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
 {
     type Response = AuthenticateResponse;
     type Error = BoxedError;
@@ -41,8 +50,24 @@ where
             .call(&params.into())
             .await?;
 
+        let authenticator =
+            build_authenticator(&authority, &params.strategy).await?;
+
+        let user_identifier = authenticator
+            .user_identifier_from_request(&params.params)
+            .await?;
+
+        let user_authority = todo!();
+
         todo!()
     }
+}
+
+pub async fn build_authenticator(
+    authority: &Authority,
+    strategy: &AuthorityStrategy,
+) -> Result<Box<dyn Authenticator>, BoxedError> {
+    todo!()
 }
 
 pub async fn authenticate(
