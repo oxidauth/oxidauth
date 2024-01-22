@@ -23,7 +23,9 @@ pub async fn handle_authenticate(
 
     let payload = match authenticate(&mut db, params).await {
         Ok(payload) => payload,
-        Err(_error) => return Response::fail("unable to authenticate".to_string()).json(),
+        Err(_error) => {
+            return Response::fail("unable to authenticate".to_string()).json()
+        },
     };
 
     Response::success(payload).json()

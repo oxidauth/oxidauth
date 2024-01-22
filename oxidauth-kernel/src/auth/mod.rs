@@ -6,29 +6,24 @@ use serde_json::Value;
 
 use crate::{authorities::UserAuthority, dev_prelude::BoxedError};
 
-// #[async_trait]
-// pub trait Registrar<Params>: Send + Sync + 'static {
-//     async fn register(&self, params: Params);
-// }
-//
-// #[async_trait]
-// pub trait Authenticator<Params>: Send + Sync + 'static {
-//     async fn authenticate(
-//         &self,
-//         params: Params,
-//         user_authority: &UserAuthority,
-//     );
-// }
-
 #[async_trait]
-pub trait Registrar: Send + Sync + 'static {
+pub trait Registrar: UserIdentifierFromRequest + Send + Sync + 'static {
     async fn register(&self, params: Value);
 }
 
 #[async_trait]
-pub trait Authenticator: Send + Sync + 'static {
-    async fn authenticate(&self, params: Value, user_authority: &UserAuthority) -> Result<(), BoxedError>;
+pub trait Authenticator:
+    UserIdentifierFromRequest + Send + Sync + 'static
+{
+    async fn authenticate(
+        &self,
+        params: Value,
+        user_authority: &UserAuthority,
+    ) -> Result<(), BoxedError>;
+}
 
+#[async_trait]
+pub trait UserIdentifierFromRequest: Send + Sync + 'static {
     async fn user_identifier_from_request(
         &self,
         request: &Value,
