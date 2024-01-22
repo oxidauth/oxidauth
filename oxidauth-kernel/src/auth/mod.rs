@@ -1,3 +1,4 @@
+pub mod authenticate;
 pub mod tree;
 
 use async_trait::async_trait;

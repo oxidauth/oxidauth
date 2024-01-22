@@ -19,4 +19,3 @@ pub type FindAuthorityByStrategyService = Arc<
 pub struct FindAuthorityByStrategy {
     pub strategy: AuthorityStrategy,
 }
-

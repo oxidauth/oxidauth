@@ -1,16 +1,16 @@
-use std::{fmt, str::FromStr};
+use std::{error::Error, fmt, str::FromStr};
 
 use serde::Serialize;
 
 pub mod authenticate;
 pub mod create_authority;
 pub mod delete_authority;
-pub mod find_authority_by_strategy;
-pub mod find_authority_by_id;
 pub mod find_authority_by_client_id;
+pub mod find_authority_by_id;
+pub mod find_authority_by_strategy;
 pub mod list_all_authorities;
-pub mod update_authority;
 pub mod register;
+pub mod update_authority;
 
 pub use crate::user_authorities::UserAuthority;
 pub use authenticate::*;
@@ -74,7 +74,7 @@ impl FromStr for AuthorityStatus {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AuthorityStrategy {
     UsernamePassword,
@@ -96,21 +96,40 @@ impl fmt::Display for AuthorityStrategy {
 }
 
 impl FromStr for AuthorityStrategy {
-    type Err = BoxedError;
+    type Err = ParseAuthorityStrategyError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             USERNAME_PASSWORD => AuthorityStrategy::UsernamePassword,
             SINGLE_USE_TOKEN => AuthorityStrategy::SingleUseToken,
             strategy => {
-                return Err(format!(
-                    "invalid authority strategy: {}",
-                    strategy
-                )
-                .into())
+                return Err(
+                    ParseAuthorityStrategyError::Unknown(strategy.to_owned()),
+                );
             },
         };
 
         Ok(res)
     }
 }
+
+#[derive(Debug)]
+pub enum ParseAuthorityStrategyError {
+    Unknown(String),
+}
+
+impl fmt::Display for ParseAuthorityStrategyError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use ParseAuthorityStrategyError::*;
+
+        match self {
+            Unknown(value) => write!(
+                f,
+                "unknown authority strategy: {}",
+                value
+            ),
+        }
+    }
+}
+
+impl Error for ParseAuthorityStrategyError {}

@@ -1,7 +1,7 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::authorities::create_authority::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use crate::provider::Provider;
