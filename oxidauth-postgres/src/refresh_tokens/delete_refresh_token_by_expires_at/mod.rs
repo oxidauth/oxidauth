@@ -8,7 +8,7 @@ impl DeleteRefreshTokenByExpiresAt for Database {
         &self,
         expires_at: DateTime<Utc>,
     ) -> Result<Vec<RefreshTokenRow>, DeleteRefreshTokenByExpiresAtError> {
-        let result = sqlx::query_as::<_, super::RefreshTokenRow>(include_str!(
+        let result = sqlx::query_as::<_, super::PgRefreshToken>(include_str!(
             "./delete_refresh_token_by_expires_at.sql"
         ))
         .bind(expires_at)

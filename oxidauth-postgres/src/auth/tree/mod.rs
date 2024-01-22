@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use async_recursion::async_recursion;
 use oxidauth_kernel::service::Service;
-use oxidauth_kernel::user_role_grants::UserRole;
 use oxidauth_kernel::users::User;
 use oxidauth_repository::auth::tree::*;
 use sqlx::PgConnection;

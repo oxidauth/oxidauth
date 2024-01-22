@@ -4,6 +4,7 @@ use std::error::Error;
 pub mod auth;
 pub mod authorities;
 pub mod permissions;
+pub mod private_keys;
 pub mod public_keys;
 pub mod refresh_tokens;
 pub mod role_permission_grants;
