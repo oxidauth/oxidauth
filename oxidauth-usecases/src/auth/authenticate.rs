@@ -110,14 +110,15 @@ where
 
         let user_authority = self
             .user_authority
-            .call(&user_authority_params).await?;
+            .call(&user_authority_params)
+            .await?;
 
-        authenticator
+        let _ = authenticator
             .authenticate(
                 params.params.clone(),
                 &user_authority,
             )
-            .await;
+            .await?;
 
         let permissions = self
             .permission_tree
@@ -201,26 +202,112 @@ pub async fn build_authenticator(
 
 pub mod strategies {
     pub mod username_password {
+        use argon2::{Argon2, PasswordHash, password_hash::Error as PasswordHashError, PasswordVerifier};
+        use async_trait::async_trait;
+        use serde::Deserialize;
         use uuid::Uuid;
 
         use oxidauth_kernel::{
-            auth::Authenticator, authorities::Authority, error::BoxedError,
+            auth::Authenticator, authorities::Authority, error::BoxedError, user_authorities::UserAuthority,
         };
 
         pub async fn new(
             authority: &Authority,
         ) -> Result<Box<dyn Authenticator>, BoxedError> {
-            todo!()
+            let params: AuthorityParams = authority.params.clone().try_into()?;
+            let authority_id = authority.id;
+            let password_pepper = std::env::var("OXIDAUTH_USERNAME_PASSWORD_PEPPER")?;
+
+            Ok(Box::new(UsernamePassword {
+                authority_id,
+                params,
+                password_pepper,
+            }))
         }
 
+        #[derive(Debug)]
         pub struct UsernamePassword {
             authority_id: Uuid,
             params: AuthorityParams,
             password_pepper: String,
         }
 
+        #[derive(Debug, Deserialize)]
         pub struct AuthorityParams {
             password_salt: String,
+        }
+
+        impl TryFrom<serde_json::Value> for AuthorityParams {
+            type Error = BoxedError;
+
+            fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
+                let s: Self = serde_json::from_value(value)?;
+
+                Ok(s)
+            }
+        }
+
+        #[async_trait]
+        impl Authenticator for UsernamePassword {
+            async fn user_identifier_from_request(
+                &self,
+                params: &serde_json::Value,
+            ) -> Result<String, BoxedError> {
+                let AuthenticateParams { username, .. } = serde_json::from_value(params.clone())?;
+
+                Ok(username)
+            }
+
+            async fn authenticate(
+                &self,
+                authenticate_params: serde_json::Value,
+                user_authority: &UserAuthority,
+            ) -> Result<(), BoxedError> {
+                let authenticate_params: AuthenticateParams = serde_json::from_value(authenticate_params.clone())?;
+
+                let password = format!(
+                    "{}:{}:{}",
+                    authenticate_params.password, self.params.password_salt, self.password_pepper,
+                    );
+
+                let user_authority_params: UserAuthorityParams =
+                    user_authority.params.clone().try_into()?;
+
+                verify_password(password, user_authority_params.password_hash)
+                    .map_err(|err| err.to_string())?;
+
+                Ok(())
+            }
+        }
+
+        #[derive(Clone, Deserialize)]
+        pub struct AuthenticateParams {
+            pub username: String,
+            pub password: String,
+        }
+
+        #[derive(Clone, Deserialize)]
+        pub struct UserAuthorityParams {
+            pub password_hash: String,
+        }
+
+        impl TryFrom<serde_json::Value> for UserAuthorityParams {
+            type Error = BoxedError;
+
+            fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
+                let s: Self = serde_json::from_value(value)?;
+
+                Ok(s)
+            }
+
+        }
+
+        pub fn verify_password(password: String, password_hash: String) -> Result<bool, PasswordHashError> {
+            let password_hash = PasswordHash::new(&password_hash)?;
+
+            Argon2::default().verify_password(&password.into_bytes(), &password_hash)?;
+
+            Ok(true)
         }
     }
 }

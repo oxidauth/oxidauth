@@ -27,7 +27,7 @@ pub trait Registrar: Send + Sync + 'static {
 
 #[async_trait]
 pub trait Authenticator: Send + Sync + 'static {
-    async fn authenticate(&self, params: Value, user_authority: &UserAuthority);
+    async fn authenticate(&self, params: Value, user_authority: &UserAuthority) -> Result<(), BoxedError>;
 
     async fn user_identifier_from_request(
         &self,
