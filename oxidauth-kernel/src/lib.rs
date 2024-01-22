@@ -5,6 +5,7 @@ pub mod error;
 pub mod jwt;
 pub mod permissions;
 pub mod prelude;
+pub mod private_keys;
 pub mod public_keys;
 pub mod refresh_tokens;
 pub mod role_permission_grants;
