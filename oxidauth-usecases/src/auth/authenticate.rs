@@ -1,8 +1,6 @@
 use std::time::Duration;
-use base64::{
-    engine::{general_purpose, GeneralPurpose},
-    Engine as _,
-};
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use chrono::DateTime;
 use async_trait::async_trait;
 use oxidauth_kernel::{
@@ -30,8 +28,6 @@ use oxidauth_repository::{
         InsertRefreshTokenQuery,
     },
 };
-
-const BASE64_ENGINE: GeneralPurpose = general_purpose::STANDARD;
 
 pub struct AuthenticateUseCase<T, U, P, M, R>
 where
@@ -133,7 +129,7 @@ where
             .call(&SelectMostRecentPrivateKey {})
             .await?;
 
-        let private_key = BASE64_ENGINE.decode(private_key.private_key)?;
+        let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
 
         let jwt = Jwt::new()
             .with_subject(user_authority.user_id)
