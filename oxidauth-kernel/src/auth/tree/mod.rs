@@ -4,10 +4,9 @@ use uuid::Uuid;
 
 use crate::{
     dev_prelude::{BoxedError, Service},
-    permissions::Permission,
-    role_permission_grants::{RolePermission, RolePermissionGrant},
+    role_permission_grants::RolePermission,
     roles::Role,
-    user_permission_grants::{UserPermission, UserPermissionGrant},
+    user_permission_grants::UserPermission,
     users::User,
 };
 
