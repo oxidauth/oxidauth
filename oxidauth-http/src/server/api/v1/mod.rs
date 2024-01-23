@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod authorities;
+pub mod can;
 pub mod permissions;
 pub mod public_keys;
 pub mod refresh_tokens;
@@ -32,4 +33,5 @@ pub fn router() -> Router<Provider> {
             "/refresh_tokens",
             refresh_tokens::router(),
         )
+        .nest("/can", can::router())
 }

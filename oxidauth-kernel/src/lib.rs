@@ -17,3 +17,7 @@ pub mod user_authorities;
 pub mod user_permission_grants;
 pub mod user_role_grants;
 pub mod users;
+
+pub mod base64 {
+    pub use base64::prelude::*;
+}

@@ -1,3 +1,6 @@
+use core::fmt;
+use std::error::Error;
+
 pub mod compare;
 pub mod parse;
 
@@ -15,6 +18,14 @@ pub enum PermissionParseErr {
     InvalidPermission,
 }
 
+impl fmt::Display for PermissionParseErr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid permission")
+    }
+}
+
+impl Error for PermissionParseErr {}
+
 #[derive(Debug, PartialEq)]
 enum Prev<'a> {
     Token(Token<'a>),
@@ -22,7 +33,7 @@ enum Prev<'a> {
     None,
 }
 
-pub fn validate(
+pub fn validate_single(
     challenge: &[Token<'_>],
     permissions: &str,
 ) -> Result<bool, PermissionParseErr> {
@@ -31,4 +42,19 @@ pub fn validate(
     let passed = compare::compare(challenge, &parsed);
 
     Ok(passed)
+}
+
+pub fn validate(
+    challenge: &[Token<'_>],
+    permissions: &[impl AsRef<str>],
+) -> Result<bool, PermissionParseErr> {
+    for permission in permissions {
+        match validate_single(challenge, permission.as_ref()) {
+            Ok(true) => return Ok(true),
+            Err(err) => return Err(err),
+            Ok(false) => continue,
+        }
+    }
+
+    Ok(false)
 }
