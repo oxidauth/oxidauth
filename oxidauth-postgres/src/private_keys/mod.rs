@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use oxidauth_kernel::private_keys::PrivateKey;
 use uuid::Uuid;
 
-pub mod select_most_recent_public_key;
+pub mod select_most_recent_private_key;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgPrivateKey {
