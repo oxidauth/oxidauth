@@ -1,4 +1,4 @@
-POST {{scheme}}://{{host}}/api/v2/authorities
+POST {{scheme}}://{{host}}/api/v1/authorities
 {
     "authority": {
         "name": "default",
