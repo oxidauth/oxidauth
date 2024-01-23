@@ -2,9 +2,7 @@ use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::refresh_tokens::exchange_refresh_token::*;
-use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
