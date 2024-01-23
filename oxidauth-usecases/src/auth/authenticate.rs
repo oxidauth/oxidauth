@@ -10,7 +10,7 @@ use oxidauth_kernel::{
     },
     authorities::{Authority, AuthorityStrategy},
     error::BoxedError,
-    service::Service, jwt::{Jwt, epoch_from_now},
+    service::Service, jwt::{Jwt, epoch_from_now}, private_keys::find_most_recent_public_key::FindMostRecentPrivateKey,
 };
 use oxidauth_repository::{
     authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,
@@ -19,10 +19,7 @@ use oxidauth_repository::{
         SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams
     },
     auth::tree::{PermissionSearch, PermissionTreeQuery},
-    private_keys::select_most_recent_private_key::{
-        SelectMostRecentPrivateKey,
-        SelectMostRecentPrivateKeyQuery,
-    },
+    private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
     refresh_tokens::insert_refresh_token::{
         CreateRefreshToken,
         InsertRefreshTokenQuery,
@@ -128,7 +125,7 @@ where
 
         let private_key = self
             .private_keys
-            .call(&SelectMostRecentPrivateKey {})
+            .call(&FindMostRecentPrivateKey {})
             .await?;
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;

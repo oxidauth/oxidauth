@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 pub mod create_refresh_token;
+pub mod exchange_refresh_token;
+pub mod find_refresh_token_by_id;
 
 pub struct RefreshToken {
     pub id: Uuid,
