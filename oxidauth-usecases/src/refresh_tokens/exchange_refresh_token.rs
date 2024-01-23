@@ -11,17 +11,19 @@ use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
 use oxidauth_kernel::jwt::{epoch_from_time, Jwt, epoch_from_now};
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
+use oxidauth_kernel::refresh_tokens::delete_refresh_token::DeleteRefreshToken;
 use oxidauth_kernel::refresh_tokens::find_refresh_token_by_id::FindRefreshTokenById;
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityId;
 use oxidauth_kernel::{refresh_tokens::exchange_refresh_token::*, error::BoxedError};
 use oxidauth_repository::auth::tree::PermissionTreeQuery;
 use oxidauth_repository::private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery;
+use oxidauth_repository::refresh_tokens::delete_refresh_token::DeleteRefreshTokenQuery;
 use oxidauth_repository::refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery;
 use oxidauth_repository::refresh_tokens::select_refresh_token_by_id::SelectRefreshTokenByIdQuery;
 use oxidauth_repository::user_authorities::select_user_authority_by_user_id_and_authority_id::SelectUserAuthorityByUserIdAndAuthorityIdQuery;
 use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
 
-pub struct ExchangeRefreshTokenUseCase<T, I, U, A, P, K>
+pub struct ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D>
 where
     T: SelectRefreshTokenByIdQuery,
     I: InsertRefreshTokenQuery,
@@ -29,6 +31,7 @@ where
     A: SelectAuthorityByIdQuery,
     P: PermissionTreeQuery,
     K: SelectMostRecentPrivateKeyQuery,
+    D: DeleteRefreshTokenQuery,
 {
     refresh_tokens: T,
     insert_refresh_tokens: I,
@@ -36,9 +39,10 @@ where
     authorities: A,
     permission_tree: P,
     private_keys: K,
+    delete_refresh_tokens: D,
 }
 
-impl<T, I, U, A, P, K> ExchangeRefreshTokenUseCase<T, I, U, A, P, K>
+impl<T, I, U, A, P, K, D> ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D>
 where
     T: SelectRefreshTokenByIdQuery,
     I: InsertRefreshTokenQuery,
@@ -46,6 +50,7 @@ where
     A: SelectAuthorityByIdQuery,
     P: PermissionTreeQuery,
     K: SelectMostRecentPrivateKeyQuery,
+    D: DeleteRefreshTokenQuery,
 {
     pub fn new(
         refresh_tokens: T,
@@ -54,6 +59,7 @@ where
         authorities: A,
         permission_tree: P,
         private_keys: K,
+        delete_refresh_tokens: D,
     ) -> Self {
         Self {
             refresh_tokens,
@@ -62,13 +68,14 @@ where
             authorities,
             permission_tree,
             private_keys,
+            delete_refresh_tokens,
         }
     }
 }
 
 #[async_trait]
-impl<'a, T, I, U, A, P, K> Service<&'a ExchangeRefreshToken>
-    for ExchangeRefreshTokenUseCase<T, I, U, A, P, K>
+impl<'a, T, I, U, A, P, K, D> Service<&'a ExchangeRefreshToken>
+    for ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D>
 where
     T: SelectRefreshTokenByIdQuery,
     I: InsertRefreshTokenQuery,
@@ -76,6 +83,7 @@ where
     A: SelectAuthorityByIdQuery,
     P: PermissionTreeQuery,
     K: SelectMostRecentPrivateKeyQuery,
+    D: DeleteRefreshTokenQuery,
 {
     type Response = AuthenticateResponse;
     type Error = BoxedError;
@@ -105,6 +113,11 @@ where
         })?;
 
         if expires_at.timestamp() < now as i64 {
+            self.delete_refresh_tokens
+                .call(&DeleteRefreshToken {
+                    refresh_token_id: req.refresh_token,
+                })
+                .await?;
             return Err("refresh token has expired".into());
         }
 

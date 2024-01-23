@@ -551,6 +551,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
                 db.clone(),
                 db.clone(),
                 db.clone(),
+                db.clone(),
             ),
         );
         provider.store::<ExchangeRefreshTokenService>(
