@@ -30,7 +30,7 @@ pub trait UserAuthorityFromRequest: Send + Sync + 'static {
     async fn user_authority_from_request(
         &self,
         params: Value,
-    ) -> Result<UserAuthorityCreate, BoxedError>;
+    ) -> Result<CreateUserAuthority, BoxedError>;
 }
 
 #[async_trait]
