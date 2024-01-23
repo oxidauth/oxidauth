@@ -543,15 +543,19 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::refresh_tokens::exchange_refresh_token::ExchangeRefreshTokenService;
         use oxidauth_usecases::refresh_tokens::exchange_refresh_token::ExchangeRefreshTokenUseCase;
 
-        let exchange_refresh_token_service = Arc::new(ExchangeRefreshTokenUseCase::new(
-            db.clone(),
-            db.clone(),
-            db.clone(),
-            db.clone(),
-            db.clone(),
-            db.clone(),
-        ));
-        provider.store::<ExchangeRefreshTokenService>(exchange_refresh_token_service);
+        let exchange_refresh_token_service = Arc::new(
+            ExchangeRefreshTokenUseCase::new(
+                db.clone(),
+                db.clone(),
+                db.clone(),
+                db.clone(),
+                db.clone(),
+                db.clone(),
+            ),
+        );
+        provider.store::<ExchangeRefreshTokenService>(
+            exchange_refresh_token_service,
+        );
     }
 
     Ok(provider)

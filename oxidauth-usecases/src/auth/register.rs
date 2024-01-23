@@ -89,12 +89,10 @@ where
         &self,
         params: &'a RegisterParams,
     ) -> Result<Self::Response, Self::Error> {
-        dbg!("AUTHORTIY HERE?");
         let authority = self
             .authority_by_strategy
             .call(&params.into())
             .await?;
-        dbg!(&authority);
 
         let registrar = build_registrar(&authority, &params.strategy).await?;
 
