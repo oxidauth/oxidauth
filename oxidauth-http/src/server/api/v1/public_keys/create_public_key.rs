@@ -29,7 +29,7 @@ pub async fn handle(State(provider): State<Provider>) -> impl IntoResponse {
     match result {
         Ok(public_key) => {
             info!(
-                message = "successfully found public_key by id",
+                message = "successfully created public key",
                 public_key = ?public_key,
             );
 
@@ -37,7 +37,7 @@ pub async fn handle(State(provider): State<Provider>) -> impl IntoResponse {
         },
         Err(err) => {
             info!(
-                message = "failed to find public_key by id",
+                message = "failed to create public_key",
                 err = ?err,
             );
 
