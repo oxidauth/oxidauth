@@ -41,7 +41,7 @@ pub async fn handle(
     match result {
         Ok(public_key) => {
             info!(
-                message = "successfully found public_key by id",
+                message = "successfully deleted public_key",
                 public_key = ?public_key,
             );
 
@@ -49,7 +49,7 @@ pub async fn handle(
         },
         Err(err) => {
             info!(
-                message = "failed to find public_key by id",
+                message = "failed to delete public_key",
                 err = ?err,
             );
 
