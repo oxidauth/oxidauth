@@ -4,7 +4,7 @@ pub mod registrar;
 pub mod user_authority_from_request;
 pub mod user_identifier_from_request;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use oxidauth_kernel::error::BoxedError;
@@ -31,7 +31,7 @@ impl TryFrom<serde_json::Value> for AuthorityParams {
     }
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct UserAuthorityParams {
     pub password_hash: String,
 }
