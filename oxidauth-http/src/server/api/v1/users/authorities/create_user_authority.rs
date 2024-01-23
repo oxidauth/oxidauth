@@ -3,9 +3,12 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_authorities::create_user_authority::*;
+use oxidauth_kernel::{
+    authorities::AuthorityStrategy, error::IntoOxidAuthError,
+};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use tracing::info;
 use uuid::Uuid;
 
@@ -19,7 +22,13 @@ pub struct CreateUserAuthorityPathReq {
 
 #[derive(Debug, Deserialize)]
 pub struct CreateUserAuthorityBodyReq {
-    pub user_authority: CreateUserAuthority,
+    pub authority_strategy: AuthorityStrategy,
+    pub user_authority: UserAuthorityParams,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UserAuthorityParams {
+    pub params: Value,
 }
 
 #[derive(Debug, Serialize)]
@@ -37,12 +46,12 @@ pub async fn handle(
 
     info!("provided CreateUserAuthorityService");
 
-    let mut user_authority = request.user_authority;
-
-    user_authority.user_id = Some(params.user_id);
-
     let result = service
-        .call(&user_authority)
+        .call(&CreateUserAuthorityParams {
+            user_id: params.user_id,
+            strategy: request.authority_strategy,
+            params: request.user_authority.params,
+        })
         .await;
 
     match result {
