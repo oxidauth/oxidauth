@@ -68,7 +68,6 @@ jsonpath "$.payload" != null
 
 POST {{scheme}}://{{host}}/api/v1/refresh_tokens
 {
-    "user_id": "{{user_id}}",
     "refresh_token": "{{refresh_token}}"
 }
 HTTP/1.1 200

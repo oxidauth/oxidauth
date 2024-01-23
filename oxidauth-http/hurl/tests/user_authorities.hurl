@@ -75,7 +75,7 @@ jsonpath "$.payload.user_authority" != null
 jsonpath "$.payload.user_authority.user_id" == "{{user_id}}"
 jsonpath "$.payload.user_authority.authority_id" == "{{authority_id}}"
 jsonpath "$.payload.user_authority.params" != null
-jsonpath "$.payload.user_authority.params.password_hash" != null 
+jsonpath "$.payload.user_authority.params.password_hash" != null
 jsonpath "$.payload.user_authority.created_at" != null
 jsonpath "$.payload.user_authority.updated_at" != null
 
@@ -88,7 +88,7 @@ jsonpath "$.payload" != null
 jsonpath "$.payload.user_authority.user_id" == "{{user_id}}"
 jsonpath "$.payload.user_authority.authority_id" == "{{authority_id}}"
 jsonpath "$.payload.user_authority.params" != null
-jsonpath "$.payload.user_authority.params.password_hash" != null 
+jsonpath "$.payload.user_authority.params.password_hash" != null
 jsonpath "$.payload.user_authority.created_at" != null
 jsonpath "$.payload.user_authority.updated_at" != null
 jsonpath "$.payload.authority.id" == "{{authority_id}}"

@@ -3,8 +3,8 @@ use std::sync::Arc;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{error::BoxedError, auth::authenticate::AuthenticateResponse};
 pub use crate::service::Service;
+use crate::{auth::authenticate::AuthenticateResponse, error::BoxedError};
 
 pub use super::RefreshToken;
 
@@ -18,5 +18,5 @@ pub type ExchangeRefreshTokenService = Arc<
 
 #[derive(Debug, Deserialize)]
 pub struct ExchangeRefreshToken {
-    pub refresh_token_id: Uuid,
+    pub refresh_token: Uuid,
 }

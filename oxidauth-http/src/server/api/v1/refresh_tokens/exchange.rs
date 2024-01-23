@@ -1,7 +1,7 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::refresh_tokens::exchange_refresh_token::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
 use uuid::Uuid;
 

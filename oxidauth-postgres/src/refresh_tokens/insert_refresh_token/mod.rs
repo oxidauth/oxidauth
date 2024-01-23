@@ -14,14 +14,15 @@ impl<'a> Service<&'a CreateRefreshToken> for Database {
         &self,
         params: &'a CreateRefreshToken,
     ) -> Result<RefreshToken, BoxedError> {
-        let result =
-            sqlx::query_as::<_, PgRefreshToken>(include_str!("./insert_refresh_token.sql"))
-                .bind(None::<Uuid>)
-                .bind(&params.user_id)
-                .bind(&params.authority_id)
-                .bind(&params.expires_at)
-                .fetch_one(&self.pool)
-                .await?;
+        let result = sqlx::query_as::<_, PgRefreshToken>(include_str!(
+            "./insert_refresh_token.sql"
+        ))
+        .bind(None::<Uuid>)
+        .bind(params.user_id)
+        .bind(params.authority_id)
+        .bind(params.expires_at)
+        .fetch_one(&self.pool)
+        .await?;
 
         let refresh_token = result.into();
 

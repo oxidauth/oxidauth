@@ -27,4 +27,8 @@ pub fn router() -> Router<Provider> {
             public_keys::router(),
         )
         .nest("/roles", roles::router())
+        .nest(
+            "/refresh_tokens",
+            refresh_tokens::router(),
+        )
 }

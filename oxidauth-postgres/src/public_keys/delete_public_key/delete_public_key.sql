@@ -1,3 +1,3 @@
 DELETE FROM public_keys
-WHERE $1
+WHERE id = $1
 RETURNING *
