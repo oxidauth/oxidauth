@@ -4,7 +4,7 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_permission_grants::create_user_permission_grant::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tracing::info;
 use uuid::Uuid;
 
@@ -17,10 +17,7 @@ pub struct CreateUserPermissionReq {
     pub permission: String,
 }
 
-#[derive(Debug, Serialize)]
-pub struct CreateUserPermissionRes {
-    pub user_permission: UserPermission,
-}
+pub type CreateUserPermissionRes = UserPermission;
 
 #[tracing::instrument(name = "create_user_permission_handler", skip(provider))]
 pub async fn handle(
@@ -45,8 +42,7 @@ pub async fn handle(
                 user_permission = ?user_permission,
             );
 
-            Response::success()
-                .payload(CreateUserPermissionRes { user_permission })
+            Response::success().payload(user_permission)
         },
         Err(err) => {
             info!(

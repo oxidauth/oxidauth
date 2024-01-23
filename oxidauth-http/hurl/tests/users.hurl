@@ -36,12 +36,12 @@ jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
 
 GET {{scheme}}://{{host}}/api/v1/users/00000000-0000-0000-0000-000000000000
-HTTP/1.1 200
+HTTP/1.1 400
 [Asserts]
 jsonpath "$.success" == false
 jsonpath "$.payload" not exists 
 jsonpath "$.errors" != null 
-jsonpath "$.errors[0]" contains "user not found"
+jsonpath "$.errors[0].debug" contains "RowNotFound"
 
 POST {{scheme}}://{{host}}/api/v1/users
 {
@@ -75,7 +75,7 @@ jsonpath "$.payload.users[0].username" == "browncoat1"
 jsonpath "$.payload.users[0].email" == "mal@serenity.com" 
 jsonpath "$.payload.users[0].first_name" == "Mal" 
 jsonpath "$.payload.users[0].last_name" == "Reynolds" 
-jsonpath "$.payload.users[0].status" == "active"
+jsonpath "$.payload.users[0].status" == "enabled"
 jsonpath "$.payload.users[0].kind" == "human"
 jsonpath "$.payload.users[0].profile" != null 
 jsonpath "$.payload.users[0].created_at" != null 
@@ -94,7 +94,7 @@ jsonpath "$.payload.user.username" == "browncoat1"
 jsonpath "$.payload.user.email" == "mal@serenity.com" 
 jsonpath "$.payload.user.first_name" == "Mal" 
 jsonpath "$.payload.user.last_name" == "Reynolds" 
-jsonpath "$.payload.user.status" == "active"
+jsonpath "$.payload.user.status" == "enabled"
 jsonpath "$.payload.user.kind" == "human"
 jsonpath "$.payload.user.profile" != null 
 jsonpath "$.payload.user.created_at" != null 
@@ -113,7 +113,7 @@ jsonpath "$.payload.user.username" == "browncoat1"
 jsonpath "$.payload.user.email" == "mal@serenity.com" 
 jsonpath "$.payload.user.first_name" == "Mal" 
 jsonpath "$.payload.user.last_name" == "Reynolds" 
-jsonpath "$.payload.user.status" == "active"
+jsonpath "$.payload.user.status" == "enabled"
 jsonpath "$.payload.user.kind" == "human"
 jsonpath "$.payload.user.profile" != null 
 jsonpath "$.payload.user.created_at" != null 
@@ -138,7 +138,7 @@ jsonpath "$.payload.user.username" == "browncoat1"
 jsonpath "$.payload.user.email" == "kaylee@serenity.com" 
 jsonpath "$.payload.user.first_name" == "Kaylee" 
 jsonpath "$.payload.user.last_name" == "Frye" 
-jsonpath "$.payload.user.status" == "active"
+jsonpath "$.payload.user.status" == "enabled"
 jsonpath "$.payload.user.kind" == "human"
 jsonpath "$.payload.user.profile" != null 
 jsonpath "$.payload.user.created_at" != null 
