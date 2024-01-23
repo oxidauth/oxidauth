@@ -74,6 +74,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 
         let update_user_service = Arc::new(UpdateUserUseCase::new(
             db.clone(),
+            db.clone(),
         ));
         provider.store::<UpdateUserService>(update_user_service);
     }

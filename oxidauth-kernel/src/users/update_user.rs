@@ -9,7 +9,11 @@ pub use crate::service::Service;
 pub use super::{User, UserStatus};
 
 pub type UpdateUserService = Arc<
-    dyn for<'a> Service<&'a UpdateUser, Response = User, Error = BoxedError>,
+    dyn for<'a> Service<
+        &'a mut UpdateUser,
+        Response = User,
+        Error = BoxedError,
+    >,
 >;
 
 #[derive(Debug, Deserialize)]

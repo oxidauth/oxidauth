@@ -4,7 +4,7 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_role_grants::create_user_role_grant::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tracing::info;
 use uuid::Uuid;
 
@@ -17,10 +17,7 @@ pub struct CreateUserRoleReq {
     pub role_id: Uuid,
 }
 
-#[derive(Debug, Serialize)]
-pub struct CreateUserRoleRes {
-    pub user_role: UserRole,
-}
+pub type CreateUserRoleRes = UserRole;
 
 #[tracing::instrument(name = "create_user_role_handler", skip(provider))]
 pub async fn handle(
@@ -45,7 +42,7 @@ pub async fn handle(
                 user_role = ?user_role,
             );
 
-            Response::success().payload(CreateUserRoleRes { user_role })
+            Response::success().payload(user_role)
         },
         Err(err) => {
             info!(

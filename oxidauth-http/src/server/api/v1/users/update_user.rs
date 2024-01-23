@@ -41,7 +41,9 @@ pub async fn handle(
 
     updates.id = Some(params.user_id);
 
-    let result = service.call(&updates).await;
+    let result = service
+        .call(&mut updates)
+        .await;
 
     match result {
         Ok(user) => {
