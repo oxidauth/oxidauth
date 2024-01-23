@@ -8,12 +8,12 @@ jsonpath "$.payload.authorities" != null
 jsonpath "$.payload.authorities" count == 0
 
 GET {{scheme}}://{{host}}/api/v1/authorities/00000000-0000-0000-0000-000000000000
-HTTP/1.1 200
+HTTP/1.1 400
 [Asserts]
 jsonpath "$.success" == false
 jsonpath "$.payload" not exists 
 jsonpath "$.errors" != null 
-jsonpath "$.errors[0]" contains "authority not found"
+jsonpath "$.errors[0].debug" contains "RowNotFound"
 
 POST {{scheme}}://{{host}}/api/v1/authorities
 {

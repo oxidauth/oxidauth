@@ -10,7 +10,7 @@ impl<'a> Service<&'a InsertPublicKeyParams> for Database {
     type Response = PublicKey;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "insert_public_key_query", skip(self))]
+    #[tracing::instrument(name = "insert_public_key_query", skip(self, params))]
     async fn call(
         &self,
         params: &'a InsertPublicKeyParams,

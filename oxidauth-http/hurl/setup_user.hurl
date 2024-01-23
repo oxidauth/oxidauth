@@ -34,7 +34,7 @@ jsonpath "$.success" == true
 jsonpath "$.errors" not exists
 jsonpath "$.payload" != null
 
-POST {{scheme}}://{{host}}/api/v1/register
+POST {{scheme}}://{{host}}/api/v1/auth/register
 {
     "strategy": "username_password",
     "params": {

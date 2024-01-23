@@ -1,9 +1,9 @@
-use uuid::Uuid;
 use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::refresh_tokens::exchange_refresh_token::*;
 use serde::{Deserialize, Serialize};
 use tracing::info;
+use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
@@ -12,6 +12,7 @@ pub type ExchangeRefreshTokenReq = ExchangeRefreshToken;
 
 #[derive(Debug, Serialize)]
 pub struct ExchangeRefreshTokenRes {
+    pub jwt: String,
     pub refresh_token: Uuid,
 }
 
@@ -24,18 +25,19 @@ pub async fn handle(
 
     info!("provided ExchangeRefreshTokenService");
 
-    let result = service
-        .call(&params)
-        .await;
+    let result = service.call(&params).await;
 
     match result {
-        Ok(jwt) => {
+        Ok(result) => {
             info!(
                 message = "successfully exchanged refresh token",
-                jwt = ?jwt,
+                result = ?result,
             );
 
-            Response::success().payload(ExchangeRefreshTokenRes { refresh_token: jwt.refresh_token })
+            Response::success().payload(ExchangeRefreshTokenRes {
+                jwt: result.jwt,
+                refresh_token: result.refresh_token,
+            })
         },
         Err(err) => {
             info!(
@@ -47,4 +49,3 @@ pub async fn handle(
         },
     }
 }
-
