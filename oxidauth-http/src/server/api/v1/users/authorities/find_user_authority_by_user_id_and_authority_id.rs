@@ -4,7 +4,7 @@ use axum::{
 };
 use oxidauth_kernel::{error::IntoOxidAuthError, user_authorities::UserAuthorityWithAuthority};
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tracing::info;
 use uuid::Uuid;
 
@@ -17,10 +17,8 @@ pub struct FindUserAuthorityByUserIdAndAuthorityIdReq {
     pub authority_id: Uuid,
 }
 
-#[derive(Debug, Serialize)]
-pub struct FindUserAuthorityByUserIdAndAuthorityIdRes {
-    pub user_authority: UserAuthorityWithAuthority,
-}
+pub type FindUserAuthorityByUserIdAndAuthorityIdRes =
+    UserAuthorityWithAuthority;
 
 #[tracing::instrument(
     name = "find_user_authority_by_user_id_and_authority_id_handler",
@@ -51,9 +49,7 @@ pub async fn handle(
                 user_authority = ?user_authority,
             );
 
-            Response::success().payload(
-                FindUserAuthorityByUserIdAndAuthorityIdRes { user_authority },
-            )
+            Response::success().payload(user_authority)
         },
         Err(err) => {
             info!(

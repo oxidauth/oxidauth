@@ -123,7 +123,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_usecases::user_authorities::create_user_authority::CreateUserAuthorityUseCase;
 
         let create_user_authority_service =
-            Arc::new(CreateUserAuthorityUseCase::new(db.clone()));
+            Arc::new(CreateUserAuthorityUseCase::new(db.clone(), db.clone()));
         provider
             .store::<CreateUserAuthorityService>(create_user_authority_service);
     }
