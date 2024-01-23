@@ -1,4 +1,5 @@
 use axum::{extract::State, response::IntoResponse, Json};
+use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::refresh_tokens::exchange_refresh_token::*;
 use serde::Serialize;
@@ -8,13 +9,9 @@ use uuid::Uuid;
 use crate::provider::Provider;
 use crate::response::Response;
 
-pub type ExchangeRefreshTokenReq = ExchangeRefreshToken;
+type ExchangeRefreshTokenReq = ExchangeRefreshToken;
 
-#[derive(Debug, Serialize)]
-pub struct ExchangeRefreshTokenRes {
-    pub jwt: String,
-    pub refresh_token: Uuid,
-}
+type ExchangeRefreshTokenRes = AuthenticateResponse;
 
 #[tracing::instrument(name = "exchange_refresh_token_handler", skip(provider))]
 pub async fn handle(
@@ -34,10 +31,7 @@ pub async fn handle(
                 result = ?result,
             );
 
-            Response::success().payload(ExchangeRefreshTokenRes {
-                jwt: result.jwt,
-                refresh_token: result.refresh_token,
-            })
+            Response::success().payload(result)
         },
         Err(err) => {
             info!(
