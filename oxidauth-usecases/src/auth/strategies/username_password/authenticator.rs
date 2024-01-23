@@ -4,6 +4,7 @@ use oxidauth_kernel::{
     user_authorities::UserAuthority,
 };
 use serde::Deserialize;
+use serde_json::Value;
 
 use super::{
     helpers::{raw_password_hash, verify_password},
@@ -14,6 +15,16 @@ use super::{
 pub struct AuthenticateParams {
     pub username: String,
     pub password: String,
+}
+
+impl TryFrom<Value> for AuthenticateParams {
+    type Error = BoxedError;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        let s: Self = serde_json::from_value(value)?;
+
+        Ok(s)
+    }
 }
 
 #[async_trait]
