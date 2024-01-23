@@ -1,6 +1,7 @@
 pub mod authenticator;
 pub mod helpers;
 pub mod registrar;
+pub mod user_authority_from_request;
 pub mod user_identifier_from_request;
 
 use serde::Deserialize;
