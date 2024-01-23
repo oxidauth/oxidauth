@@ -1,5 +1,5 @@
+use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 pub use oxidauth_kernel::private_keys::PrivateKey;
-use oxidauth_kernel::private_keys::find_most_recent_public_key::FindMostRecentPrivateKey;
 
 use crate::prelude::*;
 

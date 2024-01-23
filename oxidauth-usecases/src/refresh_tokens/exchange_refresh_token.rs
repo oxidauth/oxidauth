@@ -1,6 +1,6 @@
-use std::time::{SystemTime, Duration};
+use std::time::{Duration, SystemTime};
 
-use base64::prelude::{BASE64_STANDARD, Engine};
+use base64::prelude::{Engine, BASE64_STANDARD};
 
 use async_trait::async_trait;
 
@@ -9,7 +9,7 @@ use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::auth::tree::PermissionSearch;
 use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
 use oxidauth_kernel::jwt::{epoch_from_time, Jwt, epoch_from_now};
-use oxidauth_kernel::private_keys::find_most_recent_public_key::FindMostRecentPrivateKey;
+use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
 use oxidauth_kernel::refresh_tokens::find_refresh_token_by_id::FindRefreshTokenById;
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityId;
@@ -92,11 +92,17 @@ where
             ..
         } = self
             .refresh_tokens
-            .call(&FindRefreshTokenById { refresh_token_id: req.refresh_token_id })
+            .call(&FindRefreshTokenById {
+                refresh_token_id: req.refresh_token_id,
+            })
             .await?;
 
-        let now = epoch_from_time(SystemTime::now())
-            .map_err(|err| format!("error getting epoch time from system time: {:?}", err))?;
+        let now = epoch_from_time(SystemTime::now()).map_err(|err| {
+            format!(
+                "error getting epoch time from system time: {:?}",
+                err
+            )
+        })?;
 
         if expires_at.timestamp() < now as i64 {
             return Err("refresh token has expired".into());
@@ -104,16 +110,19 @@ where
 
         let authority_id = self
             .user_authorities
-            .call(&FindUserAuthorityByUserIdAndAuthorityId {
-                user_id,
-                authority_id
-            })
+            .call(
+                &FindUserAuthorityByUserIdAndAuthorityId {
+                    user_id,
+                    authority_id,
+                },
+            )
             .await?
-            .authority.id;
+            .authority
+            .id;
 
         let authority = self
             .authorities
-            .call(&FindAuthorityById{ authority_id })
+            .call(&FindAuthorityById { authority_id })
             .await?;
 
         let permissions = self

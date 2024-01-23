@@ -6,6 +6,7 @@ use oxidauth_kernel::error::IntoOxidAuthError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::info;
+use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
@@ -28,7 +29,8 @@ impl Into<RegisterParams> for RegisterReq {
 
 #[derive(Debug, Serialize)]
 pub struct RegisterRes {
-    pub response: RegisterResponse,
+    pub jwt: String,
+    pub refresh_token: Uuid,
 }
 
 #[tracing::instrument(name = "register_handler", skip(provider))]
@@ -51,7 +53,10 @@ pub async fn handle(
                 response = ?response,
             );
 
-            Response::success().payload(RegisterRes { response })
+            Response::success().payload(RegisterRes {
+                jwt: response.jwt,
+                refresh_token: response.refresh_token,
+            })
         },
         Err(err) => {
             info!(

@@ -10,7 +10,7 @@ use oxidauth_kernel::{
     },
     authorities::{Authority, AuthorityStrategy},
     error::BoxedError,
-    service::Service, jwt::{Jwt, epoch_from_now}, private_keys::find_most_recent_public_key::FindMostRecentPrivateKey,
+    service::Service, jwt::{Jwt, epoch_from_now}, private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
 };
 use oxidauth_repository::{
     authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,

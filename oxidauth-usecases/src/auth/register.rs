@@ -9,14 +9,13 @@ use oxidauth_kernel::{
     authorities::{Authority, AuthorityStrategy},
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
+    private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     service::Service,
 };
 use oxidauth_repository::{
     auth::tree::{PermissionSearch, PermissionTreeQuery},
     authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,
-    private_keys::select_most_recent_private_key::{
-        SelectMostRecentPrivateKey, SelectMostRecentPrivateKeyQuery,
-    },
+    private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
     refresh_tokens::insert_refresh_token::{
         CreateRefreshToken, InsertRefreshTokenQuery,
     },
@@ -90,10 +89,12 @@ where
         &self,
         params: &'a RegisterParams,
     ) -> Result<Self::Response, Self::Error> {
+        dbg!("AUTHORTIY HERE?");
         let authority = self
             .authority_by_strategy
             .call(&params.into())
             .await?;
+        dbg!(&authority);
 
         let registrar = build_registrar(&authority, &params.strategy).await?;
 
@@ -119,7 +120,7 @@ where
 
         let private_key = self
             .private_keys
-            .call(&SelectMostRecentPrivateKey {})
+            .call(&FindMostRecentPrivateKey {})
             .await?;
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
