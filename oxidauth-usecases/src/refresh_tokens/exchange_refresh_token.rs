@@ -20,7 +20,6 @@ use oxidauth_repository::refresh_tokens::insert_refresh_token::InsertRefreshToke
 use oxidauth_repository::refresh_tokens::select_refresh_token_by_id::SelectRefreshTokenByIdQuery;
 use oxidauth_repository::user_authorities::select_user_authority_by_user_id_and_authority_id::SelectUserAuthorityByUserIdAndAuthorityIdQuery;
 use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
-use tracing::info;
 
 pub struct ExchangeRefreshTokenUseCase<T, I, U, A, P, K>
 where
@@ -98,8 +97,6 @@ where
             })
             .await?;
 
-        info!("found refresh token");
-
         let now = epoch_from_time(SystemTime::now()).map_err(|err| {
             format!(
                 "error getting epoch time from system time: {:?}",
@@ -123,14 +120,10 @@ where
             .authority
             .id;
 
-        info!("found authority id");
-
         let authority = self
             .authorities
             .call(&FindAuthorityById { authority_id })
             .await?;
-
-        info!("found authority");
 
         let permissions = self
             .permission_tree
@@ -140,14 +133,10 @@ where
             .await?
             .permissions;
 
-        info!("found permissions");
-
         let private_key = self
             .private_keys
             .call(&FindMostRecentPrivateKey {})
             .await?;
-
-        info!("found private key");
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
 
@@ -196,8 +185,6 @@ where
                 expires_at: refresh_token_exp_at,
             })
             .await?;
-
-        info!("inserted refresh token");
 
         Ok(AuthenticateResponse {
             jwt,
