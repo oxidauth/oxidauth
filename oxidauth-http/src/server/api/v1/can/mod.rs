@@ -27,12 +27,16 @@ async fn can(
 ) -> impl IntoResponse {
     let challenge = match parse(&permission) {
         Ok(permission) => permission,
-        Err(err) => return Response::<()>::fail().error(err.to_string()),
+        Err(err) => return Response::<bool>::fail().error(err.to_string()),
     };
 
     match validate(&challenge, &permissions) {
-        Ok(true) => Response::success().notice("yes you can"),
-        Ok(false) => Response::fail().error("no you can't"),
+        Ok(true) => Response::success()
+            .payload(true)
+            .notice("yes you can"),
+        Ok(false) => Response::fail()
+            .payload(false)
+            .warning("no you can't"),
         Err(err) => Response::fail().error(err.to_string()),
     }
 }

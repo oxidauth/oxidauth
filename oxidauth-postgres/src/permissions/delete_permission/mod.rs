@@ -18,8 +18,7 @@ impl<'a> Service<&'a DeletePermission> for Database {
         &self,
         params: &'a DeletePermission,
     ) -> Result<Permission, BoxedError> {
-        let perm_string = &params.permission;
-        let permission: RawPermission = perm_string.try_into()?;
+        let permission: RawPermission = (&params.permission).try_into()?;
 
         let result = sqlx::query_as::<_, PgPermission>(include_str!(
             "delete_permission.sql"
