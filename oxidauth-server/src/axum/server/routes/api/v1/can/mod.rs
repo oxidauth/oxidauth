@@ -1,4 +1,6 @@
-use axum::{extract::Path, response::IntoResponse, routing::get, Extension, Router};
+use axum::{
+    extract::Path, response::IntoResponse, routing::get, Extension, Router,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 

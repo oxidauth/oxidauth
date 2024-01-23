@@ -4,12 +4,19 @@ use std::{
     sync::Arc,
 };
 
+use axum::extract::FromRef;
 use oxidauth_kernel::error::BoxedError;
 
 #[derive(Default, Clone)]
 pub struct Provider {
-    pub bindings: HashMap<TypeId, Arc<dyn Any + Send + Sync + 'static>>,
+    bindings: HashMap<TypeId, Arc<dyn Any + Send + Sync + 'static>>,
 }
+
+// impl FromRef<Provider> for Provider {
+//     fn from_ref(provider: &Provider) -> Self {
+//         provider.clone()
+//     }
+// }
 
 impl Provider {
     pub fn new() -> Self {

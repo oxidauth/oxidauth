@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use async_trait::async_trait;
 use oxidauth_permission::{parse::parse, validate, PermissionParseErr, Token};
 
@@ -58,9 +56,16 @@ where
     type Error = CanError<S::Error>;
 
     async fn call(&self, req: Request) -> Result<Self::Response, Self::Error> {
-        let permissions = req.permissions();
+        let permissions: Vec<String> = req
+            .permissions()
+            .split(' ')
+            .map(|s| s.to_string())
+            .collect();
 
-        match validate(&self.permissions, permissions) {
+        match validate(
+            &self.permissions,
+            &permissions,
+        ) {
             Ok(true) => self
                 .service
                 .call(req)
