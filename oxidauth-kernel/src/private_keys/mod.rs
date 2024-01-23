@@ -1,4 +1,4 @@
-pub mod find_most_recent_public_key;
+pub mod find_most_recent_private_key;
 
 use chrono::{DateTime, Utc};
 use uuid::Uuid;

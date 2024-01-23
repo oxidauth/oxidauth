@@ -12,4 +12,3 @@ pub type FindMostRecentPrivateKeyService = Arc<
 
 #[derive(Debug)]
 pub struct FindMostRecentPrivateKey {}
-
