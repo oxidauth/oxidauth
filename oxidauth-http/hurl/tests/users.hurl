@@ -13,7 +13,7 @@ POST {{scheme}}://{{host}}/api/v1/authorities
         "name": "default-01",
         "strategy": "username_password",
         "params": {
-            "salt": "wry4tb4tj54nt4tjt4231sikiu89SDGBGIp97"
+            "password_salt": "wry4tb4tj54nt4tjt4231sikiu89SDGBGIp97"
         },
         "settings": {
             "jwt_ttl": {
@@ -80,6 +80,31 @@ jsonpath "$.payload.users[0].kind" == "human"
 jsonpath "$.payload.users[0].profile" != null 
 jsonpath "$.payload.users[0].created_at" != null 
 jsonpath "$.payload.users[0].updated_at" != null 
+
+
+POST {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities
+{
+    "authority_strategy": "username_password",
+    "user_authority": {
+        "params": {
+            "username": "browncoat1",
+            "password": "malsunguessablepassword",
+            "password_confirmation": "malsunguessablepassword"
+        }
+    }
+}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.errors" not exists
+jsonpath "$.payload" != null
+jsonpath "$.payload.user_authority" != null
+jsonpath "$.payload.user_authority.user_id" == "{{user_id}}"
+jsonpath "$.payload.user_authority.authority_id" == "{{authority_id}}"
+jsonpath "$.payload.user_authority.params" != null
+jsonpath "$.payload.user_authority.params.password_hash" != null
+jsonpath "$.payload.user_authority.created_at" != null
+jsonpath "$.payload.user_authority.updated_at" != null
 
 
 GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}

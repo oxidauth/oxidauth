@@ -63,6 +63,12 @@ jsonpath "$.success" == true
 jsonpath "$.errors" not exists
 jsonpath "$.payload" != null
 
+DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities/{{authority_id}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.errors" not exists
+
 DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}
 HTTP/1.1 200
 [Asserts]
