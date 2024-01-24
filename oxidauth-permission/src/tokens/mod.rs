@@ -1,6 +1,8 @@
 use core::fmt;
 use std::error::Error;
 
+use self::parse::parse;
+
 pub mod compare;
 pub mod parse;
 
@@ -53,6 +55,30 @@ pub fn validate(
             Ok(true) => return Ok(true),
             Err(err) => return Err(err),
             Ok(false) => continue,
+        }
+    }
+
+    Ok(false)
+}
+
+pub fn parse_and_validate(
+    challenge: impl AsRef<str>,
+    permissions: &[impl AsRef<str>],
+) -> Result<bool, PermissionParseErr> {
+    let challenge = parse(challenge.as_ref())?;
+
+    validate(&challenge, permissions)
+}
+
+pub fn parse_and_validate_multiple(
+    challenges: &[impl AsRef<str>],
+    permissions: &[impl AsRef<str>],
+) -> Result<bool, PermissionParseErr> {
+    for challenge in challenges {
+        match parse_and_validate(challenge, permissions) {
+            Ok(true) => return Ok(true),
+            Ok(false) => continue,
+            Err(_) => continue,
         }
     }
 
