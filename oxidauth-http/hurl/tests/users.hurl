@@ -39,8 +39,8 @@ GET {{scheme}}://{{host}}/api/v1/users/00000000-0000-0000-0000-000000000000
 HTTP/1.1 400
 [Asserts]
 jsonpath "$.success" == false
-jsonpath "$.payload" not exists 
-jsonpath "$.errors" != null 
+jsonpath "$.payload" not exists
+jsonpath "$.errors" != null
 jsonpath "$.errors[0].debug" contains "RowNotFound"
 
 POST {{scheme}}://{{host}}/api/v1/users
@@ -63,23 +63,23 @@ jsonpath "$.errors" not exists
 GET {{scheme}}://{{host}}/api/v1/users
 HTTP/1.1 200
 [Captures]
-user_id: jsonpath "$.payload.users[0].id" 
+user_id: jsonpath "$.payload.users[0].id"
 [Asserts]
 jsonpath "$.success" == true
 jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
 jsonpath "$.payload.users" != null
 jsonpath "$.payload.users" count == 1
-jsonpath "$.payload.users[0].id" != null 
-jsonpath "$.payload.users[0].username" == "browncoat1" 
-jsonpath "$.payload.users[0].email" == "mal@serenity.com" 
-jsonpath "$.payload.users[0].first_name" == "Mal" 
-jsonpath "$.payload.users[0].last_name" == "Reynolds" 
+jsonpath "$.payload.users[0].id" != null
+jsonpath "$.payload.users[0].username" == "browncoat1"
+jsonpath "$.payload.users[0].email" == "mal@serenity.com"
+jsonpath "$.payload.users[0].first_name" == "Mal"
+jsonpath "$.payload.users[0].last_name" == "Reynolds"
 jsonpath "$.payload.users[0].status" == "enabled"
 jsonpath "$.payload.users[0].kind" == "human"
-jsonpath "$.payload.users[0].profile" != null 
-jsonpath "$.payload.users[0].created_at" != null 
-jsonpath "$.payload.users[0].updated_at" != null 
+jsonpath "$.payload.users[0].profile" != null
+jsonpath "$.payload.users[0].created_at" != null
+jsonpath "$.payload.users[0].updated_at" != null
 
 
 POST {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities
@@ -114,16 +114,16 @@ jsonpath "$.success" == true
 jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
 jsonpath "$.payload.user" != null
-jsonpath "$.payload.user.id" != null 
-jsonpath "$.payload.user.username" == "browncoat1" 
-jsonpath "$.payload.user.email" == "mal@serenity.com" 
-jsonpath "$.payload.user.first_name" == "Mal" 
-jsonpath "$.payload.user.last_name" == "Reynolds" 
+jsonpath "$.payload.user.id" != null
+jsonpath "$.payload.user.username" == "browncoat1"
+jsonpath "$.payload.user.email" == "mal@serenity.com"
+jsonpath "$.payload.user.first_name" == "Mal"
+jsonpath "$.payload.user.last_name" == "Reynolds"
 jsonpath "$.payload.user.status" == "enabled"
 jsonpath "$.payload.user.kind" == "human"
-jsonpath "$.payload.user.profile" != null 
-jsonpath "$.payload.user.created_at" != null 
-jsonpath "$.payload.user.updated_at" != null 
+jsonpath "$.payload.user.profile" != null
+jsonpath "$.payload.user.created_at" != null
+jsonpath "$.payload.user.updated_at" != null
 
 
 GET {{scheme}}://{{host}}/api/v1/users/by_username/browncoat1
@@ -133,16 +133,16 @@ jsonpath "$.success" == true
 jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
 jsonpath "$.payload.user" != null
-jsonpath "$.payload.user.id" != null 
-jsonpath "$.payload.user.username" == "browncoat1" 
-jsonpath "$.payload.user.email" == "mal@serenity.com" 
-jsonpath "$.payload.user.first_name" == "Mal" 
-jsonpath "$.payload.user.last_name" == "Reynolds" 
+jsonpath "$.payload.user.id" != null
+jsonpath "$.payload.user.username" == "browncoat1"
+jsonpath "$.payload.user.email" == "mal@serenity.com"
+jsonpath "$.payload.user.first_name" == "Mal"
+jsonpath "$.payload.user.last_name" == "Reynolds"
 jsonpath "$.payload.user.status" == "enabled"
 jsonpath "$.payload.user.kind" == "human"
-jsonpath "$.payload.user.profile" != null 
-jsonpath "$.payload.user.created_at" != null 
-jsonpath "$.payload.user.updated_at" != null 
+jsonpath "$.payload.user.profile" != null
+jsonpath "$.payload.user.created_at" != null
+jsonpath "$.payload.user.updated_at" != null
 
 PUT {{scheme}}://{{host}}/api/v1/users/{{user_id}}
 {
@@ -158,16 +158,16 @@ jsonpath "$.success" == true
 jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
 jsonpath "$.payload.user" != null
-jsonpath "$.payload.user.id" != null 
-jsonpath "$.payload.user.username" == "browncoat1" 
-jsonpath "$.payload.user.email" == "kaylee@serenity.com" 
-jsonpath "$.payload.user.first_name" == "Kaylee" 
-jsonpath "$.payload.user.last_name" == "Frye" 
+jsonpath "$.payload.user.id" != null
+jsonpath "$.payload.user.username" == "browncoat1"
+jsonpath "$.payload.user.email" == "kaylee@serenity.com"
+jsonpath "$.payload.user.first_name" == "Kaylee"
+jsonpath "$.payload.user.last_name" == "Frye"
 jsonpath "$.payload.user.status" == "enabled"
 jsonpath "$.payload.user.kind" == "human"
-jsonpath "$.payload.user.profile" != null 
-jsonpath "$.payload.user.created_at" != null 
-jsonpath "$.payload.user.updated_at" != null 
+jsonpath "$.payload.user.profile" != null
+jsonpath "$.payload.user.created_at" != null
+jsonpath "$.payload.user.updated_at" != null
 
 DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities/{{authority_id}}
 HTTP/1.1 200
