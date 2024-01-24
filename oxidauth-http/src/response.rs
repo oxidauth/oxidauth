@@ -16,6 +16,9 @@ where
     pub warnings: Option<Vec<Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notices: Option<Vec<Value>>,
+
+    #[serde(skip)]
+    status_code: StatusCode,
 }
 
 impl<P> Response<P>
@@ -29,6 +32,7 @@ where
             errors: None,
             warnings: None,
             notices: None,
+            status_code: StatusCode::OK,
         }
     }
 
@@ -39,7 +43,18 @@ where
             errors: None,
             warnings: None,
             notices: None,
+            status_code: StatusCode::BAD_REQUEST,
         }
+    }
+
+    pub fn unauthorized() -> Self {
+        Self::fail().status(StatusCode::UNAUTHORIZED)
+    }
+
+    pub fn status(mut self, status_code: StatusCode) -> Self {
+        self.status_code = status_code;
+
+        self
     }
 
     pub fn payload(mut self, payload: P) -> Self {
