@@ -1,6 +1,9 @@
-use axum::{extract::{Path, State}, response::IntoResponse};
-use oxidauth_kernel::roles::list_all_roles::*;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
+use oxidauth_kernel::roles::list_all_roles::*;
 use serde::Serialize;
 use tracing::info;
 
@@ -23,9 +26,7 @@ pub async fn handle(
 
     info!("provided ListAllRolesService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(roles) => {

@@ -4,18 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::{error::IntoOxidAuthError, user_authorities::UserAuthorityWithAuthority};
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::*;
-use serde::Deserialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct FindUserAuthorityByUserIdAndAuthorityIdReq {
-    pub user_id: Uuid,
-    pub authority_id: Uuid,
-}
+pub type FindUserAuthorityByUserIdAndAuthorityIdReq =
+    FindUserAuthorityByUserIdAndAuthorityId;
 
 pub type FindUserAuthorityByUserIdAndAuthorityIdRes =
     UserAuthorityWithAuthority;
@@ -33,14 +28,7 @@ pub async fn handle(
 
     info!("provided FindUserAuthorityByUserIdAndAuthorityIdService");
 
-    let result = service
-        .call(
-            &FindUserAuthorityByUserIdAndAuthorityId {
-                user_id: params.user_id,
-                authority_id: params.authority_id,
-            },
-        )
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user_authority) => {

@@ -1,36 +1,22 @@
-use oxidauth_kernel::{roles::Role, permissions::Permission};
-use uuid::Uuid;
-use axum::{extract::{Path, State}, response::IntoResponse};
-use oxidauth_kernel::role_permission_grants::delete_role_permission_grant::*;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use oxidauth_kernel::role_permission_grants::delete_role_permission_grant::*;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteRolePermissionGrantReq {
-    pub role_id: Uuid,
-    pub permission: String,
-}
+pub type DeleteRolePermissionGrantReq = DeleteRolePermissionGrant;
 
-impl From<DeleteRolePermissionGrantReq> for DeleteRolePermissionGrant {
-    fn from(value: DeleteRolePermissionGrantReq) -> Self {
-        Self {
-            role_id: value.role_id,
-            permission: value.permission,
-        }
-    }
-}
+pub type DeleteRolePermissionGrantRes = RolePermission;
 
-#[derive(Debug, Serialize)]
-pub struct DeleteRolePermissionGrantRes {
-    pub permission: Permission,
-    pub grant: RolePermissionGrant,
-}
-
-#[tracing::instrument(name = "delete_role_permission_grant_handler", skip(provider))]
+#[tracing::instrument(
+    name = "delete_role_permission_grant_handler",
+    skip(provider)
+)]
 pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<DeleteRolePermissionGrantReq>,
@@ -39,9 +25,7 @@ pub async fn handle(
 
     info!("provided DeleteRolePermissionGrantService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(res) => {
@@ -50,7 +34,7 @@ pub async fn handle(
                 res = ?res,
             );
 
-            Response::success().payload(DeleteRolePermissionGrantRes { permission: res.permission, grant: res.grant })
+            Response::success().payload(res)
         },
         Err(err) => {
             info!(
@@ -62,4 +46,3 @@ pub async fn handle(
         },
     }
 }
-

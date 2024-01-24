@@ -4,18 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_authorities::delete_user_authority::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteUserAuthorityReq {
-    pub user_id: Uuid,
-    pub authority_id: Uuid,
-}
+pub type DeleteUserAuthorityReq = DeleteUserAuthority;
 
 #[derive(Debug, Serialize)]
 pub struct DeleteUserAuthorityRes {
@@ -31,12 +26,7 @@ pub async fn handle(
 
     info!("provided DeleteUserAuthorityService");
 
-    let result = service
-        .call(&DeleteUserAuthority {
-            user_id: params.user_id,
-            authority_id: params.authority_id,
-        })
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user_authority) => {

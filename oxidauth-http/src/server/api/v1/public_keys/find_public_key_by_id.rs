@@ -4,26 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::public_keys::find_public_key_by_id::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct FindPublicKeyByIdReq {
-    pub public_key_id: Uuid,
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<FindPublicKeyById> for FindPublicKeyByIdReq {
-    fn into(self) -> FindPublicKeyById {
-        FindPublicKeyById {
-            public_key_id: self.public_key_id,
-        }
-    }
-}
+pub type FindPublicKeyByIdReq = FindPublicKeyById;
 
 #[derive(Debug, Serialize)]
 pub struct FindPublicKeyByIdRes {
@@ -39,9 +26,7 @@ pub async fn handle(
 
     info!("provided FindPublicKeyByIdService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(public_key) => {

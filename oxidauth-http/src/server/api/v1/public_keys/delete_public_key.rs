@@ -9,16 +9,12 @@ use oxidauth_kernel::{
         PublicKey,
     },
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::{provider::Provider, response::Response};
 
-#[derive(Debug, Deserialize)]
-pub struct DeletePublicKeyReq {
-    pub public_key_id: Uuid,
-}
+pub type DeletePublicKeyReq = DeletePublicKey;
 
 #[derive(Debug, Serialize)]
 pub struct DeletePublicKeyRes {
@@ -34,9 +30,7 @@ pub async fn handle(
 
     info!("provided DeletePublicKeyService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(public_key) => {
@@ -55,13 +49,5 @@ pub async fn handle(
 
             Response::fail().error(err.into_error())
         },
-    }
-}
-
-impl From<DeletePublicKeyReq> for DeletePublicKey {
-    fn from(value: DeletePublicKeyReq) -> Self {
-        Self {
-            public_key_id: value.public_key_id,
-        }
     }
 }

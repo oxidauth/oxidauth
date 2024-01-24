@@ -4,21 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::list_all_users::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct ListAllUsersReq {}
-
-#[allow(clippy::from_over_into)]
-impl Into<ListAllUsers> for ListAllUsersReq {
-    fn into(self) -> ListAllUsers {
-        ListAllUsers {}
-    }
-}
+pub type ListAllUsersReq = ListAllUsers;
 
 #[derive(Debug, Serialize)]
 pub struct ListAllUsersRes {
@@ -34,9 +26,7 @@ pub async fn handle(
 
     info!("provided ListAllUsersService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(users) => {

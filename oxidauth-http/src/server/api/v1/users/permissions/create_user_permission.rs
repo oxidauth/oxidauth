@@ -4,18 +4,12 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_permission_grants::create_user_permission_grant::*;
-use serde::Deserialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct CreateUserPermissionReq {
-    pub user_id: Uuid,
-    pub permission: String,
-}
+pub type CreateUserPermissionReq = CreateUserPermission;
 
 pub type CreateUserPermissionRes = UserPermission;
 
@@ -28,12 +22,7 @@ pub async fn handle(
 
     info!("provided CreateUserPermissionGrantService");
 
-    let result = service
-        .call(&CreateUserPermission {
-            user_id: params.user_id,
-            permission: params.permission,
-        })
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user_permission) => {

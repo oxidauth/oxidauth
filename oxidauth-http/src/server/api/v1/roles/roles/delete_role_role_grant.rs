@@ -1,28 +1,16 @@
-use oxidauth_kernel::roles::Role;
-use uuid::Uuid;
-use axum::{extract::{Path, State}, response::IntoResponse};
-use oxidauth_kernel::role_role_grants::delete_role_role_grant::*;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use oxidauth_kernel::role_role_grants::delete_role_role_grant::*;
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteRoleRoleGrantReq {
-    pub parent_id: Uuid,
-    pub child_id: Uuid,
-}
-
-impl From<DeleteRoleRoleGrantReq> for DeleteRoleRoleGrant {
-    fn from(value: DeleteRoleRoleGrantReq) -> Self {
-        Self {
-            parent_id: value.parent_id,
-            child_id: value.child_id,
-        }
-    }
-}
+pub type DeleteRoleRoleGrantReq = DeleteRoleRoleGrant;
 
 #[derive(Debug, Serialize)]
 pub struct DeleteRoleRoleGrantRes {
@@ -38,9 +26,7 @@ pub async fn handle(
 
     info!("provided DeleteRoleRoleGrantService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(grant) => {
@@ -61,4 +47,3 @@ pub async fn handle(
         },
     }
 }
-
