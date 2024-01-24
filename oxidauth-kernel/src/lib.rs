@@ -13,6 +13,7 @@ pub mod role_role_grants;
 pub mod roles;
 pub mod rsa;
 pub mod service;
+pub mod settings;
 pub mod user_authorities;
 pub mod user_permission_grants;
 pub mod user_role_grants;

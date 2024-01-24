@@ -5,6 +5,7 @@ pub mod permissions;
 pub mod public_keys;
 pub mod refresh_tokens;
 pub mod roles;
+pub mod settings;
 pub mod users;
 
 use axum::Router;
@@ -33,4 +34,8 @@ pub fn router() -> Router<Provider> {
             refresh_tokens::router(),
         )
         .nest("/can", can::router())
+        .nest(
+            "/settings",
+            settings::router(),
+        )
 }
