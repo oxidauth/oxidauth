@@ -1,31 +1,15 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::auth::register::RegisterService;
 use oxidauth_kernel::auth::register::*;
-use oxidauth_kernel::authorities::AuthorityStrategy;
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde::Serialize;
 use tracing::info;
 use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct RegisterReq {
-    pub strategy: AuthorityStrategy,
-    pub params: Value,
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<RegisterParams> for RegisterReq {
-    fn into(self) -> RegisterParams {
-        RegisterParams {
-            strategy: self.strategy,
-            params: self.params,
-        }
-    }
-}
+pub type RegisterReq = RegisterParams;
 
 #[derive(Debug, Serialize)]
 pub struct RegisterRes {
@@ -42,9 +26,7 @@ pub async fn handle(
 
     info!("provided RegisterService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(response) => {

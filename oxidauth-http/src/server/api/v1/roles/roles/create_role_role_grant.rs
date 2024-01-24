@@ -1,28 +1,16 @@
-use oxidauth_kernel::roles::Role;
-use uuid::Uuid;
-use axum::{extract::{Path, State}, response::IntoResponse};
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::role_role_grants::create_role_role_grant::*;
-use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use oxidauth_kernel::{error::IntoOxidAuthError, roles::Role};
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct CreateRoleRoleGrantReq {
-    pub parent_id: Uuid,
-    pub child_id: Uuid,
-}
-
-impl From<CreateRoleRoleGrantReq> for CreateRoleRoleGrant {
-    fn from(value: CreateRoleRoleGrantReq) -> Self {
-        Self {
-            parent_id: value.parent_id,
-            child_id: value.child_id,
-        }
-    }
-}
+pub type CreateRoleRoleGrantReq = CreateRoleRoleGrant;
 
 #[derive(Debug, Serialize)]
 pub struct CreateRoleRoleGrantRes {
@@ -39,9 +27,7 @@ pub async fn handle(
 
     info!("provided CreateRoleRoleGrantService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(res) => {
@@ -50,7 +36,10 @@ pub async fn handle(
                 res = ?res,
             );
 
-            Response::success().payload(CreateRoleRoleGrantRes { child: res.role, grant: res.grant })
+            Response::success().payload(CreateRoleRoleGrantRes {
+                child: res.role,
+                grant: res.grant,
+            })
         },
         Err(err) => {
             info!(

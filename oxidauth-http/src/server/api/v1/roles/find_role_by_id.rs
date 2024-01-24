@@ -1,27 +1,16 @@
-use uuid::Uuid;
-use axum::{extract::{Path, State}, response::IntoResponse};
-use oxidauth_kernel::roles::find_role_by_id::*;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use oxidauth_kernel::roles::find_role_by_id::*;
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct FindRoleByIdReq {
-    pub role_id: Uuid,
-}
-
-
-#[allow(clippy::from_over_into)]
-impl Into<FindRoleById> for FindRoleByIdReq {
-    fn into(self) -> FindRoleById {
-        FindRoleById {
-            role_id: self.role_id,
-        }
-    }
-}
+pub type FindRoleByIdReq = FindRoleById;
 
 #[derive(Debug, Serialize)]
 pub struct FindRoleByIdRes {
@@ -37,9 +26,7 @@ pub async fn handle(
 
     info!("provided FindRoleByIdService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(role) => {
@@ -60,4 +47,3 @@ pub async fn handle(
         },
     }
 }
-

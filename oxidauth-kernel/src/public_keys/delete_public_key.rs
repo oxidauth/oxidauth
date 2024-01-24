@@ -10,7 +10,7 @@ pub type DeletePublicKeyService = Arc<
     >,
 >;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct DeletePublicKey {
     pub public_key_id: Uuid,
 }

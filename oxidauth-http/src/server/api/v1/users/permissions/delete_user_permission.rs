@@ -4,18 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_permission_grants::delete_user_permission_grant::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteUserPermissionReq {
-    pub user_id: Uuid,
-    pub permission: String,
-}
+pub type DeleteUserPermissionReq = DeleteUserPermission;
 
 #[derive(Debug, Serialize)]
 pub struct DeleteUserPermissionRes {
@@ -31,12 +26,7 @@ pub async fn handle(
 
     info!("provided DeleteUserPermissionGrantService");
 
-    let result = service
-        .call(&DeleteUserPermission {
-            user_id: params.user_id,
-            permission: params.permission,
-        })
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user_permission) => {

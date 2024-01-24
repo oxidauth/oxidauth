@@ -4,26 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::delete_user_by_id::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteUserByIdReq {
-    pub user_id: Uuid,
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<DeleteUserById> for DeleteUserByIdReq {
-    fn into(self) -> DeleteUserById {
-        DeleteUserById {
-            user_id: self.user_id,
-        }
-    }
-}
+pub type DeleteUserByIdReq = DeleteUserById;
 
 #[derive(Debug, Serialize)]
 pub struct DeleteUserByIdRes {
@@ -39,9 +26,7 @@ pub async fn handle(
 
     info!("provided DeleteUserByIdService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user) => {

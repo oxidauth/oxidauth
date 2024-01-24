@@ -1,27 +1,16 @@
-use uuid::Uuid;
-use axum::{extract::{Path, State}, response::IntoResponse};
-use oxidauth_kernel::roles::delete_role::*;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use oxidauth_kernel::roles::delete_role::*;
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteRoleReq {
-    pub role_id: Uuid,
-}
-
-
-#[allow(clippy::from_over_into)]
-impl Into<DeleteRole> for DeleteRoleReq {
-    fn into(self) -> DeleteRole {
-        DeleteRole {
-            role_id: self.role_id,
-        }
-    }
-}
+pub type DeleteRoleReq = DeleteRole;
 
 #[derive(Debug, Serialize)]
 pub struct DeleteRoleRes {
@@ -37,9 +26,7 @@ pub async fn handle(
 
     info!("provided DeleteRoleService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(role) => {
@@ -60,5 +47,3 @@ pub async fn handle(
         },
     }
 }
-
-

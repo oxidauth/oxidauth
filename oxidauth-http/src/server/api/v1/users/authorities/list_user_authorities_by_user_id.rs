@@ -4,26 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_authorities::list_user_authorities_by_user_id::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct ListUserAuthoritiesByUserIdReq {
-    user_id: Uuid,
-}
-
-#[allow(clippy::from_over_into)]
-impl Into<ListUserAuthoritiesByUserId> for ListUserAuthoritiesByUserIdReq {
-    fn into(self) -> ListUserAuthoritiesByUserId {
-        ListUserAuthoritiesByUserId {
-            user_id: self.user_id,
-        }
-    }
-}
+pub type ListUserAuthoritiesByUserIdReq = ListUserAuthoritiesByUserId;
 
 #[derive(Debug, Serialize)]
 pub struct ListUserAuthoritiesByUserIdRes {
@@ -42,9 +29,7 @@ pub async fn handle(
 
     info!("provided ListUserAuthoritiesByUserIdService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user_authorities) => {

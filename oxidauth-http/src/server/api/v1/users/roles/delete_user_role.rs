@@ -4,18 +4,13 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_role_grants::delete_user_role_grant::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tracing::info;
-use uuid::Uuid;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct DeleteUserRoleReq {
-    pub user_id: Uuid,
-    pub role_id: Uuid,
-}
+pub type DeleteUserRoleReq = DeleteUserRoleGrant;
 
 #[derive(Debug, Serialize)]
 pub struct DeleteUserRoleRes {
@@ -31,12 +26,7 @@ pub async fn handle(
 
     info!("provided DeleteUserRoleGrantService");
 
-    let result = service
-        .call(&DeleteUserRoleGrant {
-            user_id: params.user_id,
-            role_id: params.role_id,
-        })
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(user_role) => {

@@ -1,32 +1,23 @@
-use uuid::Uuid;
 use axum::{extract::{Path, State}, response::IntoResponse};
 use oxidauth_kernel::role_permission_grants::list_role_permission_grants_by_role_id::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
-pub struct ListRolePermissionGrantsByRoleIdReq {
-    pub role_id: Uuid,
-}
-
-impl From<ListRolePermissionGrantsByRoleIdReq> for ListRolePermissionGrantsByRoleId {
-    fn from(value: ListRolePermissionGrantsByRoleIdReq) -> Self {
-        Self {
-            role_id: value.role_id,
-        }
-    }
-}
+pub type ListRolePermissionGrantsByRoleIdReq = ListRolePermissionGrantsByRoleId;
 
 #[derive(Debug, Serialize)]
 pub struct ListRolePermissionGrantsByRoleIdRes {
     pub permissions: Vec<RolePermission>,
 }
 
-#[tracing::instrument(name = "list_role_permission_grants_by_role_id_handler", skip(provider))]
+#[tracing::instrument(
+    name = "list_role_permission_grants_by_role_id_handler",
+    skip(provider)
+)]
 pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<ListRolePermissionGrantsByRoleIdReq>,
@@ -35,9 +26,7 @@ pub async fn handle(
 
     info!("provided ListRolePermissionGrantsByRoleIdService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(permissions) => {
@@ -46,7 +35,8 @@ pub async fn handle(
                 permissions = ?permissions,
             );
 
-            Response::success().payload(ListRolePermissionGrantsByRoleIdRes { permissions })
+            Response::success()
+                .payload(ListRolePermissionGrantsByRoleIdRes { permissions })
         },
         Err(err) => {
             info!(
@@ -58,4 +48,3 @@ pub async fn handle(
         },
     }
 }
-

@@ -1,7 +1,10 @@
-use axum::{extract::{Path, State}, response::IntoResponse};
-use oxidauth_kernel::permissions::create_permission::*;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::{Deserialize, Serialize};
+use oxidauth_kernel::permissions::create_permission::*;
+use serde::Serialize;
 use tracing::info;
 
 use crate::provider::Provider;
@@ -23,9 +26,7 @@ pub async fn handle(
 
     info!("provided CreatePermissionService");
 
-    let result = service
-        .call(&params)
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(permission) => {
