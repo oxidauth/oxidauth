@@ -12,12 +12,6 @@ pub struct Provider {
     bindings: HashMap<TypeId, Arc<dyn Any + Send + Sync + 'static>>,
 }
 
-// impl FromRef<Provider> for Provider {
-//     fn from_ref(provider: &Provider) -> Self {
-//         provider.clone()
-//     }
-// }
-
 impl Provider {
     pub fn new() -> Self {
         Default::default()
