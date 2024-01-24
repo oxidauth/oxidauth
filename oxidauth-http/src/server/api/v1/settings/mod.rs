@@ -1,10 +1,11 @@
 use axum::{
-    routing::{post, put},
+    routing::{get, post, put},
     Router,
 };
 
 use crate::provider::Provider;
 
+pub mod fetch_setting;
 pub mod save_setting;
 
 pub fn router() -> Router<Provider> {
@@ -14,4 +15,8 @@ pub fn router() -> Router<Provider> {
             post(save_setting::handle),
         )
         .route("/", put(save_setting::handle))
+        .route(
+            "/:key",
+            get(fetch_setting::handle),
+        )
 }

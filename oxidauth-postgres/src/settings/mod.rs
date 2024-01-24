@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use oxidauth_kernel::settings::Setting;
 use serde_json::Value;
 
+pub mod select_setting_by_key;
 pub mod upsert_setting;
 
 #[derive(Debug, sqlx::FromRow)]
