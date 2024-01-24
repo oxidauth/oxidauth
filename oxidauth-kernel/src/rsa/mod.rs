@@ -10,7 +10,8 @@ use rsa::{
 
 use std::error::Error;
 
-const DEFAULT_BIT_SIZE: usize = 4096;
+// TODO(dewey4iv): this should be an env var or something
+const DEFAULT_BIT_SIZE: usize = 2048;
 
 pub struct KeyPair {
     pub public: Vec<u8>,

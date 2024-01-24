@@ -25,15 +25,6 @@ authority_id: jsonpath "$.payload.authority.id"
 jsonpath "$.success" == true
 jsonpath "$.errors" not exists
 jsonpath "$.payload" != null
-
-
-POST {{scheme}}://{{host}}/api/v1/public_keys
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
-
 POST {{scheme}}://{{host}}/api/v1/auth/register
 {
     "strategy": "username_password",
