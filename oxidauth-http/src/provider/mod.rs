@@ -571,5 +571,15 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<SaveSettingService>(save_setting_service);
     }
 
+    {
+        use oxidauth_kernel::settings::fetch_setting::FetchSettingService;
+        use oxidauth_usecases::settings::fetch_setting::FetchSettingUseCase;
+
+        let fetch_setting_service = Arc::new(FetchSettingUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<FetchSettingService>(fetch_setting_service);
+    }
+
     Ok(provider)
 }
