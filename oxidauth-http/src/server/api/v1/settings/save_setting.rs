@@ -43,7 +43,7 @@ pub async fn handle(
         },
         Err(err) => {
             info!(
-                message = "failed to create user",
+                message = "failed to save setting",
                 err = ?err,
             );
 
