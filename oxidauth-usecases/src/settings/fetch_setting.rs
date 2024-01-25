@@ -4,7 +4,10 @@ use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
     service::Service,
-    settings::{fetch_setting::FetchSettingParams, Setting},
+    settings::{
+        fetch_setting::{FetchSettingParams, SettingNotFoundError},
+        Setting,
+    },
 };
 use oxidauth_repository::settings::select_setting_by_key::SelectSettingByKey;
 
@@ -50,28 +53,3 @@ where
         }
     }
 }
-
-#[derive(Debug)]
-pub struct SettingNotFoundError {
-    key: String,
-}
-
-impl SettingNotFoundError {
-    pub fn new(key: &str) -> Box<Self> {
-        Box::new(Self {
-            key: key.to_owned(),
-        })
-    }
-}
-
-impl fmt::Display for SettingNotFoundError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "no setting found with key: {}",
-            self.key
-        )
-    }
-}
-
-impl std::error::Error for SettingNotFoundError {}
