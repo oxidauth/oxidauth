@@ -10,6 +10,8 @@ use axum::{
     Router,
 };
 
+pub use super::PERMISSION;
+
 pub fn router() -> Router<Provider> {
     Router::new()
         .route(

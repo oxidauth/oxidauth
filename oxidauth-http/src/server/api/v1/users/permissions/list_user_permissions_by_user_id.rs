@@ -4,11 +4,17 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_permission_grants::list_user_permission_grants_by_user_id::*;
+use oxidauth_permission::parse_and_validate;
 use serde::Serialize;
-use tracing::info;
+use tracing::{info, warn};
 
-use crate::provider::Provider;
 use crate::response::Response;
+use crate::{
+    middleware::permission_extractor::{ExtractEntitlements, ExtractJwt},
+    provider::Provider,
+};
+
+use super::PERMISSION;
 
 pub type ListUserPermissionGrantsByUserIdReq = ListUserPermissionGrantsByUserId;
 
@@ -23,8 +29,26 @@ pub struct ListUserPermissionGrantsByUserIdRes {
 )]
 pub async fn handle(
     State(provider): State<Provider>,
+    ExtractJwt(jwt): ExtractJwt,
+    ExtractEntitlements(permissions): ExtractEntitlements,
     Path(params): Path<ListUserPermissionGrantsByUserIdReq>,
 ) -> impl IntoResponse {
+    match parse_and_validate(PERMISSION, &permissions) {
+        Ok(true) => info!(
+            "{:?} has {}",
+            jwt.sub, PERMISSION
+        ),
+        Ok(false) => {
+            warn!(
+                "{:?} doesn't have {}",
+                jwt.sub, PERMISSION
+            );
+
+            return Response::unauthorized();
+        },
+        Err(err) => return Response::fail().error(err.to_string()),
+    }
+
     let service = provider.fetch::<ListUserPermissionGrantsByUserIdService>();
 
     info!("provided ListUserPermissionGrantsByUserIdService");

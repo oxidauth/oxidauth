@@ -4,10 +4,16 @@ use axum::{
 };
 use oxidauth_kernel::{error::IntoOxidAuthError, user_authorities::UserAuthorityWithAuthority};
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::*;
-use tracing::info;
+use oxidauth_permission::parse_and_validate;
+use tracing::{info, warn};
 
-use crate::provider::Provider;
 use crate::response::Response;
+use crate::{
+    middleware::permission_extractor::{ExtractEntitlements, ExtractJwt},
+    provider::Provider,
+};
+
+use super::PERMISSION;
 
 pub type FindUserAuthorityByUserIdAndAuthorityIdReq =
     FindUserAuthorityByUserIdAndAuthorityId;
@@ -21,8 +27,26 @@ pub type FindUserAuthorityByUserIdAndAuthorityIdRes =
 )]
 pub async fn handle(
     State(provider): State<Provider>,
+    ExtractJwt(jwt): ExtractJwt,
+    ExtractEntitlements(permissions): ExtractEntitlements,
     Path(params): Path<FindUserAuthorityByUserIdAndAuthorityIdReq>,
 ) -> impl IntoResponse {
+    match parse_and_validate(PERMISSION, &permissions) {
+        Ok(true) => info!(
+            "{:?} has {}",
+            jwt.sub, PERMISSION
+        ),
+        Ok(false) => {
+            warn!(
+                "{:?} doesn't have {}",
+                jwt.sub, PERMISSION
+            );
+
+            return Response::unauthorized();
+        },
+        Err(err) => return Response::fail().error(err.to_string()),
+    }
+
     let service =
         provider.fetch::<FindUserAuthorityByUserIdAndAuthorityIdService>();
 

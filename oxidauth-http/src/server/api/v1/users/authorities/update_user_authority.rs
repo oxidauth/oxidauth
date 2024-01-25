@@ -5,13 +5,19 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_authorities::update_user_authority::*;
+use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tracing::info;
+use tracing::{info, warn};
 use uuid::Uuid;
 
+use crate::middleware::permission_extractor::{
+    ExtractEntitlements, ExtractJwt,
+};
 use crate::provider::Provider;
 use crate::response::Response;
+
+use super::PERMISSION;
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateUserAuthorityPathReq {
@@ -32,9 +38,27 @@ pub struct UpdateUserAuthorityRes {
 #[tracing::instrument(name = "update_user_authority_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
+    ExtractJwt(jwt): ExtractJwt,
+    ExtractEntitlements(permissions): ExtractEntitlements,
     Path(params): Path<UpdateUserAuthorityPathReq>,
     Json(request): Json<UpdateUserAuthorityBodyReq>,
 ) -> impl IntoResponse {
+    match parse_and_validate(PERMISSION, &permissions) {
+        Ok(true) => info!(
+            "{:?} has {}",
+            jwt.sub, PERMISSION
+        ),
+        Ok(false) => {
+            warn!(
+                "{:?} doesn't have {}",
+                jwt.sub, PERMISSION
+            );
+
+            return Response::unauthorized();
+        },
+        Err(err) => return Response::fail().error(err.to_string()),
+    }
+
     let service = provider.fetch::<UpdateUserAuthorityService>();
 
     info!("provided UpdateUserAuthorityService");
