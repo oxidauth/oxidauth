@@ -16,7 +16,7 @@ use axum::{
 
 use crate::provider::Provider;
 
-pub const PERMISSION: &str = "oxidauth:roles:manage";
+pub const PERMISSION: &str = "oxidauth:users:manage";
 
 pub fn router() -> Router<Provider> {
     Router::new()
