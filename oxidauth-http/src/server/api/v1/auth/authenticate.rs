@@ -1,17 +1,33 @@
 use axum::{extract::State, response::IntoResponse, Json};
-use oxidauth_kernel::auth::authenticate::{
-    AuthenticateParams, AuthenticateService,
-};
+use oxidauth_kernel::auth::authenticate::AuthenticateService;
+use oxidauth_kernel::auth::authenticate::*;
+use oxidauth_kernel::authorities::AuthorityStrategy;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::{provider::Provider, response::Response};
+use crate::provider::Provider;
+use crate::response::Response;
 
-pub type AuthenticateReq = AuthenticateParams;
+#[derive(Debug, Deserialize)]
+pub struct AuthenticateReq {
+    pub strategy: AuthorityStrategy,
+    pub params: Value,
+}
 
-#[derive(Debug, Deserialize, Serialize)]
+#[allow(clippy::from_over_into)]
+impl Into<AuthenticateParams> for AuthenticateReq {
+    fn into(self) -> AuthenticateParams {
+        AuthenticateParams {
+            strategy: self.strategy,
+            params: self.params,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
 pub struct AuthenticateRes {
     pub jwt: String,
     pub refresh_token: Uuid,
@@ -24,13 +40,18 @@ pub async fn handle(
 ) -> impl IntoResponse {
     let service = provider.fetch::<AuthenticateService>();
 
-    info!("provided RegisterService");
+    info!("provided AuthenticateService");
 
-    let result = service.call(&params).await;
+    let result = service
+        .call(&params.into())
+        .await;
 
     match result {
         Ok(response) => {
-            info!(message = "successfully authenticated",);
+            info!(
+                message = "successfully authenticated",
+                response = ?response,
+            );
 
             Response::success().payload(AuthenticateRes {
                 jwt: response.jwt,
@@ -38,7 +59,10 @@ pub async fn handle(
             })
         },
         Err(err) => {
-            info!(message = "failed to authenticate",);
+            info!(
+                message = "failed to authenticate",
+                err = ?err,
+            );
 
             Response::fail().error(err.into_error())
         },
