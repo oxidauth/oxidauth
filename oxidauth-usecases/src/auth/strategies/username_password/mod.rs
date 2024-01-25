@@ -31,7 +31,7 @@ impl TryFrom<serde_json::Value> for AuthorityParams {
     }
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UserAuthorityParams {
     pub password_hash: String,
 }
