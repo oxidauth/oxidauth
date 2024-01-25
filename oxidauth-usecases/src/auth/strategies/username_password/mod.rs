@@ -5,6 +5,7 @@ pub mod user_authority_from_request;
 pub mod user_identifier_from_request;
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use uuid::Uuid;
 
 use oxidauth_kernel::error::BoxedError;
@@ -16,9 +17,19 @@ pub struct UsernamePassword {
     password_pepper: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AuthorityParams {
     password_salt: String,
+}
+
+impl AuthorityParams {
+    pub fn new(password_salt: String) -> Self {
+        Self { password_salt }
+    }
+
+    pub fn as_value(&self) -> Result<Value, BoxedError> {
+        Ok(serde_json::to_value(self)?)
+    }
 }
 
 impl TryFrom<serde_json::Value> for AuthorityParams {

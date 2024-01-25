@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use oxidauth_kernel::{
     error::BoxedError,
-    permissions::find_permission_by_parts::FindPermissionByParts,
+    permissions::{
+        find_permission_by_parts::FindPermissionByParts,
+        PermissionNotFoundError,
+    },
     user_permission_grants::{create_user_permission_grant::*, UserPermission},
     users::find_user_by_id::FindUserById,
 };
@@ -69,7 +72,8 @@ where
             .call(&FindPermissionByParts {
                 permission: req.permission.clone(),
             })
-            .await?;
+            .await?
+            .ok_or_else(|| PermissionNotFoundError::new(&req.permission))?;
 
         let grant = self
             .user_permission_grants

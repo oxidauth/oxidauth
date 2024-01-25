@@ -119,8 +119,22 @@ impl FromStr for UserStatus {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Username(pub String);
+
+impl fmt::Display for Username {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for Username {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_owned()))
+    }
+}
 
 #[derive(Debug)]
 pub struct ParseUserStatusErr {
@@ -138,3 +152,40 @@ impl fmt::Display for ParseUserStatusErr {
 }
 
 impl std::error::Error for ParseUserStatusErr {}
+
+#[derive(Debug)]
+pub enum UserNotFoundError {
+    Username(Username),
+    Id(Uuid),
+}
+
+impl UserNotFoundError {
+    pub fn username(username: &Username) -> Box<Self> {
+        Box::new(Self::Username(
+            username.clone(),
+        ))
+    }
+
+    pub fn id(id: Uuid) -> Box<Self> {
+        Box::new(Self::Id(id))
+    }
+}
+
+impl fmt::Display for UserNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let missing = match self {
+            UserNotFoundError::Username(username) => {
+                format!("username == {}", username)
+            },
+            UserNotFoundError::Id(id) => format!("id == {}", id),
+        };
+
+        write!(
+            f,
+            "user not found where: {}",
+            missing
+        )
+    }
+}
+
+impl std::error::Error for UserNotFoundError {}

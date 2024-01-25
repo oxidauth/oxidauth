@@ -135,3 +135,36 @@ impl fmt::Display for ParseAuthorityStrategyError {
 }
 
 impl Error for ParseAuthorityStrategyError {}
+
+#[derive(Debug)]
+pub enum AuthorityNotFoundError {
+    Strategy(AuthorityStrategy),
+    Id(Uuid),
+}
+
+impl AuthorityNotFoundError {
+    pub fn strategy(strategy: AuthorityStrategy) -> Box<Self> {
+        Box::new(Self::Strategy(strategy))
+    }
+
+    pub fn id(id: Uuid) -> Box<Self> {
+        Box::new(Self::Id(id))
+    }
+}
+
+impl fmt::Display for AuthorityNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let missing = match self {
+            AuthorityNotFoundError::Strategy(strategy) => strategy.to_string(),
+            AuthorityNotFoundError::Id(id) => id.to_string(),
+        };
+
+        write!(
+            f,
+            "authority not found: {}",
+            missing
+        )
+    }
+}
+
+impl Error for AuthorityNotFoundError {}

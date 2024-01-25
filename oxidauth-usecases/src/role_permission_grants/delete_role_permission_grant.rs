@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use oxidauth_kernel::{
     error::BoxedError,
-    permissions::find_permission_by_parts::FindPermissionByParts,
+    permissions::{
+        find_permission_by_parts::FindPermissionByParts,
+        PermissionNotFoundError,
+    },
     role_permission_grants::delete_role_permission_grant::*,
     roles::find_role_by_id::FindRoleById,
 };
@@ -68,14 +71,19 @@ where
             .call(&FindPermissionByParts {
                 permission: req.permission.to_owned(),
             })
-            .await?;
+            .await?
+            .ok_or_else(|| PermissionNotFoundError::new(&req.permission))?;
 
         let grant = self
             .role_permission_grants
-            .call(&DeleteRolePermissionGrantParams { role_id: req.role_id, permission_id: permission.id })
+            .call(
+                &DeleteRolePermissionGrantParams {
+                    role_id: req.role_id,
+                    permission_id: permission.id,
+                },
+            )
             .await?;
 
         Ok(RolePermission { permission, grant })
     }
 }
-

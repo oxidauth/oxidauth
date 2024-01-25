@@ -9,7 +9,7 @@ use super::PgPermission;
 
 #[async_trait]
 impl<'a> Service<&'a FindPermissionByParts> for Database {
-    type Response = Permission;
+    type Response = Option<Permission>;
     type Error = BoxedError;
 
     #[tracing::instrument(
@@ -19,7 +19,7 @@ impl<'a> Service<&'a FindPermissionByParts> for Database {
     async fn call(
         &self,
         params: &'a FindPermissionByParts,
-    ) -> Result<Permission, BoxedError> {
+    ) -> Result<Option<Permission>, BoxedError> {
         let perm_string = &params.permission;
         let permission: RawPermission = perm_string.try_into()?;
 
@@ -29,10 +29,10 @@ impl<'a> Service<&'a FindPermissionByParts> for Database {
         .bind(&permission.realm)
         .bind(&permission.resource)
         .bind(&permission.action)
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
-        let permission = result.into();
+        let permission = result.map(Into::into);
 
         Ok(permission)
     }

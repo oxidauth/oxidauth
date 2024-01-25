@@ -6,7 +6,7 @@ pub use crate::prelude::*;
 pub trait SelectAuthorityByStrategyQuery:
     for<'a> Service<
     &'a FindAuthorityByStrategy,
-    Response = Authority,
+    Response = Option<Authority>,
     Error = BoxedError,
 >
 {
@@ -15,7 +15,7 @@ pub trait SelectAuthorityByStrategyQuery:
 impl<T> SelectAuthorityByStrategyQuery for T where
     T: for<'a> Service<
         &'a FindAuthorityByStrategy,
-        Response = Authority,
+        Response = Option<Authority>,
         Error = BoxedError,
     >
 {

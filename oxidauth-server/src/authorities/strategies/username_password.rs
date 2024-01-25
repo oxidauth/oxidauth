@@ -15,8 +15,8 @@ use crate::{
     axum::server::routes::api::v1::{
         authorities::all::AuthorityRow,
         users::{
-            authorities::all::UserAuthority, authorities::create::UserAuthorityCreate,
-            create::UserCreateRow,
+            authorities::all::UserAuthority,
+            authorities::create::UserAuthorityCreate, create::UserCreateRow,
         },
     },
 };
@@ -29,8 +29,13 @@ pub struct UsernamePassword {
     password_pepper: String,
 }
 
-pub async fn new(authority: &AuthorityRow) -> Result<Box<dyn Authority>, Error> {
-    let params: AuthorityParams = authority.params.clone().try_into()?;
+pub async fn new(
+    authority: &AuthorityRow,
+) -> Result<Box<dyn Authority>, Error> {
+    let params: AuthorityParams = authority
+        .params
+        .clone()
+        .try_into()?;
     let authority_id = authority.id;
     let password_pepper = std::env::var("OXIDAUTH_USERNAME_PASSWORD_PEPPER")?;
 
@@ -47,21 +52,28 @@ impl Registrar for UsernamePassword {
         &self,
         authority_params: Value,
     ) -> Result<UserAuthorityCreate, Error> {
-        let authority_params: AuthenticateParams = authority_params.clone().try_into()?;
+        let authority_params: AuthenticateParams = authority_params
+            .clone()
+            .try_into()?;
 
         let password = format!(
             "{}:{}:{}",
-            authority_params.password, self.params.password_salt, self.password_pepper,
+            authority_params.password,
+            self.params.password_salt,
+            self.password_pepper,
         );
 
-        let password_hash = hash_password(password).map_err(|err| err.to_string())?;
+        let password_hash =
+            hash_password(password).map_err(|err| err.to_string())?;
         let params = UserAuthorityParams { password_hash };
 
         let params = serde_json::to_value(params)?;
 
         let user_authority = UserAuthorityCreate {
             authority_id: self.authority_id,
-            user_identifier: authority_params.username.clone(),
+            user_identifier: authority_params
+                .username
+                .clone(),
             params,
         };
 
@@ -71,21 +83,34 @@ impl Registrar for UsernamePassword {
     async fn register(
         &self,
         register_params: Value,
-    ) -> Result<(UserCreateRow, UserAuthorityCreate), Error> {
-        let register_params: RegisterParams = register_params.clone().try_into()?;
+    ) -> Result<
+        (
+            UserCreateRow,
+            UserAuthorityCreate,
+        ),
+        Error,
+    > {
+        let register_params: RegisterParams = register_params
+            .clone()
+            .try_into()?;
 
         if register_params.password != register_params.password_confirmation {
-            return Err("password and password confirmation do not match".into());
+            return Err(
+                "password and password confirmation do not match".into(),
+            );
         }
 
         let user: UserCreateRow = register_params.clone().into();
 
         let password = format!(
             "{}:{}:{}",
-            register_params.password, self.params.password_salt, self.password_pepper,
+            register_params.password,
+            self.params.password_salt,
+            self.password_pepper,
         );
 
-        let password_hash = hash_password(password).map_err(|err| err.to_string())?;
+        let password_hash =
+            hash_password(password).map_err(|err| err.to_string())?;
         let params = UserAuthorityParams { password_hash };
 
         let params = serde_json::to_value(params)?;
@@ -146,8 +171,12 @@ impl From<RegisterParams> for UserCreateRow {
 
 #[async_trait]
 impl Authenticator for UsernamePassword {
-    async fn user_identifier_from_request(&self, params: Value) -> Result<String, Error> {
-        let AuthenticateParams { username, .. } = serde_json::from_value(params)?;
+    async fn user_identifier_from_request(
+        &self,
+        params: Value,
+    ) -> Result<String, Error> {
+        let AuthenticateParams { username, .. } =
+            serde_json::from_value(params)?;
 
         Ok(username)
     }
@@ -157,18 +186,27 @@ impl Authenticator for UsernamePassword {
         authenticate_params: Value,
         user_authority: &UserAuthority,
     ) -> Result<(), Error> {
-        let authenticate_params: AuthenticateParams = authenticate_params.clone().try_into()?;
+        let authenticate_params: AuthenticateParams = authenticate_params
+            .clone()
+            .try_into()?;
 
         let password = format!(
             "{}:{}:{}",
-            authenticate_params.password, self.params.password_salt, self.password_pepper,
+            authenticate_params.password,
+            self.params.password_salt,
+            self.password_pepper,
         );
 
-        let user_authority_params: UserAuthorityParams =
-            user_authority.params.clone().try_into()?;
+        let user_authority_params: UserAuthorityParams = user_authority
+            .params
+            .clone()
+            .try_into()?;
 
-        verify_password(password, user_authority_params.password_hash)
-            .map_err(|err| err.to_string())?;
+        verify_password(
+            password,
+            user_authority_params.password_hash,
+        )
+        .map_err(|err| err.to_string())?;
 
         Ok(())
     }
@@ -231,10 +269,16 @@ pub fn hash_password(password: String) -> Result<String, PasswordHashError> {
     Ok(password_hash)
 }
 
-pub fn verify_password(password: String, password_hash: String) -> Result<bool, PasswordHashError> {
+pub fn verify_password(
+    password: String,
+    password_hash: String,
+) -> Result<bool, PasswordHashError> {
     let password_hash = PasswordHash::new(&password_hash)?;
 
-    Argon2::default().verify_password(&password.into_bytes(), &password_hash)?;
+    Argon2::default().verify_password(
+        &password.into_bytes(),
+        &password_hash,
+    )?;
 
     Ok(true)
 }

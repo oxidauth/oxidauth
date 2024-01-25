@@ -6,7 +6,7 @@ use super::UserRow;
 
 #[async_trait]
 impl<'a> Service<&'a Username> for Database {
-    type Response = User;
+    type Response = Option<User>;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "select_user_by_id_query", skip(self))]
@@ -18,10 +18,13 @@ impl<'a> Service<&'a Username> for Database {
             "./select_user_by_username_query.sql"
         ))
         .bind(&username.0)
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
-        let user = result.try_into()?;
+        let user = match result {
+            Some(user) => Some(user.try_into()?),
+            None => None,
+        };
 
         Ok(user)
     }

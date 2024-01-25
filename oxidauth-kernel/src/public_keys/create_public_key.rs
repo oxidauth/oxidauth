@@ -11,4 +11,4 @@ pub type CreatePublicKeyService = Arc<
 >;
 
 #[derive(Debug)]
-pub struct CreatePublicKey();
+pub struct CreatePublicKey;

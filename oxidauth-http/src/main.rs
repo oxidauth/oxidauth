@@ -3,7 +3,9 @@ pub mod provider;
 pub mod response;
 pub mod server;
 
-use std::error::Error;
+use oxidauth_kernel::bootstrap::{BootstrapParams, BootstrapService};
+use oxidauth_usecases::bootstrap::SudoUserBootstrapUseCase;
+use std::{error::Error, sync::Arc};
 use tracing::info;
 
 use server::Server;
@@ -20,11 +22,19 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
     oxidauth_telemetry::init_subscriber(subscriber);
 
+    let provider = provider::setup().await?;
+
+    let bootstrap: BootstrapService = Arc::new(SudoUserBootstrapUseCase::new(
+        &provider,
+    ));
+
+    bootstrap
+        .call(&BootstrapParams)
+        .await?;
+
     info!("starting server...");
 
     let addr = "0.0.0.0:80".parse()?;
-
-    let provider = provider::setup().await?;
 
     let server = Server::new(addr, provider);
 

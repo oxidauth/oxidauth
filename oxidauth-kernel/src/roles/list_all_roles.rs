@@ -15,5 +15,4 @@ pub type ListAllRolesService = Arc<
 >;
 
 #[derive(Debug, Deserialize)]
-pub struct ListAllRoles {}
-
+pub struct ListAllRoles;

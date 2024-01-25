@@ -6,7 +6,7 @@ pub use crate::prelude::*;
 pub trait SelectPermissionByPartsQuery:
     for<'a> Service<
     &'a FindPermissionByParts,
-    Response = Permission,
+    Response = Option<Permission>,
     Error = BoxedError,
 >
 {
@@ -15,7 +15,7 @@ pub trait SelectPermissionByPartsQuery:
 impl<T> SelectPermissionByPartsQuery for T where
     T: for<'a> Service<
         &'a FindPermissionByParts,
-        Response = Permission,
+        Response = Option<Permission>,
         Error = BoxedError,
     >
 {

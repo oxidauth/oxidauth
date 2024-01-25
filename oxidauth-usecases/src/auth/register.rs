@@ -6,7 +6,7 @@ use oxidauth_kernel::{
         register::{RegisterParams, RegisterResponse},
         Registrar,
     },
-    authorities::{Authority, AuthorityStrategy},
+    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
@@ -92,7 +92,8 @@ where
         let authority = self
             .authority_by_strategy
             .call(&params.into())
-            .await?;
+            .await?
+            .ok_or_else(|| AuthorityNotFoundError::strategy(params.strategy))?;
 
         let registrar = build_registrar(&authority, &params.strategy).await?;
 

@@ -1,6 +1,8 @@
+use core::fmt;
 use std::sync::Arc;
 
 use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::error::BoxedError;
 pub use crate::service::Service;

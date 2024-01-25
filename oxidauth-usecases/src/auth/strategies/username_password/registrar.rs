@@ -1,7 +1,3 @@
-use argon2::{
-    password_hash::{Error as PasswordHashError, PasswordHasher, SaltString},
-    Argon2,
-};
 use async_trait::async_trait;
 use oxidauth_kernel::{
     auth::Registrar,
@@ -10,14 +6,13 @@ use oxidauth_kernel::{
     user_authorities::create_user_authority::CreateUserAuthority,
     users::{create_user::CreateUser, UserKind, UserStatus},
 };
-use rand_core::OsRng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
 use super::{
-    helpers::hash_password, AuthorityParams, UserAuthorityParams,
-    UsernamePassword,
+    helpers::{hash_password, raw_password_hash},
+    AuthorityParams, UserAuthorityParams, UsernamePassword,
 };
 
 #[async_trait]
@@ -32,7 +27,7 @@ impl Registrar for UsernamePassword {
         ),
         BoxedError,
     > {
-        let register_params: RegisterParams = register_params
+        let register_params: UsernamePasswordRegisterParams = register_params
             .clone()
             .try_into()?;
 
@@ -44,15 +39,15 @@ impl Registrar for UsernamePassword {
 
         let user: CreateUser = register_params.clone().into();
 
-        let password = format!(
-            "{}:{}:{}",
-            register_params.password,
-            self.params.password_salt,
-            self.password_pepper,
+        let password = raw_password_hash(
+            &register_params.password,
+            &self.params.password_salt,
+            &self.password_pepper,
         );
 
         let password_hash =
             hash_password(password).map_err(|err| err.to_string())?;
+
         let params = UserAuthorityParams { password_hash };
 
         let params = serde_json::to_value(params)?;
@@ -85,8 +80,8 @@ pub async fn new(
     }))
 }
 
-#[derive(Clone, Deserialize)]
-pub struct RegisterParams {
+#[derive(Clone, Serialize, Deserialize)]
+pub struct UsernamePasswordRegisterParams {
     pub username: String,
     pub password: String,
     pub password_confirmation: String,
@@ -95,7 +90,13 @@ pub struct RegisterParams {
     pub last_name: Option<String>,
 }
 
-impl TryFrom<Value> for RegisterParams {
+impl UsernamePasswordRegisterParams {
+    pub fn to_value(&self) -> Result<Value, BoxedError> {
+        Ok(serde_json::to_value(self)?)
+    }
+}
+
+impl TryFrom<Value> for UsernamePasswordRegisterParams {
     type Error = BoxedError;
 
     fn try_from(value: Value) -> Result<Self, Self::Error> {
@@ -105,9 +106,9 @@ impl TryFrom<Value> for RegisterParams {
     }
 }
 
-impl From<RegisterParams> for CreateUser {
-    fn from(params: RegisterParams) -> Self {
-        let RegisterParams {
+impl From<UsernamePasswordRegisterParams> for CreateUser {
+    fn from(params: UsernamePasswordRegisterParams) -> Self {
+        let UsernamePasswordRegisterParams {
             username,
             email,
             first_name,
