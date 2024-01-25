@@ -1,6 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
+use chrono::Utc;
 use oxidauth_http::response::Response;
 use oxidauth_http::server::api::v1::auth::authenticate::{
     AuthenticateReq, AuthenticateRes,
@@ -19,6 +20,16 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+
+mod auth;
+mod authorities;
+mod can;
+mod permissions;
+mod public_keys;
+mod refresh_tokens;
+mod roles;
+mod settings;
+mod users;
 
 #[derive(Debug, Clone)]
 pub struct Client {
@@ -352,6 +363,33 @@ impl Client {
         Ok(true)
     }
 
+    async fn check_auth_state(&self) -> AuthState {
+        let state = self.state.read().await;
+
+        let Some(ref jwt) = state.jwt else {
+            return AuthState::Auth;
+        };
+
+        let now = Utc::now().timestamp() as usize;
+
+        if now > jwt.exp {
+            return AuthState::Refresh;
+        }
+
+        AuthState::Valid
+    }
+
+    async fn authenticate_if_needed(&self) -> Result<bool, ClientError> {
+        match self.check_auth_state().await {
+            AuthState::Valid => Ok(true),
+            AuthState::Auth => self.authenticate().await,
+            AuthState::Refresh => match self.refresh().await {
+                Ok(res) => Ok(res),
+                Err(_) => self.authenticate().await,
+            },
+        }
+    }
+
     pub async fn request<Req, Res>(
         &self,
         method: Method,
@@ -362,17 +400,39 @@ impl Client {
         Req: Serialize + std::fmt::Debug,
         Res: for<'a> Deserialize<'a>,
     {
+        self.authenticate_if_needed()
+            .await?;
+
         let state = self.state.read().await;
 
-        if state.jwt.is_none() {
-            drop(state);
+        let client = &state.client;
 
-            self.authenticate().await?;
-        }
+        let url = format!(
+            "{}{}",
+            self.config.base_url, url
+        );
 
-        println!("IT'S WORKING!!!");
+        let res = client
+            .request(method, url)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("http request failed"),
+                    Some(Box::new(err)),
+                )
+            })?
+            .json()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("failed to deserialize response"),
+                    Some(Box::new(err)),
+                )
+            })?;
 
-        todo!()
+        Ok(res)
     }
 
     pub async fn get<Req, Res>(
@@ -441,6 +501,13 @@ impl ClientError {
     ) -> Self {
         Self { kind, source }
     }
+}
+
+#[derive(Debug)]
+enum AuthState {
+    Auth,
+    Refresh,
+    Valid,
 }
 
 #[derive(Debug)]
