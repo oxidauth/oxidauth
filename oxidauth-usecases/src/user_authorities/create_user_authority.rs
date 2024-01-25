@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    error::BoxedError, user_authorities::create_user_authority::*,
+    authorities::AuthorityNotFoundError, error::BoxedError,
+    user_authorities::create_user_authority::*,
 };
 use oxidauth_repository::{
     authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,
@@ -45,20 +46,21 @@ where
     #[tracing::instrument(name = "create_user_authority_usecase", skip(self))]
     async fn call(
         &self,
-        req: &'a CreateUserAuthorityParams,
+        params: &'a CreateUserAuthorityParams,
     ) -> Result<Self::Response, Self::Error> {
         let authority = self
             .authority_by_strategy
-            .call(&req.into())
-            .await?;
+            .call(&params.into())
+            .await?
+            .ok_or_else(|| AuthorityNotFoundError::strategy(params.strategy))?;
 
-        let registrar = build_registrar(&authority, &req.strategy).await?;
+        let registrar = build_registrar(&authority, &params.strategy).await?;
 
         let mut user_authority = registrar
-            .user_authority_from_request(req.params.clone())
+            .user_authority_from_request(params.params.clone())
             .await?;
 
-        user_authority.user_id = Some(req.user_id);
+        user_authority.user_id = Some(params.user_id);
 
         self.insert_user_authority
             .call(&user_authority)

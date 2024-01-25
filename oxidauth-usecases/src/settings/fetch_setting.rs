@@ -1,3 +1,5 @@
+use core::fmt;
+
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
@@ -35,8 +37,41 @@ where
         &self,
         params: &'a FetchSettingParams,
     ) -> Result<Self::Response, Self::Error> {
-        self.select_setting
+        let setting = self
+            .select_setting
             .call(params)
-            .await
+            .await?;
+
+        match setting {
+            Some(setting) => Ok(setting),
+            None => Err(SettingNotFoundError::new(
+                &params.key,
+            )),
+        }
     }
 }
+
+#[derive(Debug)]
+pub struct SettingNotFoundError {
+    key: String,
+}
+
+impl SettingNotFoundError {
+    pub fn new(key: &str) -> Box<Self> {
+        Box::new(Self {
+            key: key.to_owned(),
+        })
+    }
+}
+
+impl fmt::Display for SettingNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "no setting found with key: {}",
+            self.key
+        )
+    }
+}
+
+impl std::error::Error for SettingNotFoundError {}

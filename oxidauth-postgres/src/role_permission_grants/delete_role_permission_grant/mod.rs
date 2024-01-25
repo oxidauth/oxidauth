@@ -9,7 +9,10 @@ impl<'a> Service<&'a DeleteRolePermissionGrantParams> for Database {
     type Response = RolePermissionGrant;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "delete_role_permission_grant_query", skip(self))]
+    #[tracing::instrument(
+        name = "delete_role_permission_grant_query",
+        skip(self)
+    )]
     async fn call(
         &self,
         params: &'a DeleteRolePermissionGrantParams,

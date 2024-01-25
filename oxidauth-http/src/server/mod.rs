@@ -22,8 +22,11 @@ impl Server {
     ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let tcp_listener = TcpListener::bind(self.addr).await?;
 
-        axum::serve(tcp_listener, router(self.provider).into_make_service())
-            .await?;
+        axum::serve(
+            tcp_listener,
+            router(self.provider).into_make_service(),
+        )
+        .await?;
 
         Ok(())
     }

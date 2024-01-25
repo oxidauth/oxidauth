@@ -23,7 +23,7 @@ pub async fn handle(State(provider): State<Provider>) -> impl IntoResponse {
     info!("provided CreatePublicKeyService");
 
     let result = service
-        .call(&CreatePublicKey())
+        .call(&CreatePublicKey)
         .await;
 
     match result {

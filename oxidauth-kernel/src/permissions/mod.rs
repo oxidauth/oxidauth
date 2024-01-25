@@ -21,10 +21,38 @@ pub struct Permission {
 
 impl fmt::Display for Permission {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}:{}", self.realm, self.resource, self.action)
+        write!(
+            f,
+            "{}:{}:{}",
+            self.realm, self.resource, self.action
+        )
     }
 }
 
+#[derive(Debug)]
+pub struct PermissionNotFoundError {
+    permission: String,
+}
+
+impl PermissionNotFoundError {
+    pub fn new(permission: &str) -> Box<Self> {
+        Box::new(Self {
+            permission: permission.to_owned(),
+        })
+    }
+}
+
+impl fmt::Display for PermissionNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "permission with name not found: {}",
+            self.permission
+        )
+    }
+}
+
+impl std::error::Error for PermissionNotFoundError {}
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RawPermission {
     pub realm: String,

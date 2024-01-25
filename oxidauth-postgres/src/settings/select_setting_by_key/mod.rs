@@ -11,7 +11,7 @@ use super::PgSetting;
 
 #[async_trait]
 impl<'a> Service<&'a FetchSettingParams> for Database {
-    type Response = Setting;
+    type Response = Option<Setting>;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "select_setting_by_key_query", skip(self))]
@@ -23,10 +23,10 @@ impl<'a> Service<&'a FetchSettingParams> for Database {
             "./select_setting_by_key.sql"
         ))
         .bind(&params.key)
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
 
-        let setting = result.into();
+        let setting = result.map(Into::into);
 
         Ok(setting)
     }

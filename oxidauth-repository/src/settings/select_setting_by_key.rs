@@ -7,14 +7,18 @@ use oxidauth_kernel::{
 
 #[async_trait]
 pub trait SelectSettingByKey:
-    for<'a> Service<&'a FetchSettingParams, Response = Setting, Error = BoxedError>
+    for<'a> Service<
+    &'a FetchSettingParams,
+    Response = Option<Setting>,
+    Error = BoxedError,
+>
 {
 }
 
 impl<T> SelectSettingByKey for T where
     T: for<'a> Service<
         &'a FetchSettingParams,
-        Response = Setting,
+        Response = Option<Setting>,
         Error = BoxedError,
     >
 {
