@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub use crate::service::Service;
@@ -16,7 +16,7 @@ pub type ExchangeRefreshTokenService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ExchangeRefreshToken {
     pub refresh_token: Uuid,
 }

@@ -11,12 +11,20 @@ async fn main() -> Result<(), BoxedError> {
         "password123",
     )?;
 
-    client
-        .get(
-            "/users/by_username/malreynolds",
-            None::<()>,
-        )
-        .await?;
+    // client
+    //     .get(
+    //         "/users/by_username/malreynolds",
+    //         None::<()>,
+    //     )
+    //     .await?;
+
+    client.authenticate().await?;
+    println!("authenticated");
+
+    client.refresh().await?;
+    println!("refreshed");
+
+    println!("WOOT!!");
 
     Ok(())
 }
