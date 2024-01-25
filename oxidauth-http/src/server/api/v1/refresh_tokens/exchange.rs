@@ -7,9 +7,9 @@ use tracing::info;
 use crate::provider::Provider;
 use crate::response::Response;
 
-type ExchangeRefreshTokenReq = ExchangeRefreshToken;
+pub type ExchangeRefreshTokenReq = ExchangeRefreshToken;
 
-type ExchangeRefreshTokenRes = AuthenticateResponse;
+pub type ExchangeRefreshTokenRes = AuthenticateResponse;
 
 #[tracing::instrument(name = "exchange_refresh_token_handler", skip(provider))]
 pub async fn handle(

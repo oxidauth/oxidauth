@@ -6,10 +6,14 @@ use oxidauth_http::server::api::v1::auth::authenticate::{
     AuthenticateReq, AuthenticateRes,
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
+use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
+    ExchangeRefreshTokenReq, ExchangeRefreshTokenRes,
+};
 use oxidauth_kernel::authorities::AuthorityStrategy::UsernamePassword;
 use oxidauth_kernel::base64::*;
 use oxidauth_kernel::jwt::Jwt;
 use oxidauth_kernel::public_keys::PublicKey;
+use oxidauth_kernel::refresh_tokens::exchange_refresh_token::ExchangeRefreshToken;
 use reqwest::header::HeaderMap;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -53,10 +57,7 @@ impl Client {
         })
     }
 
-    async fn authenticate(&self) -> Result<bool, ClientError> {
-        let mut state = self.state.write().await;
-
-        // get public keys
+    async fn get_public_keys(&self) -> Result<Vec<PublicKey>, ClientError> {
         let public_keys: Response<ListAllPublicKeysRes> =
             reqwest::Client::new()
                 .get(format!(
@@ -96,6 +97,21 @@ impl Client {
             },
         };
 
+        if public_keys.is_empty() {
+            return Err(ClientError::new(
+                ClientErrorKind::Other("no public keys found"),
+                None,
+            ));
+        }
+
+        Ok(public_keys)
+    }
+
+    pub async fn authenticate(&self) -> Result<bool, ClientError> {
+        let mut state = self.state.write().await;
+
+        let public_keys = self.get_public_keys().await?;
+
         // authenticate
         let json = AuthenticateReq {
             strategy: UsernamePassword,
@@ -129,45 +145,6 @@ impl Client {
                     Some(Box::new(err)),
                 )
             })?;
-
-        // let url = format!(
-        //     "{}/auth/authenticate",
-        //     self.config.base_url
-        // );
-        //
-        // dbg!(&url);
-        //
-        // let request = reqwest::Client::new()
-        //     .post(url)
-        //     .json(&json);
-        //
-        // dbg!(&request);
-        //
-        // let response = request
-        //     .send()
-        //     .await
-        //     .map_err(|err| {
-        //         ClientError::new(
-        //             ClientErrorKind::Other("unable to authenticate"),
-        //             Some(Box::new(err)),
-        //         )
-        //     })?;
-        //
-        // dbg!(&response);
-        //
-        // let response = response
-        //     .text()
-        //     .await
-        //     .map_err(|err| {
-        //         ClientError::new(
-        //             ClientErrorKind::Other(
-        //                 "unable to deserialize authenticate",
-        //             ),
-        //             Some(Box::new(err)),
-        //         )
-        //     })?;
-        //
-        // dbg!(response);
 
         match response {
             Response {
@@ -260,7 +237,119 @@ impl Client {
         Ok(true)
     }
 
-    async fn refresh(&self) -> Result<bool, ClientError> {
+    pub async fn refresh(&self) -> Result<bool, ClientError> {
+        let mut state = self.state.write().await;
+
+        let public_keys = self.get_public_keys().await?;
+
+        let Some(refresh_token) = state.refresh_token else {
+            return Err(ClientError::new(
+                ClientErrorKind::Other(
+                    "can't refresh -- no refresh token found",
+                ),
+                None,
+            ));
+        };
+
+        let req = ExchangeRefreshTokenReq { refresh_token };
+
+        let response: Response<ExchangeRefreshTokenRes> =
+            reqwest::Client::new()
+                .post(format!(
+                    "{}/refresh_tokens",
+                    self.config.base_url
+                ))
+                .json(&req)
+                .send()
+                .await
+                .map_err(|err| {
+                    ClientError::new(
+                        ClientErrorKind::Other(
+                            "unable to make request for new refresh token",
+                        ),
+                        Some(Box::new(err)),
+                    )
+                })?
+                .json()
+                .await
+                .map_err(|err| {
+                    ClientError::new(
+                        ClientErrorKind::Other(
+                            "unable to make request for new refresh token",
+                        ),
+                        Some(Box::new(err)),
+                    )
+                })?;
+
+        match response {
+            Response {
+                success: true,
+                payload: Some(payload),
+                ..
+            } => {
+                let mut jwt: Option<Jwt> = None;
+
+                for PublicKey { public_key, .. } in public_keys.into_iter() {
+                    let decoded = match BASE64_STANDARD.decode(public_key) {
+                        Ok(decoded) => decoded,
+                        Err(_) => continue,
+                    };
+
+                    if let Ok(decoded_jwt) = Jwt::decode(&payload.jwt, &decoded)
+                    {
+                        jwt = Some(decoded_jwt);
+
+                        break;
+                    }
+                }
+
+                match jwt {
+                    Some(jwt) => {
+                        state.jwt = Some(jwt);
+                        state.refresh_token = Some(payload.refresh_token);
+
+                        let bearer = format!("Bearer {}", payload.jwt)
+                            .parse()
+                            .map_err(|err| {
+                                ClientError::new(
+                                    ClientErrorKind::Other(
+                                        "unable to create bearer token",
+                                    ),
+                                    Some(Box::new(err)),
+                                )
+                            })?;
+
+                        let mut headers = HeaderMap::new();
+                        headers.insert("Authorization", bearer);
+
+                        state.client = reqwest::Client::builder()
+                            .default_headers(headers)
+                            .build()
+                            .map_err(|err| {
+                                ClientError::new(
+                                    ClientErrorKind::Other(
+                                        "unable to build client in auth",
+                                    ),
+                                    Some(Box::new(err)),
+                                )
+                            })?;
+                    },
+                    None => {
+                        return Err(ClientError::new(
+                            ClientErrorKind::Other("failed to validate jwt"),
+                            None,
+                        ));
+                    },
+                }
+            },
+            _ => {
+                return Err(ClientError::new(
+                    ClientErrorKind::Other(""),
+                    None,
+                ))
+            },
+        }
+
         Ok(true)
     }
 
