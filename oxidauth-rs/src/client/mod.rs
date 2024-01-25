@@ -13,7 +13,6 @@ use oxidauth_kernel::authorities::AuthorityStrategy::UsernamePassword;
 use oxidauth_kernel::base64::*;
 use oxidauth_kernel::jwt::Jwt;
 use oxidauth_kernel::public_keys::PublicKey;
-use oxidauth_kernel::refresh_tokens::exchange_refresh_token::ExchangeRefreshToken;
 use reqwest::header::HeaderMap;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -21,13 +20,13 @@ use serde_json::json;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Client {
     config: Config,
     state: Arc<RwLock<State>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     base_url: String,
     username: String,
