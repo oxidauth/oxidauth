@@ -42,7 +42,9 @@ use oxidauth_kernel::{
     },
     service::Service,
     settings::{
-        fetch_setting::{FetchSettingParams, FetchSettingService},
+        fetch_setting::{
+            FetchSettingParams, FetchSettingService, SettingNotFoundError,
+        },
         save_setting::{SaveSettingParams, SaveSettingService},
         Setting,
     },
@@ -64,11 +66,8 @@ use oxidauth_kernel::{
 use rand::{distributions, thread_rng, Rng};
 use tracing::{error, info};
 
-use crate::{
-    auth::strategies::username_password::{
-        registrar::UsernamePasswordRegisterParams, AuthorityParams,
-    },
-    settings::fetch_setting::SettingNotFoundError,
+use crate::auth::strategies::username_password::{
+    registrar::UsernamePasswordRegisterParams, AuthorityParams,
 };
 
 pub struct SudoUserBootstrapUseCase {
