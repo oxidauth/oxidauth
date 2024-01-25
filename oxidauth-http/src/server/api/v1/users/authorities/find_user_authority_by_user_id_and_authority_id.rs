@@ -7,11 +7,11 @@ use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_author
 use oxidauth_permission::parse_and_validate;
 use tracing::{info, warn};
 
-use crate::response::Response;
-use crate::{
-    middleware::permission_extractor::{ExtractEntitlements, ExtractJwt},
-    provider::Provider,
+use crate::middleware::permission_extractor::{
+    ExtractEntitlements, ExtractJwt,
 };
+use crate::provider::Provider;
+use crate::response::Response;
 
 use super::PERMISSION;
 
