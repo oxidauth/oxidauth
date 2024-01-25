@@ -10,10 +10,18 @@ readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "test_client"
+path = "bin/test_client.rs"
+
 [dependencies]
 oxidauth-kernel = { path = "../oxidauth-kernel" }
+oxidauth-http = { path = "../oxidauth-http" }
 
 chrono = { version = "0.4.32", features = ["serde"] }
 reqwest = { version = "0.11.23", features = ["json"] }
 serde = { version = "1.0.195", features = ["derive"] }
+serde_json = "1.0.111"
+tokio = { version = "1.35.1", features = ["full"] }
 url = { version = "2.5.0", features = ["serde"] }
+uuid = { version = "1.7.0", features = ["serde", "v4"] }

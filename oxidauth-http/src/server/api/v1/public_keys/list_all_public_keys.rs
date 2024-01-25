@@ -4,7 +4,7 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::public_keys::list_all_public_keys::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use crate::provider::Provider;
@@ -12,7 +12,7 @@ use crate::response::Response;
 
 pub type ListAllPublicKeysReq = ListAllPublicKeys;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListAllPublicKeysRes {
     pub public_keys: Vec<PublicKey>,
 }

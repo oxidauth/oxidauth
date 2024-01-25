@@ -19,9 +19,9 @@ pub fn verify_password(
 }
 
 pub fn raw_password_hash(
+    password: &str,
     password_salt: &str,
     password_pepper: &str,
-    password: &str,
 ) -> String {
     format!(
         "{}:{}:{}",

@@ -4,10 +4,10 @@ pub mod find_public_key_by_id;
 pub mod list_all_public_keys;
 
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PublicKey {
     pub id: Uuid,
     pub public_key: String,

@@ -51,7 +51,7 @@ impl Jwt {
         let key = DecodingKey::from_rsa_pem(key).map_err(|_| JwtError {})?;
 
         let result: TokenData<Jwt> = decode(
-            &token,
+            token,
             &key,
             &Validation::new(Algorithm::RS256),
         )
@@ -99,9 +99,7 @@ impl JwtBuilder {
 
         let exp_from_ttl = {
             let ttl = ttl.unwrap_or(Duration::from_secs(60 * 3));
-            let exp = epoch_from_now(ttl)?;
-
-            exp
+            epoch_from_now(ttl)?
         };
 
         let exp = exp.unwrap_or(exp_from_ttl);
