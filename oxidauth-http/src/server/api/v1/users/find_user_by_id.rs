@@ -8,11 +8,11 @@ use oxidauth_permission::parse_and_validate_multiple;
 use serde::Serialize;
 use tracing::{info, warn};
 
-use crate::response::Response;
-use crate::{
-    middleware::permission_extractor::{ExtractEntitlements, ExtractJwt},
-    provider::Provider,
+use crate::middleware::permission_extractor::{
+    ExtractEntitlements, ExtractJwt,
 };
+use crate::provider::Provider;
+use crate::response::Response;
 
 pub type FindUserByIdReq = FindUserById;
 
