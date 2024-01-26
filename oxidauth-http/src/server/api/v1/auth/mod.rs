@@ -8,7 +8,7 @@ use crate::provider::Provider;
 pub fn router() -> Router<Provider> {
     Router::new()
         .route(
-            "/",
+            "/authenticate",
             post(authenticate::handle),
         )
         .route(
