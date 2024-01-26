@@ -1,33 +1,17 @@
 use axum::{extract::State, response::IntoResponse, Json};
-use oxidauth_kernel::auth::authenticate::AuthenticateService;
-use oxidauth_kernel::auth::authenticate::*;
-use oxidauth_kernel::authorities::AuthorityStrategy;
+use oxidauth_kernel::auth::authenticate::{
+    AuthenticateParams, AuthenticateService,
+};
 use oxidauth_kernel::error::IntoOxidAuthError;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::provider::Provider;
-use crate::response::Response;
+use crate::{provider::Provider, response::Response};
 
-#[derive(Debug, Deserialize)]
-pub struct AuthenticateReq {
-    pub strategy: AuthorityStrategy,
-    pub params: Value,
-}
+pub type AuthenticateReq = AuthenticateParams;
 
-#[allow(clippy::from_over_into)]
-impl Into<AuthenticateParams> for AuthenticateReq {
-    fn into(self) -> AuthenticateParams {
-        AuthenticateParams {
-            strategy: self.strategy,
-            params: self.params,
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AuthenticateRes {
     pub jwt: String,
     pub refresh_token: Uuid,
@@ -42,9 +26,7 @@ pub async fn handle(
 
     info!("provided AuthenticateService");
 
-    let result = service
-        .call(&params.into())
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(response) => {
