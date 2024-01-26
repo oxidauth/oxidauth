@@ -1,8 +1,8 @@
 use uuid::Uuid;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 
-use crate::error::BoxedError;
+pub use crate::error::BoxedError;
 pub use crate::service::Service;
 
 pub use super::Role;
@@ -15,7 +15,7 @@ pub type UpdateRoleService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateRole {
     pub role_id: Option<Uuid>,
     pub name: String,

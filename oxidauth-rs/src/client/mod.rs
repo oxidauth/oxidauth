@@ -510,10 +510,26 @@ enum AuthState {
     Valid,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum Resource {
+    Role,
+}
+
+impl fmt::Display for Resource {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use Resource::*;
+
+        match self {
+            Role => write!(f, "role"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum ClientErrorKind {
     AuthError,
     RefreshError,
+    EmptyPayload(Resource, &'static str),
     Other(&'static str),
 }
 
@@ -529,6 +545,12 @@ impl fmt::Display for ClientError {
             RefreshError => write!(
                 f,
                 "encountered an error while refreshing token"
+            ),
+            EmptyPayload(resource, method) => write!(
+                f,
+                "received an empty payload when a response payload was expcected for resource {} method {}",
+                resource,
+                method
             ),
             Other(reason) => write!(f, "error: {}", reason),
         }
