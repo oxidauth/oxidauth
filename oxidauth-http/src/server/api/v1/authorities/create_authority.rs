@@ -26,25 +26,25 @@ pub struct CreateAuthorityRes {
 #[tracing::instrument(name = "create_authority_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
-    // ExtractJwt(jwt): ExtractJwt,
-    // ExtractEntitlements(permissions): ExtractEntitlements,
+    ExtractJwt(jwt): ExtractJwt,
+    ExtractEntitlements(permissions): ExtractEntitlements,
     Json(mut params): Json<CreateAuthorityReq>,
 ) -> impl IntoResponse {
-    // match parse_and_validate(PERMISSION, &permissions) {
-    //     Ok(true) => info!(
-    //         "{:?} has {}",
-    //         jwt.sub, PERMISSION
-    //     ),
-    //     Ok(false) => {
-    //         warn!(
-    //             "{:?} doesn't have {}",
-    //             jwt.sub, PERMISSION
-    //         );
-    //
-    //         return Response::unauthorized();
-    //     },
-    //     Err(err) => return Response::fail().error(err.to_string()),
-    // }
+    match parse_and_validate(PERMISSION, &permissions) {
+        Ok(true) => info!(
+            "{:?} has {}",
+            jwt.sub, PERMISSION
+        ),
+        Ok(false) => {
+            warn!(
+                "{:?} doesn't have {}",
+                jwt.sub, PERMISSION
+            );
+
+            return Response::unauthorized();
+        },
+        Err(err) => return Response::fail().error(err.to_string()),
+    }
 
     let service = provider.fetch::<CreateAuthorityService>();
 
