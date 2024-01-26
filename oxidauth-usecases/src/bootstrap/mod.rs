@@ -489,8 +489,10 @@ async fn save_bootstrap_setting(
 }
 
 fn random_string() -> String {
-    thread_rng()
-        .sample_iter::<char, _>(distributions::Standard)
+    let s = thread_rng()
+        .sample_iter(&distributions::Alphanumeric)
         .take(32)
-        .collect()
+        .collect::<Vec<_>>();
+
+    String::from_utf8_lossy(&s).to_string()
 }
