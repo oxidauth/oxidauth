@@ -1,0 +1,7 @@
+mod create_role;
+mod delete_role;
+mod file_role_by_id;
+mod list_all_roles;
+mod update_role;
+
+use super::{Client, ClientError, ClientErrorKind, Resource};

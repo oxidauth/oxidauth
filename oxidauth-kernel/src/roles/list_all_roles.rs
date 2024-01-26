@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 
-use crate::error::BoxedError;
+pub use crate::error::BoxedError;
 pub use crate::service::Service;
 
 pub use super::Role;
@@ -14,5 +14,5 @@ pub type ListAllRolesService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListAllRoles;

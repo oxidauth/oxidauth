@@ -23,12 +23,12 @@ pub struct UpdateRolePathReq {
     pub role_id: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateRoleReq {
     pub role: UpdateRole,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateRoleRes {
     pub role: Role,
 }
