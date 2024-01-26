@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::find_user_by_id::*;
 use oxidauth_permission::parse_and_validate_multiple;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -16,7 +16,7 @@ use crate::response::Response;
 
 pub type FindUserByIdReq = FindUserById;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FindUserByIdRes {
     pub user: User,
 }

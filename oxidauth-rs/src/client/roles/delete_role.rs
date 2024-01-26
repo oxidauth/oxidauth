@@ -28,12 +28,11 @@ impl Client {
             )
             .await?;
 
-        let role_res = resp
-            .payload
-            .ok_or(ClientError::new(
-                ClientErrorKind::EmptyPayload(RESOURCE, METHOD),
-                None,
-            ))?;
+        let role_res = handle_response(
+            RESOURCE,
+            METHOD,
+            resp,
+        )?;
 
         Ok(role_res)
     }

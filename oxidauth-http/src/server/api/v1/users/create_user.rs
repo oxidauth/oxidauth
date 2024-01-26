@@ -13,12 +13,12 @@ use crate::response::Response;
 
 use super::PERMISSION;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserReq {
     pub user: CreateUser,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserRes {
     pub user: User,
 }

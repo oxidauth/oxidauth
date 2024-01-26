@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::delete_user_by_id::*;
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -18,7 +18,7 @@ use super::PERMISSION;
 
 pub type DeleteUserByIdReq = DeleteUserById;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteUserByIdRes {
     pub user: User,
 }

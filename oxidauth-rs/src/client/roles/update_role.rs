@@ -25,18 +25,17 @@ impl Client {
         let role = role.into();
 
         let resp: Response<UpdateRoleRes> = self
-            .get(
+            .post(
                 &format!("/roles/{}", role_id),
                 role,
             )
             .await?;
 
-        let role_res = resp
-            .payload
-            .ok_or(ClientError::new(
-                ClientErrorKind::EmptyPayload(RESOURCE, METHOD),
-                None,
-            ))?;
+        let role_res = handle_response(
+            RESOURCE,
+            METHOD,
+            resp,
+        )?;
 
         Ok(role_res)
     }
