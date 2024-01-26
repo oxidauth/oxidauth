@@ -17,7 +17,7 @@ use oxidauth_kernel::public_keys::PublicKey;
 use reqwest::header::HeaderMap;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json, Value};
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
@@ -513,6 +513,7 @@ enum AuthState {
 #[derive(Debug, Copy, Clone)]
 pub enum Resource {
     Role,
+    User,
 }
 
 impl fmt::Display for Resource {
@@ -521,6 +522,7 @@ impl fmt::Display for Resource {
 
         match self {
             Role => write!(f, "role"),
+            User => write!(f, "user"),
         }
     }
 }
@@ -530,6 +532,7 @@ pub enum ClientErrorKind {
     AuthError,
     RefreshError,
     EmptyPayload(Resource, &'static str),
+    APIResponseError,
     Other(&'static str),
 }
 
@@ -552,6 +555,7 @@ impl fmt::Display for ClientError {
                 resource,
                 method
             ),
+            APIResponseError => write!(f, "error reported when making a request to the API"),
             Other(reason) => write!(f, "error: {}", reason),
         }
     }
@@ -564,4 +568,37 @@ impl std::error::Error for ClientError {
             None => None,
         }
     }
+}
+
+fn handle_response<T>(
+    resource: Resource,
+    method: &'static str,
+    response: Response<T>,
+) -> Result<T, ClientError>
+where
+    T: Serialize,
+{
+    if response.success != true {
+        return Err(ClientError {
+            kind: ClientErrorKind::APIResponseError,
+            source: response.errors.map(|err| {
+                err.iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+                    .into()
+            }),
+        });
+    }
+
+    let payload = response
+        .payload
+        .ok_or_else(|| {
+            ClientError::new(
+                ClientErrorKind::EmptyPayload(resource, method),
+                None,
+            )
+        })?;
+
+    Ok(payload)
 }

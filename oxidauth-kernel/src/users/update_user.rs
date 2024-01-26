@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -16,7 +16,7 @@ pub type UpdateUserService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUser {
     pub id: Option<Uuid>,
     pub email: Option<String>,

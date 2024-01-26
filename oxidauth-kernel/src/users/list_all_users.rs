@@ -10,5 +10,5 @@ pub type ListAllUsersService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
-pub struct ListAllUsers {}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListAllUsers;

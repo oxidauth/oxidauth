@@ -23,12 +23,12 @@ pub struct UpdateUserPathReq {
     user_id: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUserBodyReq {
     pub user: UpdateUser,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUserRes {
     pub user: User,
 }

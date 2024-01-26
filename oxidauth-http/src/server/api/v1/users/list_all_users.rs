@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::list_all_users::*;
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -18,7 +18,7 @@ use super::PERMISSION;
 
 pub type ListAllUsersReq = ListAllUsers;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListAllUsersRes {
     pub users: Vec<User>,
 }
