@@ -1,8 +1,8 @@
 use uuid::Uuid;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 
-use crate::error::BoxedError;
+pub use crate::error::BoxedError;
 pub use crate::service::Service;
 
 pub use super::Role;
@@ -15,7 +15,7 @@ pub type DeleteRoleService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteRole {
     pub role_id: Uuid,
 }

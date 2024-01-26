@@ -7,12 +7,12 @@ use tracing::info;
 use crate::provider::Provider;
 use crate::response::Response;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateRoleReq {
     pub role: CreateRole,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateRoleRes {
     pub role: Role,
 }

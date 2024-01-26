@@ -4,7 +4,7 @@ use axum::{
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::roles::delete_role::*;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::info;
 
 use crate::provider::Provider;
@@ -12,7 +12,7 @@ use crate::response::Response;
 
 pub type DeleteRoleReq = DeleteRole;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteRoleRes {
     pub role: Role,
 }
