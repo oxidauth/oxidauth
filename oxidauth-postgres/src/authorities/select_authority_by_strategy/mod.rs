@@ -24,10 +24,9 @@ impl<'a> Service<&'a FindAuthorityByStrategy> for Database {
         .fetch_optional(&self.pool)
         .await?;
 
-        let authority: Option<Authority> = match result {
-            Some(authority) => Some(authority.try_into()?),
-            None => None,
-        };
+        let authority = result
+            .map(TryInto::try_into)
+            .transpose()?;
 
         Ok(authority)
     }

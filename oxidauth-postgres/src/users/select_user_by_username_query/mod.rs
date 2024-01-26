@@ -21,10 +21,9 @@ impl<'a> Service<&'a Username> for Database {
         .fetch_optional(&self.pool)
         .await?;
 
-        let user = match result {
-            Some(user) => Some(user.try_into()?),
-            None => None,
-        };
+        let user = result
+            .map(TryInto::try_into)
+            .transpose()?;
 
         Ok(user)
     }
