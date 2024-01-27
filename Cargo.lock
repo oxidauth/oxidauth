@@ -1581,6 +1581,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
+name = "oxidauth"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "oxidauth-http",
+ "oxidauth-kernel",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "oxidauth-cli"
 version = "0.1.0"
 
@@ -1667,21 +1682,6 @@ dependencies = [
  "chrono",
  "oxidauth-kernel",
  "serde_json",
- "uuid",
-]
-
-[[package]]
-name = "oxidauth-rs"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "oxidauth-http",
- "oxidauth-kernel",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "url",
  "uuid",
 ]
 

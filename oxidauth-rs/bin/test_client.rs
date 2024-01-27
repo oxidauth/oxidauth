@@ -1,5 +1,5 @@
+use oxidauth::OxidAuthClient;
 use oxidauth_kernel::error::BoxedError;
-use oxidauth_rs::OxidAuthClient;
 
 #[tokio::main]
 async fn main() -> Result<(), BoxedError> {
