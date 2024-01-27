@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub mod create_invitation;
+pub mod find_invitation;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Invitation {

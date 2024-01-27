@@ -3,6 +3,7 @@ use oxidauth_kernel::invitations::Invitation;
 use uuid::Uuid;
 
 pub mod insert_invitation;
+pub mod select_invitation_by_id;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgInvitation {
