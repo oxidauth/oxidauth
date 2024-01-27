@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod authorities;
 pub mod can;
+pub mod invitations;
 pub mod permissions;
 pub mod public_keys;
 pub mod refresh_tokens;
@@ -37,5 +38,9 @@ pub fn router() -> Router<Provider> {
         .nest(
             "/settings",
             settings::router(),
+        )
+        .nest(
+            "/invitations",
+            invitations::router(),
         )
 }

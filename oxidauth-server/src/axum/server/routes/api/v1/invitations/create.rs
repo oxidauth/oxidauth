@@ -31,14 +31,17 @@ pub async fn handle(
 ) -> impl IntoResponse {
     let mut user = params.user;
 
-    user.status.replace("invited".into());
+    user.status
+        .replace("invited".into());
 
     if user.kind.is_none() {
-        user.kind.replace("human".into());
+        user.kind
+            .replace("human".into());
     }
 
     if user.profile.is_none() {
-        user.profile.replace(serde_json::json!({}));
+        user.profile
+            .replace(serde_json::json!({}));
     }
 
     let mut db = db.acquire().await.unwrap();
@@ -48,8 +51,9 @@ pub async fn handle(
         Err(err) => return Response::fail(err.to_string()).json(),
     };
 
-    let expires_at =
-        Utc::now() + Duration::from_std(std::time::Duration::from_secs(60 * 60 * 72)).unwrap();
+    let expires_at = Utc::now()
+        + Duration::from_std(std::time::Duration::from_secs(60 * 60 * 72))
+            .unwrap();
 
     let invitation = InvitationCreateRow {
         user_id: user.id,

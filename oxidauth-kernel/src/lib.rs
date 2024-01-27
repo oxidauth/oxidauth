@@ -3,6 +3,7 @@ pub mod authorities;
 pub mod bootstrap;
 pub mod dev_prelude;
 pub mod error;
+pub mod invitations;
 pub mod jwt;
 pub mod permissions;
 pub mod prelude;
