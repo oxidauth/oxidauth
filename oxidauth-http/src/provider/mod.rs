@@ -561,5 +561,15 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<FetchSettingService>(fetch_setting_service);
     }
 
+    {
+        use oxidauth_kernel::invitations::create_invitation::CreateInvitationService;
+        use oxidauth_usecases::invitations::create_invitation::CreateInvitationUseCase;
+
+        let create_invitation_service = Arc::new(CreateInvitationUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<CreateInvitationService>(create_invitation_service);
+    }
+
     Ok(provider)
 }

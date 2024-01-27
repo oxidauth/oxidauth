@@ -3,6 +3,7 @@ use std::error::Error;
 
 pub mod auth;
 pub mod authorities;
+pub mod invitations;
 pub mod permissions;
 pub mod private_keys;
 pub mod public_keys;
