@@ -581,5 +581,15 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<FindInvitationService>(find_invitation_service);
     }
 
+    {
+        use oxidauth_kernel::invitations::delete_invitation::DeleteInvitationService;
+        use oxidauth_usecases::invitations::delete_invitation::DeleteInvitationUseCase;
+
+        let delete_invitation_service = Arc::new(DeleteInvitationUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<DeleteInvitationService>(delete_invitation_service);
+    }
+
     Ok(provider)
 }
