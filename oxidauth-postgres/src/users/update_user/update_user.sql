@@ -1,9 +1,10 @@
 UPDATE users
 SET
-    email = $2,
-    first_name = $3,
-    last_name = $4,
-    status = $5,
-    profile = $6
+    username = $2,
+    email = $3,
+    first_name = $4,
+    last_name = $5,
+    status = $6,
+    profile = $7
 WHERE id = $1
 RETURNING *
