@@ -2,7 +2,10 @@ use serde_json::Map;
 
 use crate::Database;
 
-use oxidauth_kernel::{users::{create_user::CreateUser, UserKind, UserStatus}, error::BoxedError};
+use oxidauth_kernel::{
+    error::BoxedError,
+    users::{create_user::CreateUser, UserKind, UserStatus},
+};
 use oxidauth_repository::users::insert_user::*;
 
 use super::UserRow;
