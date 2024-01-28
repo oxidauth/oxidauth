@@ -567,6 +567,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 
         let create_invitation_service = Arc::new(CreateInvitationUseCase::new(
             db.clone(),
+            db.clone(),
         ));
         provider.store::<CreateInvitationService>(create_invitation_service);
     }

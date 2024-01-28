@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -9,11 +9,7 @@ pub use crate::service::Service;
 pub use super::{User, UserKind, UserStatus};
 
 pub type CreateUserService = Arc<
-    dyn for<'a> Service<
-        &'a CreateUser,
-        Response = User,
-        Error = BoxedError,
-    >,
+    dyn for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>,
 >;
 
 #[derive(Debug, Serialize, Deserialize)]

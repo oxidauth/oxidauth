@@ -1,22 +1,21 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
-    error::BoxedError,
-    invitations::{create_invitation::CreateInvitationParams, Invitation},
-    service::Service,
+    error::BoxedError, invitations::Invitation, service::Service,
 };
+use oxidauth_repository::invitations::insert_invitation::InsertInvitationParams;
 
 use crate::Database;
 
 use super::PgInvitation;
 
 #[async_trait]
-impl<'a> Service<&'a CreateInvitationParams> for Database {
+impl<'a> Service<&'a InsertInvitationParams> for Database {
     type Response = Invitation;
     type Error = BoxedError;
 
     async fn call(
         &self,
-        params: &'a CreateInvitationParams,
+        params: &'a InsertInvitationParams,
     ) -> Result<Self::Response, Self::Error> {
         let result = sqlx::query_as::<_, PgInvitation>(include_str!(
             "./insert_invitation.sql"
