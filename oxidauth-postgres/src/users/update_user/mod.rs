@@ -24,6 +24,7 @@ impl<'a> Service<&'a UpdateUser> for Database {
             "./update_user.sql"
         ))
         .bind(params.id)
+        .bind(&params.username)
         .bind(&params.email)
         .bind(&params.first_name)
         .bind(&params.last_name)

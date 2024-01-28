@@ -86,16 +86,19 @@ impl std::error::Error for ParseUserKindErr {}
 pub enum UserStatus {
     #[default]
     Enabled,
+    Invited,
     Disabled,
 }
 
 pub const ENABLED: &str = "enabled";
+pub const INVITED: &str = "invited";
 pub const DISABLED: &str = "disabled";
 
 impl From<&UserStatus> for &'static str {
     fn from(status: &UserStatus) -> Self {
         match status {
             UserStatus::Enabled => ENABLED,
+            UserStatus::Invited => INVITED,
             UserStatus::Disabled => DISABLED,
         }
     }
@@ -107,6 +110,7 @@ impl FromStr for UserStatus {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let user_status = match s {
             "enabled" => UserStatus::Enabled,
+            "invited" => UserStatus::Invited,
             "disabled" => UserStatus::Disabled,
             _ => {
                 return Err(ParseUserStatusErr {

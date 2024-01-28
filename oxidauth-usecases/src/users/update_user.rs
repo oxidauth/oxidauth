@@ -54,6 +54,10 @@ where
             .call(&FindUserById { user_id })
             .await?;
 
+        if req.username.is_none() {
+            req.username = Some(current.username);
+        }
+
         if req.email.is_none() {
             req.email = current.email;
         }
