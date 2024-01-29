@@ -10,5 +10,5 @@ pub type ListAllPublicKeysService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListAllPublicKeys;
