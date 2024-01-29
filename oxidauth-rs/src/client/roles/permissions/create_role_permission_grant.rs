@@ -23,7 +23,11 @@ impl Client {
 
         let resp: Response<CreateRolePermissionGrantRes> = self
             .post(
-                "/roles/permissions",
+                &format!(
+                    "/roles/{}/permissions/{}",
+                    role_permission_grant.role_id,
+                    role_permission_grant.permission
+                ),
                 role_permission_grant,
             )
             .await?;
