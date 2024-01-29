@@ -1,8 +1,6 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::roles::roles::delete_role_role_grant::{
-        DeleteRoleRoleGrantReq, DeleteRoleRoleGrantRes,
-    },
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::roles::roles::delete_role_role_grant::{
+    DeleteRoleRoleGrantReq, DeleteRoleRoleGrantRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -12,7 +10,7 @@ const RESOURCE: Resource = Resource::RoleRoleGrant;
 const METHOD: &str = "delete_role_role_grant";
 
 impl Client {
-    async fn delete_role_role_grant<T>(
+    pub async fn delete_role_role_grant<T>(
         &self,
         role_role_grant: T,
     ) -> Result<DeleteRoleRoleGrantRes, BoxedError>
@@ -27,7 +25,7 @@ impl Client {
                     "/roles/{}/roles/{}",
                     role_role_grant.parent_id, role_role_grant.child_id
                 ),
-                None::<()>,
+                None::<DeleteRoleRoleGrantReq>,
             )
             .await?;
 
