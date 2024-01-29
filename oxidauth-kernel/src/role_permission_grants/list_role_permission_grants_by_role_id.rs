@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::BoxedError;
@@ -16,8 +16,7 @@ pub type ListRolePermissionGrantsByRoleIdService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListRolePermissionGrantsByRoleId {
     pub role_id: Uuid,
 }
-
