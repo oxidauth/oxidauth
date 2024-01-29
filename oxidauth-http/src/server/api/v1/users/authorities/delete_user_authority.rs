@@ -18,7 +18,7 @@ use super::PERMISSION;
 
 pub type DeleteUserAuthorityReq = DeleteUserAuthority;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteUserAuthorityRes {
     pub user_authority: UserAuthority,
 }

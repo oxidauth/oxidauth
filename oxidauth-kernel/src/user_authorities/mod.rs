@@ -18,7 +18,7 @@ pub struct UserAuthority {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserAuthorityWithAuthority {
     pub user_authority: UserAuthority,
     pub authority: Authority,

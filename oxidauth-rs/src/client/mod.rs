@@ -517,6 +517,7 @@ pub enum Resource {
     RolePermissionGrant,
     RoleRoleGrant,
     User,
+    UserAuthority,
 }
 
 impl fmt::Display for Resource {
@@ -529,6 +530,7 @@ impl fmt::Display for Resource {
             RolePermissionGrant => write!(f, "role_permission_grant"),
             RoleRoleGrant => write!(f, "role_role_grant"),
             User => write!(f, "user"),
+            UserAuthority => write!(f, "user_authority"),
         }
     }
 }

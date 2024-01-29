@@ -26,18 +26,18 @@ pub struct CreateUserAuthorityPathReq {
     pub user_id: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityBodyReq {
     pub authority_strategy: AuthorityStrategy,
     pub user_authority: UserAuthorityParams,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserAuthorityParams {
     pub params: Value,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityRes {
     pub user_authority: UserAuthority,
 }
