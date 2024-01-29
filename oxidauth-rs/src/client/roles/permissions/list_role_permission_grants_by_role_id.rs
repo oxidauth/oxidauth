@@ -25,7 +25,7 @@ impl Client {
                     "/roles/{}/permissions",
                     params.role_id
                 ),
-                params,
+                None::<()>,
             )
             .await?;
 
