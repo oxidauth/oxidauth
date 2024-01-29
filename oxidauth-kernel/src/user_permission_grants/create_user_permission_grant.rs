@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -15,13 +15,13 @@ pub type CreateUserPermissionGrantService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserPermission {
     pub user_id: Uuid,
     pub permission: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserPermissionGrant {
     pub user_id: Uuid,
     pub permission_id: Uuid,
