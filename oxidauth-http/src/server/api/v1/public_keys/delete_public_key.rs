@@ -9,14 +9,14 @@ use oxidauth_kernel::{
         PublicKey,
     },
 };
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::info;
 
 use crate::{provider::Provider, response::Response};
 
 pub type DeletePublicKeyReq = DeletePublicKey;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeletePublicKeyRes {
     pub public_key: PublicKey,
 }

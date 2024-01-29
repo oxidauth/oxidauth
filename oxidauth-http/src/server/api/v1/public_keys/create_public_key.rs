@@ -7,7 +7,7 @@ use oxidauth_kernel::{
     },
 };
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -15,7 +15,7 @@ use crate::middleware::permission_extractor::{
 };
 use crate::{provider::Provider, response::Response};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreatePublicKeyRes {
     pub public_key: PublicKey,
 }
