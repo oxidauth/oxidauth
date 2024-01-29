@@ -513,6 +513,7 @@ enum AuthState {
 #[derive(Debug, Copy, Clone)]
 pub enum Resource {
     Role,
+    RolePermissionGrant,
     User,
 }
 
@@ -522,6 +523,7 @@ impl fmt::Display for Resource {
 
         match self {
             Role => write!(f, "role"),
+            RolePermissionGrant => write!(f, "role_permission_grant"),
             User => write!(f, "user"),
         }
     }

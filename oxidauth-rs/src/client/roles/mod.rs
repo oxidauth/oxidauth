@@ -1,3 +1,5 @@
+pub mod permissions;
+
 mod create_role;
 mod delete_role;
 mod file_role_by_id;
