@@ -1,6 +1,6 @@
 use std::{error::Error, fmt, str::FromStr};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub mod authenticate;
 pub mod create_authority;
@@ -18,7 +18,7 @@ pub use register::*;
 
 use crate::dev_prelude::*;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Authority {
     pub id: Uuid,
     pub name: String,
