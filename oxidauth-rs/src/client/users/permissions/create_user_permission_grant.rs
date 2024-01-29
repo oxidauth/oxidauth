@@ -1,8 +1,6 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::users::permissions::create_user_permission::{
-        CreateUserPermissionReq, CreateUserPermissionRes,
-    },
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::users::permissions::create_user_permission::{
+    CreateUserPermissionReq, CreateUserPermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -12,7 +10,7 @@ const RESOURCE: Resource = Resource::UserPermissionGrant;
 const METHOD: &str = "create_user_permission_grant";
 
 impl Client {
-    async fn create_user_permission_grant<T>(
+    pub async fn create_user_permission_grant<T>(
         &self,
         user_permission_grant: T,
     ) -> Result<CreateUserPermissionRes, BoxedError>
