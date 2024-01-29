@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::BoxedError;
@@ -16,7 +16,7 @@ pub type DeleteRoleRoleGrantService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteRoleRoleGrant {
     pub parent_id: Uuid,
     pub child_id: Uuid,

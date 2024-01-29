@@ -1,4 +1,6 @@
 pub mod permissions;
+#[allow(clippy::module_inception)]
+pub mod roles;
 
 mod create_role;
 mod delete_role;
