@@ -20,7 +20,7 @@ impl Client {
         let permission = permission.into();
 
         let resp: Response<DeletePermissionRes> = self
-            .post(
+            .delete(
                 &format!("/permissions/{}", permission.permission),
                 None::<DeletePermissionReq>,
             )
