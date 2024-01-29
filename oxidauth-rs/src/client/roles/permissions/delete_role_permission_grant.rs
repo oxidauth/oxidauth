@@ -24,8 +24,9 @@ impl Client {
         let resp: Response<DeleteRolePermissionGrantRes> = self
             .delete(
                 &format!(
-                    "/roles/{}/permissions",
-                    role_permission_grant.role_id
+                    "/roles/{}/permissions/{}",
+                    role_permission_grant.role_id,
+                    role_permission_grant.permission
                 ),
                 role_permission_grant,
             )
