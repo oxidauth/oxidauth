@@ -10,13 +10,13 @@ pub type DeleteUserPermissionGrantService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteUserPermission {
     pub user_id: Uuid,
     pub permission: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteUserPermissionGrant {
     pub user_id: Uuid,
     pub permission_id: Uuid,
