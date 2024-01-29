@@ -27,7 +27,7 @@ impl Client {
                     "/roles/{}/roles",
                     params.parent_id
                 ),
-                params,
+                None::<()>,
             )
             .await?;
 
