@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::role_role_grants::create_role_role_grant::*;
 use oxidauth_kernel::{error::IntoOxidAuthError, roles::Role};
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -18,7 +18,7 @@ use super::PERMISSION;
 
 pub type CreateRoleRoleGrantReq = CreateRoleRoleGrant;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateRoleRoleGrantRes {
     pub child: Role,
     pub grant: RoleRoleGrant,
