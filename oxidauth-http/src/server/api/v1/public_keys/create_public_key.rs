@@ -6,9 +6,13 @@ use oxidauth_kernel::{
         PublicKey,
     },
 };
+use oxidauth_permission::parse_and_validate;
 use serde::Serialize;
-use tracing::info;
+use tracing::{info, warn};
 
+use crate::middleware::permission_extractor::{
+    ExtractEntitlements, ExtractJwt,
+};
 use crate::{provider::Provider, response::Response};
 
 #[derive(Debug, Serialize)]
@@ -16,8 +20,30 @@ pub struct CreatePublicKeyRes {
     pub public_key: PublicKey,
 }
 
+pub const PERMISSION: &str = "oxidauth:public_keys:create";
+
 #[tracing::instrument(name = "create_public_key_handler", skip(provider))]
-pub async fn handle(State(provider): State<Provider>) -> impl IntoResponse {
+pub async fn handle(
+    State(provider): State<Provider>,
+    ExtractJwt(jwt): ExtractJwt,
+    ExtractEntitlements(permissions): ExtractEntitlements,
+) -> impl IntoResponse {
+    match parse_and_validate(PERMISSION, &permissions) {
+        Ok(true) => info!(
+            "{:?} has {}",
+            jwt.sub, PERMISSION
+        ),
+        Ok(false) => {
+            warn!(
+                "{:?} doesn't have {}",
+                jwt.sub, PERMISSION
+            );
+
+            return Response::unauthorized();
+        },
+        Err(err) => return Response::fail().error(err.to_string()),
+    }
+
     let service = provider.fetch::<CreatePublicKeyService>();
 
     info!("provided CreatePublicKeyService");
