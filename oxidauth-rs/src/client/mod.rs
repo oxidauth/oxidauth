@@ -514,6 +514,7 @@ enum AuthState {
 pub enum Resource {
     Role,
     User,
+    UserAuthority,
 }
 
 impl fmt::Display for Resource {
@@ -523,6 +524,7 @@ impl fmt::Display for Resource {
         match self {
             Role => write!(f, "role"),
             User => write!(f, "user"),
+            UserAuthority => write!(f, "user_authority"),
         }
     }
 }

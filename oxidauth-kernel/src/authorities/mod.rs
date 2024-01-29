@@ -18,7 +18,7 @@ pub use register::*;
 
 use crate::dev_prelude::*;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Authority {
     pub id: Uuid,
     pub name: String,
