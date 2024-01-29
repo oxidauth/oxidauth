@@ -20,7 +20,7 @@ impl Client {
         let permission = permission.into();
 
         let resp: Response<FindPermissionByPartsRes> = self
-            .post(
+            .get(
                 &format!("/permissions/{}", permission.permission),
                 None::<FindPermissionByPartsReq>,
             )

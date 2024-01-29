@@ -20,7 +20,7 @@ impl Client {
         let params = params.into();
 
         let resp: Response<ListAllPermissionsRes> = self
-            .post(
+            .get(
                 "/permissions",
                 params,
             )
