@@ -1,7 +1,5 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::roles::permissions::list_role_permission_grants_by_role_id::{ListRolePermissionGrantsByRoleIdReq, ListRolePermissionGrantsByRoleIdRes},
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::roles::permissions::list_role_permission_grants_by_role_id::{ListRolePermissionGrantsByRoleIdReq, ListRolePermissionGrantsByRoleIdRes};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -10,7 +8,7 @@ const RESOURCE: Resource = Resource::RolePermissionGrant;
 const METHOD: &str = "list_role_permission_grants_by_role_id";
 
 impl Client {
-    async fn list_role_permission_grants_by_role_id<T>(
+    pub async fn list_role_permission_grants_by_role_id<T>(
         &self,
         params: T,
     ) -> Result<ListRolePermissionGrantsByRoleIdRes, BoxedError>
@@ -25,7 +23,7 @@ impl Client {
                     "/roles/{}/permissions",
                     params.role_id
                 ),
-                None::<()>,
+                None::<ListRolePermissionGrantsByRoleIdReq>,
             )
             .await?;
 
