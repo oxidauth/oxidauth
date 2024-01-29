@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use uuid::Uuid;
 
@@ -17,7 +17,7 @@ pub type UpdateAuthorityService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateAuthority {
     pub id: Option<Uuid>,
     pub name: String,

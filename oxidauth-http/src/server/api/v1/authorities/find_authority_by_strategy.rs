@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::authorities::find_authority_by_strategy::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_permission::parse_and_validate;
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{

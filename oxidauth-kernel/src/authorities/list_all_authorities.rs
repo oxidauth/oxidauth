@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
 use crate::error::BoxedError;
 pub use crate::service::Service;
@@ -15,5 +15,5 @@ pub type ListAllAuthoritiesService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListAllAuthorities {}

@@ -13,12 +13,12 @@ use crate::response::Response;
 
 use super::PERMISSION;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateAuthorityReq {
     pub authority: CreateAuthority,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateAuthorityRes {
     pub authority: Authority,
 }

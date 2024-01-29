@@ -18,17 +18,17 @@ use crate::response::Response;
 
 use super::PERMISSION;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateAuthorityPathReq {
     pub authority_id: Uuid,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateAuthorityReq {
     pub authority: UpdateAuthority,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateAuthorityRes {
     pub authority: Authority,
 }

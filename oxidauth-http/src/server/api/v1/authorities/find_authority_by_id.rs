@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::authorities::find_authority_by_id::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -18,7 +18,7 @@ use super::PERMISSION;
 
 type FindAuthorityByIdReq = FindAuthorityById;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FindAuthorityByIdRes {
     pub authority: Authority,
 }
