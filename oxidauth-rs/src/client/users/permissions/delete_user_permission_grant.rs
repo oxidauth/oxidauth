@@ -1,8 +1,6 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::users::permissions::delete_user_permission::{
-        DeleteUserPermissionReq, DeleteUserPermissionRes,
-    },
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::users::permissions::delete_user_permission::{
+    DeleteUserPermissionReq, DeleteUserPermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -12,7 +10,7 @@ const RESOURCE: Resource = Resource::UserPermissionGrant;
 const METHOD: &str = "delete_user_permission_grant";
 
 impl Client {
-    async fn delete_user_permission_grant<T>(
+    pub async fn delete_user_permission_grant<T>(
         &self,
         user_permission_grant: T,
     ) -> Result<DeleteUserPermissionRes, BoxedError>
