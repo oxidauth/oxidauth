@@ -521,6 +521,7 @@ pub enum Resource {
     Permission,
     Authority,
     PublicKey,
+    Setting,
 }
 
 impl fmt::Display for Resource {
@@ -537,6 +538,7 @@ impl fmt::Display for Resource {
             Permission => write!(f, "permission"),
             Authority => write!(f, "authority"),
             PublicKey => write!(f, "public_key"),
+            Setting => write!(f, "setting"),
         }
     }
 }

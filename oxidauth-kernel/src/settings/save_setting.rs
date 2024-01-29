@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 
 use crate::dev_prelude::{BoxedError, Service};
@@ -15,7 +15,7 @@ pub type SaveSettingService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SaveSettingParams {
     pub key: String,
     pub value: Value,

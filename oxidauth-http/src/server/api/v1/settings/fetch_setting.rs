@@ -12,12 +12,12 @@ use tracing::info;
 
 use crate::{provider::Provider, response::Response};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FetchSettingReq {
     pub key: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FetchSettingRes {
     pub setting: Setting,
 }

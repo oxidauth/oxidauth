@@ -9,12 +9,12 @@ use tracing::info;
 
 use crate::{provider::Provider, response::Response};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SaveSettingReq {
     pub setting: SaveSettingParams,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SaveSettingRes {
     pub setting: Setting,
 }
