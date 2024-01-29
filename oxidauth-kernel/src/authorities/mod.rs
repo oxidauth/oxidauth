@@ -1,6 +1,6 @@
 use std::{error::Error, fmt, str::FromStr};
 
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 
 pub mod authenticate;
 pub mod create_authority;
