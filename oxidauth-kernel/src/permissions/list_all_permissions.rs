@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 
 use crate::error::BoxedError;
@@ -14,6 +14,6 @@ pub type ListAllPermissionsService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
-pub struct ListAllPermissions {}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListAllPermissions;
 

@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::permissions::find_permission_by_parts::*;
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -16,9 +16,9 @@ use crate::response::Response;
 
 use super::PERMISSION;
 
-type FindPermissionByPartsReq = FindPermissionByParts;
+pub type FindPermissionByPartsReq = FindPermissionByParts;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FindPermissionByPartsRes {
     pub permission: Permission,
 }
