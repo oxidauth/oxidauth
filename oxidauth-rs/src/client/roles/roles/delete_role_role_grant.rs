@@ -27,7 +27,7 @@ impl Client {
                     "/roles/{}/roles/{}",
                     role_role_grant.parent_id, role_role_grant.child_id
                 ),
-                role_role_grant,
+                None::<()>,
             )
             .await?;
 
