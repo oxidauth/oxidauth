@@ -1,8 +1,6 @@
-use core::fmt;
 use std::sync::Arc;
 
-use serde::Deserialize;
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 
 use crate::error::BoxedError;
 pub use crate::service::Service;
@@ -17,7 +15,7 @@ pub type FindAuthorityByStrategyService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FindAuthorityByStrategy {
     pub strategy: AuthorityStrategy,
 }
