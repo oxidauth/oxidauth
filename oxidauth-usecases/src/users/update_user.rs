@@ -42,36 +42,31 @@ where
     #[tracing::instrument(name = "update_user_usecase", skip(self))]
     async fn call(
         &self,
-        req: &'a mut UpdateUser,
+        params: &'a mut UpdateUser,
     ) -> Result<Self::Response, Self::Error> {
-        let user_id = match req.id {
-            Some(id) => id,
-            None => return Err("no user_id found".into()),
-        };
-
         let current = self
             .user_by_id
-            .call(&FindUserById { user_id })
+            .call(&FindUserById { user_id: params.id })
             .await?;
 
-        if req.username.is_none() {
-            req.username = Some(current.username);
+        if params.username.is_none() {
+            params.username = Some(current.username);
         }
 
-        if req.email.is_none() {
-            req.email = current.email;
+        if params.email.is_none() {
+            params.email = current.email;
         }
 
-        if req.status.is_none() {
-            req.status = Some(current.status);
+        if params.status.is_none() {
+            params.status = Some(current.status);
         }
 
-        if req.profile.is_none() {
-            req.profile = Some(current.profile);
+        if params.profile.is_none() {
+            params.profile = Some(current.profile);
         }
 
         self.update_user
-            .call(req)
+            .call(params)
             .await
     }
 }

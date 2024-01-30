@@ -25,7 +25,7 @@ pub struct AcceptInvitationParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceptInvitationUserParams {
-    pub id: Option<Uuid>,
+    pub id: Uuid,
     pub username: String,
     pub email: Option<String>,
     pub first_name: Option<String>,
