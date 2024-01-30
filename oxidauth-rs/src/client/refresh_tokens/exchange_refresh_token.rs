@@ -1,4 +1,4 @@
-use oxidauth_http::{
+pub use oxidauth_http::{
     response::Response,
     server::api::v1::refresh_tokens::exchange::{ExchangeRefreshTokenReq, ExchangeRefreshTokenRes},
 };
