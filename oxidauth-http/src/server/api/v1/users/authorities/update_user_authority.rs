@@ -30,7 +30,7 @@ pub struct UpdateUserAuthorityBodyReq {
     pub params: Value,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUserAuthorityRes {
     pub user_authority: UserAuthority,
 }

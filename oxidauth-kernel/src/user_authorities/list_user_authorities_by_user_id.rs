@@ -10,7 +10,7 @@ pub type ListUserAuthoritiesByUserIdService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListUserAuthoritiesByUserId {
     pub user_id: Uuid,
 }

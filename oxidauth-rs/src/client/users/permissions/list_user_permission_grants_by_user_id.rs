@@ -1,5 +1,5 @@
 use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::permissions::list_user_permission_grants_by_user_id::{ListUserPermissionGrantsByUserIdReq, ListUserPermissionGrantsByUserIdRes};
+pub use oxidauth_http::server::api::v1::users::permissions::list_user_permissions_by_user_id::{ListUserPermissionGrantsByUserIdReq, ListUserPermissionGrantsByUserIdRes};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;

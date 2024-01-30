@@ -17,7 +17,7 @@ use oxidauth_kernel::public_keys::PublicKey;
 use reqwest::header::HeaderMap;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::json;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
@@ -513,16 +513,15 @@ enum AuthState {
 #[derive(Debug, Copy, Clone)]
 pub enum Resource {
     Authority,
+    Permission,
+    PublicKey,
+    RefreshToken,
     Role,
     RolePermissionGrant,
     RoleRoleGrant,
+    Setting,
     User,
     UserAuthority,
-    Permission,
-    Authority,
-    PublicKey,
-    Setting,
-    RefreshToken,
     UserPermissionGrant,
     UserRole,
 }
@@ -533,16 +532,15 @@ impl fmt::Display for Resource {
 
         match self {
             Authority => write!(f, "authority"),
+            Permission => write!(f, "permission"),
+            PublicKey => write!(f, "public_key"),
+            RefreshToken => write!(f, "refresh_token"),
             Role => write!(f, "role"),
             RolePermissionGrant => write!(f, "role_permission_grant"),
             RoleRoleGrant => write!(f, "role_role_grant"),
+            Setting => write!(f, "setting"),
             User => write!(f, "user"),
             UserAuthority => write!(f, "user_authority"),
-            Permission => write!(f, "permission"),
-            Authority => write!(f, "authority"),
-            PublicKey => write!(f, "public_key"),
-            Setting => write!(f, "setting"),
-            RefreshToken => write!(f, "refresh_token"),
             UserPermissionGrant => write!(f, "user_permission_grant"),
             UserRole => write!(f, "user_role"),
         }

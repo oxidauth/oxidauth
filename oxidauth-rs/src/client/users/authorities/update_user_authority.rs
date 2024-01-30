@@ -1,10 +1,6 @@
 use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::authorities::update_user_authority::{
-    UpdateUserAuthorityBodyReq, UpdateUserAuthorityPathReq,
-    UpdateUserAuthorityRes,
-};
-use oxidauth_kernel::error::BoxedError;
-use uuid::Uuid;
+pub use oxidauth_http::server::api::v1::users::authorities::update_user_authority::UpdateUserAuthorityRes;
+use oxidauth_kernel::{error::BoxedError, user_authorities::update_user_authority::UpdateUserAuthority};
 
 use super::*;
 
@@ -12,17 +8,14 @@ const RESOURCE: Resource = Resource::UserAuthority;
 const METHOD: &str = "update_user_authority";
 
 impl Client {
-    pub async fn update_user_authority<T, U>(
+    pub async fn update_user_authority<T>(
         &self,
         params: T,
-        body: U,
     ) -> Result<UpdateUserAuthorityRes, BoxedError>
     where
-        T: Into<UpdateUserAuthorityPathReq>,
-        U: Into<UpdateUserAuthorityBodyReq>,
+        T: Into<UpdateUserAuthority>,
     {
-        let params = user_id.into();
-        let body = user_authority.into();
+        let params = params.into();
 
         let resp: Response<UpdateUserAuthorityRes> = self
             .put(
@@ -30,7 +23,7 @@ impl Client {
                     "/users/{}/authorities/{}",
                     params.user_id, params.authority_id
                 ),
-                body,
+                params,
             )
             .await?;
 

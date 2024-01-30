@@ -10,7 +10,7 @@ pub type FindUserAuthorityByUserIdAndAuthorityIdService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FindUserAuthorityByUserIdAndAuthorityId {
     pub user_id: Uuid,
     pub authority_id: Uuid,

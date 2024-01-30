@@ -10,7 +10,7 @@ pub type ListUserPermissionGrantsByUserIdService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListUserPermissionGrantsByUserId {
     pub user_id: Uuid,
 }
