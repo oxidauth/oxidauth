@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Setting;
 const METHOD: &str = "fetch_setting";
 
 impl Client {
-    async fn fetch_setting<T>(
+    pub async fn fetch_setting<T>(
         &self,
         params: T,
     ) -> Result<FetchSettingRes, BoxedError>
