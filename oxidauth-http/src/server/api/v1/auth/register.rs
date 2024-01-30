@@ -2,7 +2,7 @@ use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::auth::register::RegisterService;
 use oxidauth_kernel::auth::register::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tracing::info;
 use uuid::Uuid;
 
@@ -11,7 +11,7 @@ use crate::response::Response;
 
 pub type RegisterReq = RegisterParams;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RegisterRes {
     pub jwt: String,
     pub refresh_token: Uuid,
