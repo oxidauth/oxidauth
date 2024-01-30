@@ -117,7 +117,7 @@ impl Client {
         Ok(public_keys)
     }
 
-    pub async fn auth(&self) -> Result<bool, ClientError> {
+    async fn auth(&self) -> Result<bool, ClientError> {
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;
