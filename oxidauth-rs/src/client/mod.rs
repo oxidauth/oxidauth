@@ -512,6 +512,7 @@ enum AuthState {
 
 #[derive(Debug, Copy, Clone)]
 pub enum Resource {
+    Auth,
     Authority,
     Permission,
     PublicKey,
@@ -531,6 +532,7 @@ impl fmt::Display for Resource {
         use Resource::*;
 
         match self {
+            Auth => write!(f, "auth"),
             Authority => write!(f, "authority"),
             Permission => write!(f, "permission"),
             PublicKey => write!(f, "public_key"),
