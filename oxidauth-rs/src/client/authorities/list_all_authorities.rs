@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "find_authority_by_strategy";
 
 impl Client {
-    async fn list_all_authorities<T>(
+    pub async fn list_all_authorities<T>(
         &self,
         params: T,
     ) -> Result<ListAllAuthoritiesRes, BoxedError>
