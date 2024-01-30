@@ -1,4 +1,4 @@
-use oxidauth_http::{
+pub use oxidauth_http::{
     response::Response,
     server::api::v1::public_keys::list_all_public_keys::{ListAllPublicKeysRes, ListAllPublicKeysReq},
 };
