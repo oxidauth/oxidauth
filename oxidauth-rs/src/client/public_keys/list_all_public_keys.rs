@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use oxidauth_http::{
     response::Response,
     server::api::v1::public_keys::list_all_public_keys::{ListAllPublicKeysRes, ListAllPublicKeysReq},
@@ -12,7 +10,7 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "list_all_public_keys";
 
 impl Client {
-    async fn list_all_public_keys<T>(
+    pub async fn list_all_public_keys<T>(
         &self,
     ) -> Result<ListAllPublicKeysRes, BoxedError> {
         let resp: Response<ListAllPublicKeysRes> = self
