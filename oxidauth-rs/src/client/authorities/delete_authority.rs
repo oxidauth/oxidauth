@@ -11,7 +11,7 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "delete_authority";
 
 impl Client {
-    async fn delete_authority<T>(
+    pub async fn delete_authority<T>(
         &self,
         authority_id: T,
     ) -> Result<DeleteAuthorityRes, BoxedError>

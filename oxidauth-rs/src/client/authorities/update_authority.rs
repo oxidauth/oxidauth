@@ -11,7 +11,7 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "update_authority";
 
 impl Client {
-    async fn update_authority<T, U>(
+    pub async fn update_authority<T, U>(
         &self,
         authority_id: U,
         params: T,

@@ -11,7 +11,7 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "find_authority_by_id";
 
 impl Client {
-    async fn find_authority_by_id<T>(
+    pub async fn find_authority_by_id<T>(
         &self,
         authority_id: T,
     ) -> Result<FindAuthorityByIdRes, BoxedError>
