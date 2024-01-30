@@ -13,34 +13,34 @@ use oxidauth_repository::{
     users::update_user::UpdateUserQuery,
 };
 
-pub struct AcceptInvitationUseCase<I, U>
+pub struct AcceptInvitationUseCase<U, I>
 where
-    I: DeleteInvitationByIdQuery,
     U: UpdateUserQuery,
+    I: DeleteInvitationByIdQuery,
 {
-    delete_invitation: I,
     update_user: U,
+    delete_invitation: I,
 }
 
-impl<I, U> AcceptInvitationUseCase<I, U>
+impl<U, I> AcceptInvitationUseCase<U, I>
 where
-    I: DeleteInvitationByIdQuery,
     U: UpdateUserQuery,
+    I: DeleteInvitationByIdQuery,
 {
     pub fn new(delete_invitation: I, update_user: U) -> Self {
         Self {
-            delete_invitation,
             update_user,
+            delete_invitation,
         }
     }
 }
 
 #[async_trait]
-impl<'a, I, U> Service<&'a AcceptInvitationParams>
-    for AcceptInvitationUseCase<I, U>
+impl<'a, U, I> Service<&'a AcceptInvitationParams>
+    for AcceptInvitationUseCase<U, I>
 where
-    I: DeleteInvitationByIdQuery,
     U: UpdateUserQuery,
+    I: DeleteInvitationByIdQuery,
 {
     type Response = User;
     type Error = BoxedError;
@@ -49,19 +49,24 @@ where
         &self,
         params: &'a AcceptInvitationParams,
     ) -> Result<Self::Response, Self::Error> {
-        let update_user = (&params.user).into();
-
-        let user = self
-            .update_user
-            .call(&update_user)
-            .await?;
-
         let delete_invitation = DeleteInvitationParams {
             id: params.invitation_id,
         };
 
-        self.delete_invitation
+        let invitation = self
+            .delete_invitation
             .call(&delete_invitation)
+            .await?;
+
+        let update_user = (
+            invitation.user_id,
+            &params.user,
+        )
+            .into();
+
+        let user = self
+            .update_user
+            .call(&update_user)
             .await?;
 
         Ok(user)

@@ -25,7 +25,6 @@ pub struct AcceptInvitationParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceptInvitationUserParams {
-    pub id: Uuid,
     pub username: String,
     pub email: Option<String>,
     pub first_name: Option<String>,
@@ -34,12 +33,22 @@ pub struct AcceptInvitationUserParams {
     pub profile: Option<Value>,
 }
 
-impl From<&AcceptInvitationUserParams> for UpdateUser {
-    fn from(value: &AcceptInvitationUserParams) -> Self {
+impl
+    From<(
+        Uuid,
+        &AcceptInvitationUserParams,
+    )> for UpdateUser
+{
+    fn from(
+        (user_id, value): (
+            Uuid,
+            &AcceptInvitationUserParams,
+        ),
+    ) -> Self {
         let value = value.clone();
 
         Self {
-            id: value.id,
+            id: user_id,
             username: Some(value.username),
             email: value.email,
             first_name: value.first_name,
