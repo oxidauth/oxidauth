@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "find_permission_by_parts";
 
 impl Client {
-    async fn find_permission_by_parts<T>(
+    pub async fn find_permission_by_parts<T>(
         &self,
         permission: T,
     ) -> Result<FindPermissionByPartsRes, BoxedError>

@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "create_permission";
 
 impl Client {
-    async fn create_permission<T>(
+    pub async fn create_permission<T>(
         &self,
         permission: T,
     ) -> Result<CreatePermissionRes, BoxedError>
