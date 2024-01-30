@@ -1,6 +1,5 @@
 use uuid::Uuid;
-
-use oxidauth_http::{
+pub use oxidauth_http::{
     response::Response,
     server::api::v1::public_keys::delete_public_key::DeletePublicKeyRes,
 };
