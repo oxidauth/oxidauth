@@ -18,7 +18,7 @@ async fn main() -> Result<(), BoxedError> {
     //     )
     //     .await?;
 
-    client.authenticate().await?;
+    client.auth().await?;
     println!("authenticated");
 
     client.refresh().await?;
