@@ -117,7 +117,7 @@ impl Client {
         Ok(public_keys)
     }
 
-    pub async fn authenticate(&self) -> Result<bool, ClientError> {
+    pub async fn auth(&self) -> Result<bool, ClientError> {
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;
@@ -382,10 +382,10 @@ impl Client {
     async fn authenticate_if_needed(&self) -> Result<bool, ClientError> {
         match self.check_auth_state().await {
             AuthState::Valid => Ok(true),
-            AuthState::Auth => self.authenticate().await,
+            AuthState::Auth => self.auth().await,
             AuthState::Refresh => match self.refresh().await {
                 Ok(res) => Ok(res),
-                Err(_) => self.authenticate().await,
+                Err(_) => self.auth().await,
             },
         }
     }
