@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "list_all_permissions";
 
 impl Client {
-    async fn list_all_permissions<T>(
+    pub async fn list_all_permissions<T>(
         &self,
         params: T,
     ) -> Result<ListAllPermissionsRes, BoxedError>

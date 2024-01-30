@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "delete_permission";
 
 impl Client {
-    async fn delete_permission<T>(
+    pub async fn delete_permission<T>(
         &self,
         permission: T,
     ) -> Result<DeletePermissionRes, BoxedError>
