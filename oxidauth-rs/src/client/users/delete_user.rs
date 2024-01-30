@@ -1,9 +1,9 @@
-use uuid::Uuid;
 use oxidauth_http::{
     response::Response,
     server::api::v1::users::delete_user_by_id::DeleteUserByIdRes,
 };
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
@@ -15,8 +15,8 @@ impl Client {
         &self,
         user_id: T,
     ) -> Result<DeleteUserByIdRes, BoxedError>
-        where
-            T: Into<Uuid>,
+    where
+        T: Into<Uuid>,
     {
         let user_id = user_id.into();
 
@@ -24,11 +24,7 @@ impl Client {
             .delete("/users/{}", user_id)
             .await?;
 
-        let user_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let user_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_res)
     }
