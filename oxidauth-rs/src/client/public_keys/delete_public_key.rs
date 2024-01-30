@@ -12,7 +12,7 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "delete_public_key";
 
 impl Client {
-    async fn delete_public_key<T>(
+    pub async fn delete_public_key<T>(
         &self,
         public_key_id: T,
     ) -> Result<DeletePublicKeyRes, BoxedError>

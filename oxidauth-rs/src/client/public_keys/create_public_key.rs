@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "create_public_key";
 
 impl Client {
-    async fn create_public_key<T>(
+    pub async fn create_public_key<T>(
         &self,
     ) -> Result<CreatePublicKeyRes, BoxedError> {
         let resp: Response<CreatePublicKeyRes> = self

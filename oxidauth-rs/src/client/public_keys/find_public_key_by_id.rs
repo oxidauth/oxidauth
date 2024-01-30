@@ -12,7 +12,7 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "find_public_key_by_id";
 
 impl Client {
-    async fn find_public_key_by_id<T>(
+    pub async fn find_public_key_by_id<T>(
         &self,
         public_key_id: T,
     ) -> Result<FindPublicKeyByIdRes, BoxedError>
