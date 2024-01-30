@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::Setting;
 const METHOD: &str = "save_setting";
 
 impl Client {
-    async fn save_setting<T>(
+    pub async fn save_setting<T>(
         &self,
         params: T,
     ) -> Result<SaveSettingRes, BoxedError>
