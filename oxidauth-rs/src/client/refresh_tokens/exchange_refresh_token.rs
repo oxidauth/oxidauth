@@ -10,7 +10,7 @@ const RESOURCE: Resource = Resource::RefreshToken;
 const METHOD: &str = "exchange_refresh_token";
 
 impl Client {
-    async fn exchange_refresh_token<T>(
+    pub async fn exchange_refresh_token<T>(
         &self,
         params: T,
     ) -> Result<ExchangeRefreshTokenRes, BoxedError>
