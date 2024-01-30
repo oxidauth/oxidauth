@@ -18,7 +18,7 @@ pub type UpdateUserService = Arc<
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUser {
-    pub id: Option<Uuid>,
+    pub id: Uuid,
     pub username: Option<String>,
     pub email: Option<String>,
     pub first_name: Option<String>,
