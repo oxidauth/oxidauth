@@ -1,4 +1,4 @@
-use oxidauth_http::{
+pub use oxidauth_http::{
     response::Response,
     server::api::v1::settings::save_setting::{SaveSettingReq, SaveSettingRes},
 };
