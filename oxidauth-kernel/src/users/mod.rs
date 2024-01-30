@@ -81,7 +81,7 @@ impl fmt::Display for ParseUserKindErr {
 
 impl std::error::Error for ParseUserKindErr {}
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum UserStatus {
     #[default]
