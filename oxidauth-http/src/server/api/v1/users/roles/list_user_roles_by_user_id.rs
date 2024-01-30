@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::user_role_grants::list_user_role_grants_by_user_id::*;
 use oxidauth_permission::parse_and_validate;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -18,7 +18,7 @@ use super::PERMISSION;
 
 pub type ListUserRoleGrantsByUserIdReq = ListUserRoleGrantsByUserId;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ListUserRoleGrantsByUserIdRes {
     pub user_role_grants: Vec<UserRole>,
 }
