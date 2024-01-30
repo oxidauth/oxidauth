@@ -524,6 +524,7 @@ pub enum Resource {
     Setting,
     RefreshToken,
     UserPermissionGrant,
+    UserRole,
 }
 
 impl fmt::Display for Resource {
@@ -543,6 +544,7 @@ impl fmt::Display for Resource {
             Setting => write!(f, "setting"),
             RefreshToken => write!(f, "refresh_token"),
             UserPermissionGrant => write!(f, "user_permission_grant"),
+            UserRole => write!(f, "user_role"),
         }
     }
 }
