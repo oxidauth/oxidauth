@@ -12,12 +12,12 @@ pub fn router() -> Router<Provider> {
     Router::new().route("/:permission", get(can))
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CanReq {
     pub permission: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CanRes {}
 
 async fn can(
