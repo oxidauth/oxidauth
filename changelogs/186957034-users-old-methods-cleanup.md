@@ -1,0 +1,2 @@
+- [186957034](https://www.pivotaltracker.com/story/show/186957034) - users cleanup
+  - removes deprecated methods from users
