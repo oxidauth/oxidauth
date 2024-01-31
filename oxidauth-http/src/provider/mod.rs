@@ -158,7 +158,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::user_permission_grants::create_user_permission_grant::CreateUserPermissionGrantService;
         use oxidauth_usecases::user_permission_grants::create_user_permission_grant::CreateUserPermissionGrantUseCase;
 
-        let create_user_permission_grant_service = Arc::new(D
+        let create_user_permission_grant_service = Arc::new(
             CreateUserPermissionGrantUseCase::new(
                 db.clone(),
                 db.clone(),
@@ -198,7 +198,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     {
-        use oxidauth_kernel::user_authorities::update_user_authority::UpdateUserAuthorityService;http/provider
+        use oxidauth_kernel::user_authorities::update_user_authority::UpdateUserAuthorityService;
         use oxidauth_usecases::user_authorities::update_user_authority::UpdateUserAuthorityUseCase;
 
         let update_user_authority_service =
