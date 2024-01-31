@@ -1,4 +1,7 @@
+use std::ops::Add;
+
 use async_trait::async_trait;
+use chrono::{Days, Duration, Utc};
 use oxidauth_kernel::{
     error::BoxedError,
     invitations::create_invitation::{
@@ -57,7 +60,10 @@ where
         let insert_invitation_params = InsertInvitationParams {
             id: params.id,
             user_id: user.id,
-            expires_at: params.expires_at,
+            // TODO(dewey4iv): https://www.pivotaltracker.com/story/show/186949366
+            expires_at: params
+                .expires_at
+                .unwrap_or_else(|| Utc::now().add(Days::new(7))),
         };
 
         let invitation = self
