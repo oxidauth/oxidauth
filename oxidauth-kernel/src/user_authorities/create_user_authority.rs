@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -21,7 +21,7 @@ pub type CreateUserAuthorityService = Arc<
     >,
 >;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityParams {
     pub user_id: Uuid,
     pub strategy: AuthorityStrategy,

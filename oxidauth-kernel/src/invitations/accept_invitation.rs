@@ -5,6 +5,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
+    authorities::AuthorityStrategy,
     dev_prelude::{BoxedError, Service},
     users::{update_user::UpdateUser, User, UserStatus},
 };
@@ -21,6 +22,7 @@ pub type AcceptInvitationService = Arc<
 pub struct AcceptInvitationParams {
     pub invitation_id: Uuid,
     pub user: AcceptInvitationUserParams,
+    pub user_authority: AcceptInvitationUserAuthorityParams,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -31,6 +33,12 @@ pub struct AcceptInvitationUserParams {
     pub last_name: Option<String>,
     pub status: Option<UserStatus>,
     pub profile: Option<Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AcceptInvitationUserAuthorityParams {
+    pub strategy: AuthorityStrategy,
+    pub params: Value,
 }
 
 impl

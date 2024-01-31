@@ -3,9 +3,12 @@ use oxidauth_kernel::{
     error::BoxedError,
     invitations::{
         accept_invitation::AcceptInvitationParams,
-        delete_invitation::DeleteInvitationParams,
+        delete_invitation::DeleteInvitationParams, Invitation,
     },
     service::Service,
+    user_authorities::create_user_authority::{
+        CreateUserAuthorityParams, CreateUserAuthorityService,
+    },
     users::User,
 };
 use oxidauth_repository::{
@@ -19,6 +22,7 @@ where
     I: DeleteInvitationByIdQuery,
 {
     update_user: U,
+    user_authority: CreateUserAuthorityService,
     delete_invitation: I,
 }
 
@@ -27,9 +31,14 @@ where
     U: UpdateUserQuery,
     I: DeleteInvitationByIdQuery,
 {
-    pub fn new(delete_invitation: I, update_user: U) -> Self {
+    pub fn new(
+        update_user: U,
+        user_authority: CreateUserAuthorityService,
+        delete_invitation: I,
+    ) -> Self {
         Self {
             update_user,
+            user_authority,
             delete_invitation,
         }
     }
@@ -53,16 +62,26 @@ where
             id: params.invitation_id,
         };
 
-        let invitation = self
+        let Invitation { user_id, .. } = self
             .delete_invitation
             .call(&delete_invitation)
             .await?;
 
-        let update_user = (
-            invitation.user_id,
-            &params.user,
-        )
-            .into();
+        let create_user_authority = CreateUserAuthorityParams {
+            user_id,
+            strategy: params.user_authority.strategy,
+            params: params
+                .user_authority
+                .params
+                .clone(),
+        };
+
+        let _user_authority = self
+            .user_authority
+            .call(&create_user_authority)
+            .await?;
+
+        let update_user = (user_id, &params.user).into();
 
         let user = self
             .update_user
