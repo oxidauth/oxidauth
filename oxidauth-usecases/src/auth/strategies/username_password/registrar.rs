@@ -53,7 +53,6 @@ impl Registrar for UsernamePassword {
         let params = serde_json::to_value(params)?;
 
         let user_authority = CreateUserAuthority {
-            user_id: user.id,
             authority_id: self.authority_id,
             user_identifier: user.username.clone(),
             params,

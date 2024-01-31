@@ -38,7 +38,6 @@ impl From<&CreateUserAuthorityParams> for FindAuthorityByStrategy {
 
 #[derive(Debug, Deserialize)]
 pub struct CreateUserAuthority {
-    pub user_id: Option<Uuid>,
     pub authority_id: Uuid,
     pub user_identifier: String,
     pub params: Value,

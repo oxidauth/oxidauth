@@ -1,25 +1,26 @@
+use std::fmt;
+
 use crate::Database;
 
-use oxidauth_kernel::{
-    error::BoxedError,
-    user_authorities::{
-        create_user_authority::CreateUserAuthority, UserAuthority,
+use oxidauth_kernel::{error::BoxedError, user_authorities::UserAuthority};
+use oxidauth_repository::{
+    user_authorities::insert_user_authority::{
+        InsertUserAuthority, InsertUserAuthorityQuery,
     },
+    users::insert_user::*,
 };
-use oxidauth_repository::users::insert_user::*;
 
 use super::PgUserAuthority;
 
 #[async_trait]
-impl<'a> Service<&'a CreateUserAuthority> for Database {
-    type Response = UserAuthority;
-    type Error = BoxedError;
-
+impl InsertUserAuthorityQuery for Database {
     #[tracing::instrument(name = "insert_user_authority_query", skip(self))]
     async fn call(
         &self,
-        params: &'a CreateUserAuthority,
-    ) -> Result<Self::Response, Self::Error> {
+        params: impl Into<InsertUserAuthority> + Send + fmt::Debug + 'async_trait,
+    ) -> Result<UserAuthority, BoxedError> {
+        let params = params.into();
+
         let row = sqlx::query_as::<_, PgUserAuthority>(include_str!(
             "./insert_user_authority.sql"
         ))
