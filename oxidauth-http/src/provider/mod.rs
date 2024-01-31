@@ -228,6 +228,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             find_user_authority_by_user_id_and_authority_id_service,
         );
     }
+
     {
         use oxidauth_kernel::user_authorities::list_user_authorities_by_user_id::ListUserAuthoritiesByUserIdService;
         use oxidauth_usecases::user_authorities::list_user_authorities_by_user_id::ListUserAuthoritiesByUserIdUseCase;
