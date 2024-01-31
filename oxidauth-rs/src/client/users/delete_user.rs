@@ -11,7 +11,7 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "delete_user";
 
 impl Client {
-    async fn delete_user<T>(
+    pub async fn delete_user<T>(
         &self,
         user_id: T,
     ) -> Result<DeleteUserByIdRes, BoxedError>

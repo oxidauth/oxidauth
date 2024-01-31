@@ -3,7 +3,7 @@ use core::fmt;
 use serde_json::Value;
 use uuid::Uuid;
 
-use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
+pub use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
 
 pub mod delete_user_by_id_query;
 pub mod insert_user;

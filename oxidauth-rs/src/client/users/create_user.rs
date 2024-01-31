@@ -10,12 +10,12 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "create_user";
 
 impl Client {
-    async fn create_user<T>(
+    pub async fn create_user<T>(
         &self,
         user: T,
     ) -> Result<CreateUserRes, BoxedError>
-        where
-            T: Into<CreateUserReq>,
+    where
+        T: Into<CreateUserReq>,
     {
         let user = user.into();
 
@@ -23,11 +23,7 @@ impl Client {
             .post("/users", user)
             .await?;
 
-        let user_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let user_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_res)
     }

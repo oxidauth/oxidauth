@@ -1,9 +1,9 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::{
     error::IntoOxidAuthError,
-    invitations::{
-        create_invitation::{CreateInvitationParams, CreateInvitationService},
-        Invitation,
+    invitations::create_invitation::{
+        CreateInvitationParams, CreateInvitationResponse,
+        CreateInvitationService,
     },
 };
 use oxidauth_permission::parse_and_validate;
@@ -23,10 +23,7 @@ pub struct CreateInvitationReq {
     pub invitation: CreateInvitationParams,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CreateInvitationRes {
-    pub invitation: Invitation,
-}
+pub type CreateInvitationRes = CreateInvitationResponse;
 
 #[tracing::instrument(name = "create_invitation_handler", skip(provider))]
 pub async fn handle(
@@ -66,7 +63,7 @@ pub async fn handle(
                 invitation = ?invitation,
             );
 
-            Response::success().payload(CreateInvitationRes { invitation })
+            Response::success().payload(invitation)
         },
         Err(err) => {
             info!(
