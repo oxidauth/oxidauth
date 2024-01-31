@@ -1,9 +1,7 @@
 use uuid::Uuid;
 
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::users::roles::list_user_roles_by_user_id::ListUserRoleGrantsByUserIdRes,
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::users::roles::list_user_roles_by_user_id::ListUserRoleGrantsByUserIdRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -16,8 +14,8 @@ impl Client {
         &self,
         user_id: T,
     ) -> Result<ListUserRoleGrantsByUserIdRes, BoxedError>
-        where
-            T: Into<Uuid>,
+    where
+        T: Into<Uuid>,
     {
         let user_id = user_id.into();
 
@@ -28,13 +26,8 @@ impl Client {
             )
             .await?;
 
-        let user_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let user_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_res)
     }
 }
-

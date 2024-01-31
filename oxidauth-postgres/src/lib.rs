@@ -25,12 +25,17 @@ pub struct Database {
 }
 
 impl Database {
+    #[tracing::instrument(name = "creating oxidauth db", level = "trace")]
     pub fn new(
         pool: PgPool,
     ) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
         Ok(Self { pool })
     }
 
+    #[tracing::instrument(
+        name = "creating oxidauth db from env",
+        level = "trace"
+    )]
     pub async fn from_env(
     ) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
         let database_url = env::var("DATABASE_URL")?;
@@ -48,6 +53,7 @@ impl Database {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn migrate(&self) -> Result<(), sqlx::Error> {
         sqlx::migrate!()
             .run(&self.pool)

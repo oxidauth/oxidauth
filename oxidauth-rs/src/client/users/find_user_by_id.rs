@@ -1,7 +1,5 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::users::find_user_by_id::FindUserByIdRes,
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::users::find_user_by_id::FindUserByIdRes;
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
 

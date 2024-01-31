@@ -18,6 +18,7 @@ impl Server {
         Self { addr, provider }
     }
 
+    #[tracing::instrument(name = "oxidauth server", skip(self))]
     pub async fn start(
         self,
     ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {

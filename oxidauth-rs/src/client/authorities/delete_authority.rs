@@ -1,9 +1,7 @@
-use uuid::Uuid;
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::authorities::delete_authority::{DeleteAuthorityRes},
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::authorities::delete_authority::DeleteAuthorityRes;
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
@@ -15,23 +13,22 @@ impl Client {
         &self,
         authority_id: T,
     ) -> Result<DeleteAuthorityRes, BoxedError>
-        where
-            T: Into<Uuid>,
+    where
+        T: Into<Uuid>,
     {
         let authority_id = authority_id.into();
 
         let resp: Response<DeleteAuthorityRes> = self
             .delete(
-                &format!("/authorities/{}", authority_id),
-                None::<()>
+                &format!(
+                    "/authorities/{}",
+                    authority_id
+                ),
+                None::<()>,
             )
             .await?;
 
-        let authority_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let authority_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(authority_res)
     }

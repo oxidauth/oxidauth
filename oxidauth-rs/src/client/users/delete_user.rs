@@ -1,7 +1,5 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::users::delete_user_by_id::DeleteUserByIdRes,
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::users::delete_user_by_id::DeleteUserByIdRes;
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
 

@@ -85,6 +85,7 @@ where
     type Response = RegisterResponse;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "register_usecase", skip(self))]
     async fn call(
         &self,
         params: &'a RegisterParams,

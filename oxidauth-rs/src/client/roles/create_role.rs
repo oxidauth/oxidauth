@@ -1,6 +1,6 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::roles::create_role::{CreateRoleReq, CreateRoleRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::roles::create_role::{
+    CreateRoleReq, CreateRoleRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -10,12 +10,9 @@ const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "create_role";
 
 impl Client {
-    async fn create_role<T>(
-        &self,
-        role: T,
-    ) -> Result<CreateRoleRes, BoxedError>
-        where
-            T: Into<CreateRoleReq>,
+    async fn create_role<T>(&self, role: T) -> Result<CreateRoleRes, BoxedError>
+    where
+        T: Into<CreateRoleReq>,
     {
         let role = role.into();
 
@@ -23,11 +20,7 @@ impl Client {
             .post("/roles", role)
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let role_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_res)
     }

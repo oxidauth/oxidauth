@@ -13,6 +13,10 @@ use super::{
 
 #[async_trait]
 impl UserAuthorityFromRequest for UsernamePassword {
+    #[tracing::instrument(
+        name = "user_authority from username_password",
+        skip(self)
+    )]
     async fn user_authority_from_request(
         &self,
         params: Value,

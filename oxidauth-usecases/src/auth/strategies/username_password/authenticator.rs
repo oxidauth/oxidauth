@@ -29,6 +29,7 @@ impl TryFrom<Value> for AuthenticateParams {
 
 #[async_trait]
 impl Authenticator for UsernamePassword {
+    #[tracing::instrument(name = "username_password authenticate", skip(self))]
     async fn authenticate(
         &self,
         authenticate_params: serde_json::Value,
@@ -58,6 +59,7 @@ impl Authenticator for UsernamePassword {
     }
 }
 
+#[tracing::instrument(name = "new authenticator")]
 pub async fn new(
     authority: &Authority,
 ) -> Result<Box<dyn Authenticator>, BoxedError> {

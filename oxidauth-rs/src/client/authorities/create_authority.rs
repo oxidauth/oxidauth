@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::authorities::create_authority::{CreateAuthorityReq, CreateAuthorityRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::authorities::create_authority::{
+    CreateAuthorityReq, CreateAuthorityRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -14,8 +14,8 @@ impl Client {
         &self,
         authority: T,
     ) -> Result<CreateAuthorityRes, BoxedError>
-        where
-            T: Into<CreateAuthorityReq>,
+    where
+        T: Into<CreateAuthorityReq>,
     {
         let authority = authority.into();
 
@@ -23,11 +23,7 @@ impl Client {
             .post("/authorities", authority)
             .await?;
 
-        let authority_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let authority_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(authority_res)
     }

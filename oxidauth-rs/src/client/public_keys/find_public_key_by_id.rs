@@ -1,9 +1,7 @@
-use uuid::Uuid;
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::public_keys::find_public_key_by_id::FindPublicKeyByIdRes,
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::public_keys::find_public_key_by_id::FindPublicKeyByIdRes;
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
@@ -22,16 +20,15 @@ impl Client {
 
         let resp: Response<FindPublicKeyByIdRes> = self
             .get(
-                &format!("/public_keys/{}", public_key_id),
+                &format!(
+                    "/public_keys/{}",
+                    public_key_id
+                ),
                 None::<Uuid>,
             )
             .await?;
 
-        let public_key_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let public_key_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(public_key_res)
     }

@@ -1,7 +1,5 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::public_keys::list_all_public_keys::{ListAllPublicKeysRes, ListAllPublicKeysReq},
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -14,17 +12,10 @@ impl Client {
         &self,
     ) -> Result<ListAllPublicKeysRes, BoxedError> {
         let resp: Response<ListAllPublicKeysRes> = self
-            .get(
-                "/public_keys",
-                None::<()>,
-            )
+            .get("/public_keys", None::<()>)
             .await?;
 
-        let public_key_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let public_key_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(public_key_res)
     }

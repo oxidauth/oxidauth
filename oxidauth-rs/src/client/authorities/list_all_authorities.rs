@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::authorities::list_all_authorities::{ListAllAuthoritiesReq, ListAllAuthoritiesRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::authorities::list_all_authorities::{
+    ListAllAuthoritiesReq, ListAllAuthoritiesRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -14,23 +14,16 @@ impl Client {
         &self,
         params: T,
     ) -> Result<ListAllAuthoritiesRes, BoxedError>
-        where
-            T: Into<ListAllAuthoritiesReq>,
+    where
+        T: Into<ListAllAuthoritiesReq>,
     {
         let params = params.into();
 
         let resp: Response<ListAllAuthoritiesRes> = self
-            .get(
-                "/authorities",
-                params,
-            )
+            .get("/authorities", params)
             .await?;
 
-        let authority_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let authority_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(authority_res)
     }

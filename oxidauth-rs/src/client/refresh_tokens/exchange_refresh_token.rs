@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::refresh_tokens::exchange::{ExchangeRefreshTokenReq, ExchangeRefreshTokenRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
+    ExchangeRefreshTokenReq, ExchangeRefreshTokenRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -20,18 +20,11 @@ impl Client {
         let params = params.into();
 
         let resp: Response<ExchangeRefreshTokenRes> = self
-            .post(
-                "/refresh_tokens",
-                params,
-            )
+            .post("/refresh_tokens", params)
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let refresh_token_res = handle_response(RESOURCE, METHOD, resp)?;
 
-        Ok(role_res)
+        Ok(refresh_token_res)
     }
 }

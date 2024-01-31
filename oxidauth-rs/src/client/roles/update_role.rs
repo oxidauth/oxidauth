@@ -1,8 +1,8 @@
 use uuid::Uuid;
 
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::roles::update_role::{UpdateRoleReq, UpdateRoleRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::roles::update_role::{
+    UpdateRoleReq, UpdateRoleRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -31,11 +31,7 @@ impl Client {
             )
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let role_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_res)
     }
