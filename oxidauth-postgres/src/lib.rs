@@ -1,5 +1,5 @@
 use sqlx::PgPool;
-use std::error::Error;
+use std::{env, error::Error};
 
 pub mod auth;
 pub mod authorities;
@@ -33,10 +33,9 @@ impl Database {
 
     pub async fn from_env(
     ) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
-        let pool = PgPool::connect(
-            "postgres://oxidauth:oxidauth@postgres.oxidauth.test:5432/oxidauth",
-        )
-        .await?;
+        let database_url = env::var("DATABASE_URL")?;
+
+        let pool = PgPool::connect(&database_url).await?;
 
         Self::new(pool)
     }
