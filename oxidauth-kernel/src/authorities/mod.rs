@@ -1,20 +1,16 @@
 use std::{error::Error, fmt, str::FromStr};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-pub mod authenticate;
 pub mod create_authority;
 pub mod delete_authority;
 pub mod find_authority_by_client_id;
 pub mod find_authority_by_id;
 pub mod find_authority_by_strategy;
 pub mod list_all_authorities;
-pub mod register;
 pub mod update_authority;
 
 pub use crate::user_authorities::UserAuthority;
-pub use authenticate::*;
-pub use register::*;
 
 use crate::dev_prelude::*;
 
