@@ -28,5 +28,5 @@ impl<T> InsertInvitationQuery for T where
 pub struct InsertInvitationParams {
     pub id: Option<Uuid>,
     pub user_id: Uuid,
-    pub expires_at: Option<DateTime<Utc>>,
+    pub expires_at: DateTime<Utc>,
 }
