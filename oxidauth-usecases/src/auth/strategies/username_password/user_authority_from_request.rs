@@ -36,7 +36,6 @@ impl UserAuthorityFromRequest for UsernamePassword {
             .clone();
 
         let user_authority = CreateUserAuthority {
-            user_id: None,
             authority_id: self.authority_id,
             user_identifier,
             params,

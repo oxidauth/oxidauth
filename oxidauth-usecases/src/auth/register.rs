@@ -104,7 +104,7 @@ where
         let user = self.users.call(&user).await?;
 
         self.user_authorities
-            .call(&user_authority)
+            .call((user.id, &user_authority))
             .await?;
 
         // add default roles and permissions

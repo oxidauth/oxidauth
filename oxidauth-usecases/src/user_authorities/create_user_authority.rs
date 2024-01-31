@@ -56,14 +56,15 @@ where
 
         let registrar = build_registrar(&authority, &params.strategy).await?;
 
-        let mut user_authority = registrar
+        let user_authority = registrar
             .user_authority_from_request(params.params.clone())
             .await?;
 
-        user_authority.user_id = Some(params.user_id);
-
         self.insert_user_authority
-            .call(&user_authority)
+            .call((
+                params.user_id,
+                &user_authority,
+            ))
             .await
     }
 }
