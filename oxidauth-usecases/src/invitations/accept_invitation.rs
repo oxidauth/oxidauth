@@ -54,6 +54,7 @@ where
     type Response = User;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "accept_invitation_usecase", skip(self))]
     async fn call(
         &self,
         params: &'a AcceptInvitationParams,
