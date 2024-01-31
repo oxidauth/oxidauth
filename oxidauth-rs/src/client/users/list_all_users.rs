@@ -1,8 +1,6 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::users::list_all_users::{
-        ListAllUsersReq, ListAllUsersRes,
-    },
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::users::list_all_users::{
+    ListAllUsersReq, ListAllUsersRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -22,7 +20,7 @@ impl Client {
         let params = params.into();
 
         let resp: Response<ListAllUsersRes> = self
-            .get("/users/", params)
+            .get("/users", params)
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
