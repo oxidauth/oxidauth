@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use oxidauth_kernel::user_authorities::create_user_authority::CreateUserAuthority;
 pub use oxidauth_kernel::{service::Service, user_authorities::UserAuthority};
 
@@ -24,7 +22,9 @@ impl<T> InsertUserAuthorityQuery for T where
 }
 
 #[derive(Debug)]
-pub struct InsertUserAuthorityError {
-    pub reason: String,
-    pub source: Box<dyn Error>,
+pub struct InsertUserAuthority {
+    pub user_id: Option<Uuid>,
+    pub authority_id: Uuid,
+    pub user_identifier: String,
+    pub params: Value,
 }

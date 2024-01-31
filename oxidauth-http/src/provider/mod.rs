@@ -100,15 +100,18 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<ListAllUsersService>(list_all_users_service);
     }
 
-    {
+    let create_user_authority_service = {
         use oxidauth_kernel::user_authorities::create_user_authority::CreateUserAuthorityService;
         use oxidauth_usecases::user_authorities::create_user_authority::CreateUserAuthorityUseCase;
 
         let create_user_authority_service =
             Arc::new(CreateUserAuthorityUseCase::new(db.clone(), db.clone()));
-        provider
-            .store::<CreateUserAuthorityService>(create_user_authority_service);
-    }
+        provider.store::<CreateUserAuthorityService>(
+            create_user_authority_service.clone(),
+        );
+
+        create_user_authority_service
+    };
 
     {
         use oxidauth_kernel::permissions::create_permission::CreatePermissionService;
@@ -155,7 +158,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::user_permission_grants::create_user_permission_grant::CreateUserPermissionGrantService;
         use oxidauth_usecases::user_permission_grants::create_user_permission_grant::CreateUserPermissionGrantUseCase;
 
-        let create_user_permission_grant_service = Arc::new(
+        let create_user_permission_grant_service = Arc::new(D
             CreateUserPermissionGrantUseCase::new(
                 db.clone(),
                 db.clone(),
@@ -195,7 +198,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     {
-        use oxidauth_kernel::user_authorities::update_user_authority::UpdateUserAuthorityService;
+        use oxidauth_kernel::user_authorities::update_user_authority::UpdateUserAuthorityService;http/provider
         use oxidauth_usecases::user_authorities::update_user_authority::UpdateUserAuthorityUseCase;
 
         let update_user_authority_service =
@@ -590,6 +593,18 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             db.clone(),
         ));
         provider.store::<DeleteInvitationService>(delete_invitation_service);
+    }
+
+    {
+        use oxidauth_kernel::invitations::accept_invitation::AcceptInvitationService;
+        use oxidauth_usecases::invitations::accept_invitation::AcceptInvitationUseCase;
+
+        let accept_invitation_service = Arc::new(AcceptInvitationUseCase::new(
+            db.clone(),
+            create_user_authority_service,
+            db.clone(),
+        ));
+        provider.store::<AcceptInvitationService>(accept_invitation_service);
     }
 
     Ok(provider)

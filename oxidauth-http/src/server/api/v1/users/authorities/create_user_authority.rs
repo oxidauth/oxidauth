@@ -21,7 +21,7 @@ use crate::response::Response;
 
 use super::PERMISSION;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityPathReq {
     pub user_id: Uuid,
 }
