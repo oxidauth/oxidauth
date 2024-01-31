@@ -38,9 +38,9 @@ impl Authenticator for UsernamePassword {
             serde_json::from_value(authenticate_params.clone())?;
 
         let password = raw_password_hash(
+            &authenticate_params.password,
             &self.params.password_salt,
             &self.password_pepper,
-            &authenticate_params.password,
         );
 
         let user_authority_params: UserAuthorityParams = user_authority
