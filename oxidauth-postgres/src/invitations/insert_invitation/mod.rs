@@ -13,6 +13,7 @@ impl<'a> Service<&'a InsertInvitationParams> for Database {
     type Response = Invitation;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "insert_invitation_query", skip(self))]
     async fn call(
         &self,
         params: &'a InsertInvitationParams,

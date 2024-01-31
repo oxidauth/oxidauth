@@ -50,6 +50,7 @@ where
 
     type Error = RegisterError;
 
+    #[tracing::instrument(name = "register_usecase", skip(self, params))]
     async fn call(&self, params: P) -> Result<Self::Response, Self::Error> {
         let client_id = params
             .client_id()

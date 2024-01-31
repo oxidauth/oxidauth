@@ -1,9 +1,7 @@
 use uuid::Uuid;
 
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::roles::delete_role::DeleteRoleRes,
-};
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::roles::delete_role::DeleteRoleRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -28,11 +26,7 @@ impl Client {
             )
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let role_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_res)
     }

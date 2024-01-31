@@ -30,6 +30,13 @@ where
 {
     type Rejection = http::StatusCode;
 
+    #[tracing::instrument(
+        name = "oxidauth extract jwt",
+        level = "trace",
+        skip_all,
+        ret,
+        err
+    )]
     async fn from_request_parts(
         parts: &mut Parts,
         state: &S,
@@ -71,6 +78,13 @@ pub struct ExtractEntitlements(pub Vec<String>);
 impl FromRequestParts<Provider> for ExtractEntitlements {
     type Rejection = http::StatusCode;
 
+    #[tracing::instrument(
+        name = "oxidauth extract entitlements",
+        level = "trace",
+        skip_all,
+        ret,
+        err
+    )]
     async fn from_request_parts(
         parts: &mut Parts,
         state: &Provider,

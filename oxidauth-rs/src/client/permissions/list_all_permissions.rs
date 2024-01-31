@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::permissions::list_all_permissions::{ListAllPermissionsReq, ListAllPermissionsRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::permissions::list_all_permissions::{
+    ListAllPermissionsReq, ListAllPermissionsRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -14,23 +14,16 @@ impl Client {
         &self,
         params: T,
     ) -> Result<ListAllPermissionsRes, BoxedError>
-        where
-            T: Into<ListAllPermissionsReq>,
+    where
+        T: Into<ListAllPermissionsReq>,
     {
         let params = params.into();
 
         let resp: Response<ListAllPermissionsRes> = self
-            .get(
-                "/permissions",
-                params,
-            )
+            .get("/permissions", params)
             .await?;
 
-        let permission_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let permission_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(permission_res)
     }

@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::permissions::delete_permission::{DeletePermissionReq, DeletePermissionRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::permissions::delete_permission::{
+    DeletePermissionReq, DeletePermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -14,23 +14,22 @@ impl Client {
         &self,
         permission: T,
     ) -> Result<DeletePermissionRes, BoxedError>
-        where
-            T: Into<DeletePermissionReq>,
+    where
+        T: Into<DeletePermissionReq>,
     {
         let permission = permission.into();
 
         let resp: Response<DeletePermissionRes> = self
             .delete(
-                &format!("/permissions/{}", permission.permission),
+                &format!(
+                    "/permissions/{}",
+                    permission.permission
+                ),
                 None::<DeletePermissionReq>,
             )
             .await?;
 
-        let permission_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let permission_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(permission_res)
     }

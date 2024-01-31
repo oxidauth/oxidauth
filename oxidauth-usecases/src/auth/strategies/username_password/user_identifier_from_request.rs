@@ -5,6 +5,10 @@ use super::{authenticator::AuthenticateParams, UsernamePassword};
 
 #[async_trait]
 impl UserIdentifierFromRequest for UsernamePassword {
+    #[tracing::instrument(
+        name = "user_identifier from username_password",
+        skip(self)
+    )]
     async fn user_identifier_from_request(
         &self,
         params: &serde_json::Value,

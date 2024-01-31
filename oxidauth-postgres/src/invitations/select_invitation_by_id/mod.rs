@@ -14,6 +14,7 @@ impl<'a> Service<&'a FindInvitationParams> for Database {
     type Response = Invitation;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "select_invitation_by_id_query", skip(self))]
     async fn call(
         &self,
         params: &'a FindInvitationParams,

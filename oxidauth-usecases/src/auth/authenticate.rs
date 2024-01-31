@@ -81,6 +81,7 @@ where
     type Response = AuthenticateResponse;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "authenticate_usecase", skip(self))]
     async fn call(
         &self,
         params: &'a AuthenticateParams,

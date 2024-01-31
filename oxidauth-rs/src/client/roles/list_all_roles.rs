@@ -1,6 +1,6 @@
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::roles::list_all_roles::{ListAllRolesRes, ListAllRolesReq},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::roles::list_all_roles::{
+    ListAllRolesReq, ListAllRolesRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -26,11 +26,7 @@ impl Client {
             )
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let role_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_res)
     }

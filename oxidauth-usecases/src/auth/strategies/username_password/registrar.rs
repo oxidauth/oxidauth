@@ -17,6 +17,7 @@ use super::{
 
 #[async_trait]
 impl Registrar for UsernamePassword {
+    #[tracing::instrument(name = "username_password register", skip(self))]
     async fn register(
         &self,
         register_params: serde_json::Value,

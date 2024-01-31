@@ -48,6 +48,7 @@ where
     type Response = CreateInvitationResponse;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "create_invitation_usecase", skip(self))]
     async fn call(
         &self,
         params: &'a CreateInvitationParams,

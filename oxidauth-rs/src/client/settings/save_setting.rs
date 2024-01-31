@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::settings::save_setting::{SaveSettingReq, SaveSettingRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::settings::save_setting::{
+    SaveSettingReq, SaveSettingRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -20,18 +20,11 @@ impl Client {
         let params = params.into();
 
         let resp: Response<SaveSettingRes> = self
-            .post(
-                "/settings",
-                params,
-            )
+            .post("/settings", params)
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let setting_res = handle_response(RESOURCE, METHOD, resp)?;
 
-        Ok(role_res)
+        Ok(setting_res)
     }
 }

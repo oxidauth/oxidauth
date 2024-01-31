@@ -1,7 +1,5 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::permissions::find_permission_by_parts::{FindPermissionByPartsReq, FindPermissionByPartsRes},
-};
+pub use oxidauth_http::server::api::v1::permissions::find_permission_by_parts::{FindPermissionByPartsReq, FindPermissionByPartsRes};
+use oxidauth_http::response::Response;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -14,23 +12,22 @@ impl Client {
         &self,
         permission: T,
     ) -> Result<FindPermissionByPartsRes, BoxedError>
-        where
-            T: Into<FindPermissionByPartsReq>,
+    where
+        T: Into<FindPermissionByPartsReq>,
     {
         let permission = permission.into();
 
         let resp: Response<FindPermissionByPartsRes> = self
             .get(
-                &format!("/permissions/{}", permission.permission),
+                &format!(
+                    "/permissions/{}",
+                    permission.permission
+                ),
                 None::<FindPermissionByPartsReq>,
             )
             .await?;
 
-        let permission_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let permission_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(permission_res)
     }

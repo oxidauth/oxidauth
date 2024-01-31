@@ -20,6 +20,7 @@ pub struct CanReq {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CanRes {}
 
+#[tracing::instrument(name = "can_handler")]
 async fn can(
     State(_): State<Provider>,
     Path(CanReq { permission }): Path<CanReq>,

@@ -1,6 +1,6 @@
-pub use oxidauth_http::{
-    response::Response,
-    server::api::v1::settings::fetch_setting::{FetchSettingReq, FetchSettingRes},
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::settings::fetch_setting::{
+    FetchSettingReq, FetchSettingRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -26,12 +26,8 @@ impl Client {
             )
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let setting_res = handle_response(RESOURCE, METHOD, resp)?;
 
-        Ok(role_res)
+        Ok(setting_res)
     }
 }

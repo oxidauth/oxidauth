@@ -32,6 +32,7 @@ where
     type Response = Invitation;
     type Error = BoxedError;
 
+    #[tracing::instrument(name = "delete_invitation_usecase", skip(self))]
     async fn call(
         &self,
         params: &'a DeleteInvitationParams,

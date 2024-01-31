@@ -3,9 +3,7 @@ use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError, role_role_grants::delete_role_role_grant::*,
 };
-use oxidauth_repository::{
-    role_role_grants::delete_role_role_grant::DeleteRoleRoleGrantQuery,
-};
+use oxidauth_repository::role_role_grants::delete_role_role_grant::DeleteRoleRoleGrantQuery;
 
 pub struct DeleteRoleRoleGrantUseCase<T>
 where
@@ -31,7 +29,7 @@ where
     type Response = RoleRoleGrant;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "delete_role_usecase", skip(self))]
+    #[tracing::instrument(name = "delete_role_role_grant_usecase", skip(self))]
     async fn call(
         &self,
         req: &'a DeleteRoleRoleGrant,
@@ -41,4 +39,3 @@ where
             .await
     }
 }
-
