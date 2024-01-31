@@ -19,6 +19,7 @@ use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::RwLock;
+use tracing::info;
 use uuid::Uuid;
 
 mod auth;
@@ -130,6 +131,8 @@ impl Client {
                 "password": self.config.password,
             }),
         };
+
+        info!(message = "authenticating", params = ?json);
 
         let response: Response<AuthenticateRes> = reqwest::Client::new()
             .post(format!(
