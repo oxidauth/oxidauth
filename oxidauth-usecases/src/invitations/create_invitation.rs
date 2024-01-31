@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    invitations::{create_invitation::CreateInvitationParams, Invitation},
+    invitations::create_invitation::{
+        CreateInvitationParams, CreateInvitationResponse,
+    },
     service::Service,
 };
 use oxidauth_repository::{
@@ -40,7 +42,7 @@ where
     T: InsertInvitationQuery,
     U: InsertUserQuery,
 {
-    type Response = Invitation;
+    type Response = CreateInvitationResponse;
     type Error = BoxedError;
 
     async fn call(
@@ -58,8 +60,11 @@ where
             expires_at: params.expires_at,
         };
 
-        self.insert_invitation
+        let invitation = self
+            .insert_invitation
             .call(&insert_invitation_params)
-            .await
+            .await?;
+
+        Ok(CreateInvitationResponse { invitation, user })
     }
 }

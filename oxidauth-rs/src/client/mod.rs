@@ -22,15 +22,16 @@ use tokio::sync::RwLock;
 use tracing::info;
 use uuid::Uuid;
 
-mod auth;
-mod authorities;
-mod can;
-mod permissions;
-mod public_keys;
-mod refresh_tokens;
-mod roles;
-mod settings;
-mod users;
+pub mod auth;
+pub mod authorities;
+pub mod can;
+pub mod invitations;
+pub mod permissions;
+pub mod public_keys;
+pub mod refresh_tokens;
+pub mod roles;
+pub mod settings;
+pub mod users;
 
 #[derive(Debug, Clone)]
 pub struct Client {
