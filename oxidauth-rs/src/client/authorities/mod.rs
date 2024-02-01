@@ -5,5 +5,4 @@ mod find_authority_by_strategy;
 mod list_all_authorities;
 mod update_authority;
 
-use super::{handle_response, Client, ClientError, ClientErrorKind, Resource};
-
+use super::{fmt, handle_response, Client, Resource};

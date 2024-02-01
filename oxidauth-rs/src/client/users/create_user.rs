@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "create_user";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_user<T>(
         &self,
         user: T,
     ) -> Result<CreateUserRes, BoxedError>
     where
-        T: Into<CreateUserReq>,
+        T: Into<CreateUserReq> + fmt::Debug,
     {
         let user = user.into();
 

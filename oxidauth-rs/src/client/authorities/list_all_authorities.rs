@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "find_authority_by_strategy";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_all_authorities<T>(
         &self,
         params: T,
     ) -> Result<ListAllAuthoritiesRes, BoxedError>
     where
-        T: Into<ListAllAuthoritiesReq>,
+        T: Into<ListAllAuthoritiesReq> + fmt::Debug,
     {
         let params = params.into();
 

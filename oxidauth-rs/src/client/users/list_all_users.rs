@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "list_all_users";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_all_users<T>(
         &self,
         params: T,
     ) -> Result<ListAllUsersRes, BoxedError>
     where
-        T: Into<ListAllUsersReq>,
+        T: Into<ListAllUsersReq> + fmt::Debug,
     {
         let params = params.into();
 

@@ -8,12 +8,13 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "find_permission_by_parts";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn find_permission_by_parts<T>(
         &self,
         permission: T,
     ) -> Result<FindPermissionByPartsRes, BoxedError>
     where
-        T: Into<FindPermissionByPartsReq>,
+        T: Into<FindPermissionByPartsReq> + fmt::Debug,
     {
         let permission = permission.into();
 

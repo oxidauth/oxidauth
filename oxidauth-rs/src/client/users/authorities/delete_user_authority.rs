@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::UserAuthority;
 const METHOD: &str = "delete_user_authority";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn delete_user_authority<T>(
         &self,
         params: T,
     ) -> Result<DeleteUserAuthorityRes, BoxedError>
     where
-        T: Into<DeleteUserAuthorityReq>,
+        T: Into<DeleteUserAuthorityReq> + fmt::Debug,
     {
         let params = params.into();
 

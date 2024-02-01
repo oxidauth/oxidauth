@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "delete_permission";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn delete_permission<T>(
         &self,
         permission: T,
     ) -> Result<DeletePermissionRes, BoxedError>
     where
-        T: Into<DeletePermissionReq>,
+        T: Into<DeletePermissionReq> + fmt::Debug,
     {
         let permission = permission.into();
 

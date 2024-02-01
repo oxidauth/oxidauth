@@ -11,14 +11,15 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "update_authority";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn update_authority<T, U>(
         &self,
         authority_id: U,
         params: T,
     ) -> Result<UpdateAuthorityRes, BoxedError>
     where
-        T: Into<UpdateAuthorityReq>,
-        U: Into<Uuid>,
+        T: Into<UpdateAuthorityReq> + fmt::Debug,
+        U: Into<Uuid> + fmt::Debug,
     {
         let authority_id = authority_id.into();
         let params = params.into();

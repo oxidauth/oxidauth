@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "list_all_permissions";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_all_permissions<T>(
         &self,
         params: T,
     ) -> Result<ListAllPermissionsRes, BoxedError>
     where
-        T: Into<ListAllPermissionsReq>,
+        T: Into<ListAllPermissionsReq> + fmt::Debug,
     {
         let params = params.into();
 

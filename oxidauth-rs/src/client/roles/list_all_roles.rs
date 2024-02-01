@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "list_all_roles";
 
 impl Client {
-    async fn list_all_roles<T>(
+    #[tracing::instrument(skip(self))]
+    pub async fn list_all_roles<T>(
         &self,
         params: T,
     ) -> Result<ListAllRolesRes, BoxedError>
     where
-        T: Into<ListAllRolesReq>,
+        T: Into<ListAllRolesReq> + fmt::Debug,
     {
         let _params = params.into();
 

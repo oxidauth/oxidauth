@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Auth;
 const METHOD: &str = "register";
 
 impl Client {
-    async fn register<T>(
+    #[tracing::instrument(skip(self))]
+    pub async fn register<T>(
         &self,
         params: T,
     ) -> Result<RegisterRes, BoxedError>
-        where
-            T: Into<RegisterReq>,
+    where
+        T: Into<RegisterReq> + fmt::Debug,
     {
         let params = params.into();
 
@@ -23,11 +24,7 @@ impl Client {
             .post("/auth/register", params)
             .await?;
 
-        let role_res = handle_response(
-            RESOURCE,
-            METHOD,
-            resp,
-        )?;
+        let role_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_res)
     }

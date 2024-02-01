@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "create_permission";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_permission<T>(
         &self,
         permission: T,
     ) -> Result<CreatePermissionRes, BoxedError>
     where
-        T: Into<CreatePermissionReq>,
+        T: Into<CreatePermissionReq> + fmt::Debug,
     {
         let permission = permission.into();
 

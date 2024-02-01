@@ -9,12 +9,13 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "find_user_by_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn find_user_by_id<T>(
         &self,
         user_id: T,
     ) -> Result<FindUserByIdRes, BoxedError>
     where
-        T: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
     {
         let user_id = user_id.into();
 

@@ -12,14 +12,15 @@ const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "update_role";
 
 impl Client {
-    async fn update_role<T, U>(
+    #[tracing::instrument(skip(self))]
+    pub async fn update_role<T, U>(
         &self,
         role_id: T,
         role: U,
     ) -> Result<UpdateRoleRes, BoxedError>
     where
-        T: Into<Uuid>,
-        U: Into<UpdateRoleReq>,
+        T: Into<Uuid> + fmt::Debug,
+        U: Into<UpdateRoleReq> + fmt::Debug,
     {
         let role_id = role_id.into();
         let role = role.into();

@@ -9,12 +9,13 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "delete_public_key";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn delete_public_key<T>(
         &self,
         public_key_id: T,
     ) -> Result<DeletePublicKeyRes, BoxedError>
     where
-        T: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
     {
         let public_key_id = public_key_id.into();
 

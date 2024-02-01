@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::UserPermissionGrant;
 const METHOD: &str = "create_user_permission_grant";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_user_permission_grant<T>(
         &self,
         user_permission_grant: T,
     ) -> Result<CreateUserPermissionRes, BoxedError>
     where
-        T: Into<CreateUserPermissionReq>,
+        T: Into<CreateUserPermissionReq> + fmt::Debug,
     {
         let user_permission_grant = user_permission_grant.into();
 

@@ -8,12 +8,13 @@ const RESOURCE: Resource = Resource::UserPermissionGrant;
 const METHOD: &str = "list_user_permission_grants_by_user_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_user_permission_grants_by_user_id<T>(
         &self,
         params: T,
     ) -> Result<ListUserPermissionGrantsByUserIdRes, BoxedError>
     where
-        T: Into<ListUserPermissionGrantsByUserIdReq>,
+        T: Into<ListUserPermissionGrantsByUserIdReq> + fmt::Debug,
     {
         let params = params.into();
 

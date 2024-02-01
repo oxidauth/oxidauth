@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::UserAuthority;
 const METHOD: &str = "find_user_authority_by_user_id_and_authority_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn find_user_authority_by_user_id_and_authority_id<T>(
         &self,
         params: T,
     ) -> Result<FindUserAuthorityByUserIdAndAuthorityIdRes, BoxedError>
     where
-        T: Into<FindUserAuthorityByUserIdAndAuthorityIdReq>,
+        T: Into<FindUserAuthorityByUserIdAndAuthorityIdReq> + fmt::Debug,
     {
         let params = params.into();
 
