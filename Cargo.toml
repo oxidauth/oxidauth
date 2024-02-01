@@ -16,6 +16,4 @@ members = [
     "oxidauth-telemetry",
 ]
 
-exclude = [
-    "oxidauth-server",
-]
+exclude = []
