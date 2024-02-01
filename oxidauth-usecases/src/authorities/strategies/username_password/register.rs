@@ -57,3 +57,18 @@ pub struct UsernamePasswordRegisterInputs {
     pub username: String,
     pub password: Password,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn testing_manual_password_debug_impl() {
+        let username_password_inputs = UsernamePasswordRegisterInputs {
+            username: "username".to_owned(),
+            password: Password::new("super_secret_password".to_owned()),
+        };
+
+        assert_eq!(format!("{username_password_inputs:?}"), "UsernamePasswordRegisterInputs { username: \"username\", password: ****** }");
+    }
+}
