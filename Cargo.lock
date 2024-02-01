@@ -1584,9 +1584,12 @@ checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 name = "oxidauth"
 version = "0.1.0"
 dependencies = [
+ "axum",
+ "axum-extra",
  "chrono",
  "oxidauth-http",
  "oxidauth-kernel",
+ "oxidauth-permission",
  "reqwest",
  "serde",
  "serde_json",

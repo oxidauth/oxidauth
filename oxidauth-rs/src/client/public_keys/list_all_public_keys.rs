@@ -9,7 +9,7 @@ const METHOD: &str = "list_all_public_keys";
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn list_all_public_keys<T>(
+    pub async fn list_all_public_keys(
         &self,
     ) -> Result<ListAllPublicKeysRes, BoxedError> {
         let resp: Response<ListAllPublicKeysRes> = self
