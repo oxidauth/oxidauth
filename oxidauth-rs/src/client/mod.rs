@@ -11,9 +11,9 @@ use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
     ExchangeRefreshTokenReq, ExchangeRefreshTokenRes,
 };
 use oxidauth_kernel::authorities::AuthorityStrategy::UsernamePassword;
-use oxidauth_kernel::base64::*;
 use oxidauth_kernel::jwt::Jwt;
 use oxidauth_kernel::public_keys::PublicKey;
+use oxidauth_kernel::{base64::*, JsonValue, Password};
 use reqwest::header::HeaderMap;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,7 @@ pub struct Client {
 pub struct Config {
     base_url: String,
     username: String,
-    password: String,
+    password: Password,
 }
 
 #[derive(Debug, Default)]
@@ -63,7 +63,7 @@ impl Client {
             config: Config {
                 base_url: format!("{}/api/v1", base_url),
                 username: username.to_owned(),
-                password: password.to_owned(),
+                password: Password::new(password.to_owned()),
             },
             state: Arc::new(RwLock::new(State::default())),
         })
@@ -127,10 +127,10 @@ impl Client {
         // authenticate
         let json = AuthenticateReq {
             strategy: UsernamePassword,
-            params: json!({
+            params: JsonValue::new(json!({
                 "username": self.config.username,
                 "password": self.config.password,
-            }),
+            })),
         };
 
         info!(message = "authenticating", params = ?json);

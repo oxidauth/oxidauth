@@ -32,9 +32,13 @@ pub mod base64 {
 }
 
 #[derive(Clone, Deserialize, Serialize)]
-pub struct JsonValue(pub Value);
+pub struct JsonValue(Value);
 
 impl JsonValue {
+    pub fn new(json: Value) -> Self {
+        Self(json)
+    }
+
     pub fn inner_value(self) -> Value {
         self.0
     }
@@ -43,6 +47,26 @@ impl JsonValue {
 impl fmt::Debug for JsonValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("JsonValue")
+            .finish()
+    }
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+pub struct Password(String);
+
+impl Password {
+    pub fn new(password: String) -> Self {
+        Self(password)
+    }
+
+    pub fn inner_value(self) -> String {
+        self.0
+    }
+}
+
+impl fmt::Debug for Password {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("******")
             .finish()
     }
 }

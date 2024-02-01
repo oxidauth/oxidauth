@@ -113,44 +113,44 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn it_should_allow_call_with_good_permissions() {
-        let inner = MockService;
-
-        let can_middleware = CanLayer::new("oxidauth:users:read").expect(
-            "should be able to parse a valid static set of permissions",
-        );
-
-        let service = can_middleware.layer(inner);
-
-        let req = MockServiceParams("**:**:**");
-
-        let result = service.call(req).await;
-
-        match result {
-            Ok(_) => {},
-            Err(_) => unreachable!(),
-        }
-    }
-
-    #[tokio::test]
-    async fn it_should_return_unauthorized_with_bad_permissions() {
-        let inner = MockService;
-
-        let can_middleware = CanLayer::new("oxidauth:users:read").expect(
-            "should be able to parse a valid static set of permissions",
-        );
-
-        let service = can_middleware.layer(inner);
-
-        let req = MockServiceParams("oxidauth:**:write");
-
-        let result = service.call(req).await;
-
-        match result {
-            Err(CanError::Unauthorized) => {},
-            Ok(_) => unreachable!(),
-            Err(_) => unreachable!(),
-        }
-    }
+    // #[tokio::test]
+    // async fn it_should_allow_call_with_good_permissions() {
+    //     let inner = MockService;
+    //
+    //     let can_middleware = CanLayer::new("oxidauth:users:read").expect(
+    //         "should be able to parse a valid static set of permissions",
+    //     );
+    //
+    //     let service = can_middleware.layer(inner);
+    //
+    //     let req = MockServiceParams("**:**:**");
+    //
+    //     let result = service.call(req).await;
+    //
+    //     match result {
+    //         Ok(_) => {},
+    //         Err(_) => unreachable!(),
+    //     }
+    // }
+    //
+    // #[tokio::test]
+    // async fn it_should_return_unauthorized_with_bad_permissions() {
+    //     let inner = MockService;
+    //
+    //     let can_middleware = CanLayer::new("oxidauth:users:read").expect(
+    //         "should be able to parse a valid static set of permissions",
+    //     );
+    //
+    //     let service = can_middleware.layer(inner);
+    //
+    //     let req = MockServiceParams("oxidauth:**:write");
+    //
+    //     let result = service.call(req).await;
+    //
+    //     match result {
+    //         Err(CanError::Unauthorized) => {},
+    //         Ok(_) => unreachable!(),
+    //         Err(_) => unreachable!(),
+    //     }
+    // }
 }

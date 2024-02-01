@@ -24,7 +24,9 @@ impl UserAuthorityFromRequest for UsernamePassword {
         let authority_params: AuthenticateParams = params.clone().try_into()?;
 
         let password = raw_password_hash(
-            &authority_params.password,
+            &authority_params
+                .password
+                .inner_value(),
             &self.params.password_salt,
             &self.password_pepper,
         );
@@ -42,7 +44,7 @@ impl UserAuthorityFromRequest for UsernamePassword {
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,
             user_identifier,
-            params: JsonValue(params),
+            params: JsonValue::new(params),
         };
 
         Ok(user_authority)
