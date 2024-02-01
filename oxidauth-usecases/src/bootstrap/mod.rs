@@ -62,7 +62,7 @@ use oxidauth_kernel::{
         },
         User, UserNotFoundError,
     },
-    JsonValue,
+    JsonValue, Password,
 };
 use rand::{distributions, thread_rng, Rng};
 use tracing::{error, info};
@@ -356,7 +356,8 @@ async fn first_or_create_authority(
                     info!("attempting to create authority");
 
                     let authority_params_value =
-                        AuthorityParams::new(random_string()).as_value()?;
+                        AuthorityParams::new(random_string())
+                            .as_json_value()?;
 
                     let authority_settings = AuthoritySettings {
                         jwt_ttl: DEFAULT_JWT_TTL,
@@ -415,8 +416,8 @@ async fn first_or_register_user(
 
                 let username_password_params = UsernamePasswordRegisterParams {
                     username: DEFAULT_ADMIN_USERNAME.to_owned(),
-                    password: password.clone(),
-                    password_confirmation: password,
+                    password: Password::new(password.clone()),
+                    password_confirmation: Password::new(password),
                     email: None,
                     first_name: None,
                     last_name: None,
@@ -425,7 +426,7 @@ async fn first_or_register_user(
 
                 let register_params = RegisterParams {
                     strategy: authority.strategy,
-                    params: JsonValue(username_password_params),
+                    params: JsonValue::new(username_password_params),
                 };
 
                 register_user

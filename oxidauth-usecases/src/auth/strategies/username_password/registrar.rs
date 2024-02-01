@@ -5,7 +5,7 @@ use oxidauth_kernel::{
     error::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority,
     users::{create_user::CreateUser, UserKind, UserStatus},
-    JsonValue,
+    JsonValue, Password,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -33,7 +33,16 @@ impl Registrar for UsernamePassword {
             .clone()
             .try_into()?;
 
-        if register_params.password != register_params.password_confirmation {
+        let password = register_params
+            .password
+            .clone()
+            .inner_value();
+        let password_confirmation = register_params
+            .password_confirmation
+            .clone()
+            .inner_value();
+
+        if password != password_confirmation {
             return Err(
                 "password and password confirmation do not match".into(),
             );
@@ -42,7 +51,7 @@ impl Registrar for UsernamePassword {
         let user: CreateUser = register_params.clone().into();
 
         let password = raw_password_hash(
-            &register_params.password,
+            &password,
             &self.params.password_salt,
             &self.password_pepper,
         );
@@ -57,7 +66,7 @@ impl Registrar for UsernamePassword {
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,
             user_identifier: user.username.clone(),
-            params: JsonValue(params),
+            params: JsonValue::new(params),
         };
 
         Ok((user, user_authority))
@@ -84,8 +93,8 @@ pub async fn new(
 #[derive(Clone, Serialize, Deserialize)]
 pub struct UsernamePasswordRegisterParams {
     pub username: String,
-    pub password: String,
-    pub password_confirmation: String,
+    pub password: Password,
+    pub password_confirmation: Password,
     pub email: Option<String>,
     pub first_name: Option<String>,
     pub last_name: Option<String>,

@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::BoxedError;
 pub use crate::service::Service;
+use crate::{error::BoxedError, JsonValue};
 
-pub use super::{Authority, AuthorityStatus, AuthorityStrategy, AuthoritySettings};
+pub use super::{
+    Authority, AuthoritySettings, AuthorityStatus, AuthorityStrategy,
+};
 
 pub type CreateAuthorityService = Arc<
     dyn for<'a> Service<
@@ -24,5 +25,5 @@ pub struct CreateAuthority {
     pub status: Option<AuthorityStatus>,
     pub strategy: AuthorityStrategy,
     pub settings: AuthoritySettings,
-    pub params: Value,
+    pub params: JsonValue,
 }

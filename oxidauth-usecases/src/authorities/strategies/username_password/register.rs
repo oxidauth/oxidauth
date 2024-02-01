@@ -1,6 +1,7 @@
 use std::env::var as get_var;
 
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
+use oxidauth_kernel::Password;
 use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +32,7 @@ impl RegisterStrategy<UsernamePasswordRegisterInputs>
         let password = format!(
             "{}:{}:{}:{}",
             &params.username,
-            &params.password,
+            &params.password.inner_value(),
             authority_params.pepper,
             addtl_pepper
         );
@@ -54,5 +55,5 @@ impl RegisterStrategy<UsernamePasswordRegisterInputs>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UsernamePasswordRegisterInputs {
     pub username: String,
-    pub password: String,
+    pub password: Password,
 }

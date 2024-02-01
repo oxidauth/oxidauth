@@ -55,7 +55,7 @@ impl TryFrom<PgAuthority> for Authority {
             status: AuthorityStatus::from_str(&value.status)?,
             strategy: AuthorityStrategy::from_str(&value.strategy)?,
             settings: serde_json::from_value(value.settings)?,
-            params: JsonValue(value.params),
+            params: JsonValue::new(value.params),
             created_at: value.created_at,
             updated_at: value.updated_at,
         })

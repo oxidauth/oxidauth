@@ -1,6 +1,7 @@
 use std::env::var as get_var;
 
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use oxidauth_kernel::Password;
 use serde::{Deserialize, Serialize};
 
 use super::*;
@@ -23,7 +24,7 @@ impl AuthenticateStrategy<UsernamePasswordAuthenticateInputs>
         let password = format!(
             "{}:{}:{}:{}",
             &params.username,
-            &params.password,
+            &params.password.inner_value(),
             authority_params.pepper,
             addtl_pepper
         );
@@ -46,5 +47,5 @@ impl AuthenticateStrategy<UsernamePasswordAuthenticateInputs>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UsernamePasswordAuthenticateInputs {
     pub username: String,
-    pub password: String,
+    pub password: Password,
 }

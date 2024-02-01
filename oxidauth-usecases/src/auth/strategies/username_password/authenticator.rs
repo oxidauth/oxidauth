@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     auth::Authenticator, authorities::Authority, error::BoxedError,
-    user_authorities::UserAuthority, JsonValue,
+    user_authorities::UserAuthority, JsonValue, Password,
 };
 use serde::Deserialize;
 
@@ -13,7 +13,7 @@ use super::{
 #[derive(Clone, Deserialize)]
 pub struct AuthenticateParams {
     pub username: String,
-    pub password: String,
+    pub password: Password,
 }
 
 impl TryFrom<JsonValue> for AuthenticateParams {
@@ -38,7 +38,9 @@ impl Authenticator for UsernamePassword {
             authenticate_params.try_into()?;
 
         let password = raw_password_hash(
-            &authenticate_params.password,
+            &authenticate_params
+                .password
+                .inner_value(),
             &self.params.password_salt,
             &self.password_pepper,
         );
