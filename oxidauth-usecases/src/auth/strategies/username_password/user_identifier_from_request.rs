@@ -1,5 +1,7 @@
 use async_trait::async_trait;
-use oxidauth_kernel::{auth::UserIdentifierFromRequest, error::BoxedError};
+use oxidauth_kernel::{
+    auth::UserIdentifierFromRequest, error::BoxedError, JsonValue,
+};
 
 use super::{authenticator::AuthenticateParams, UsernamePassword};
 
@@ -11,10 +13,9 @@ impl UserIdentifierFromRequest for UsernamePassword {
     )]
     async fn user_identifier_from_request(
         &self,
-        params: &serde_json::Value,
+        params: &JsonValue,
     ) -> Result<String, BoxedError> {
-        let AuthenticateParams { username, .. } =
-            serde_json::from_value(params.clone())?;
+        let AuthenticateParams { username, .. } = params.clone().try_into()?;
 
         Ok(username)
     }

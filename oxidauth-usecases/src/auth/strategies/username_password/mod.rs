@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-use oxidauth_kernel::error::BoxedError;
+use oxidauth_kernel::{error::BoxedError, JsonValue};
 
 #[derive(Debug)]
 pub struct UsernamePassword {
@@ -32,11 +32,11 @@ impl AuthorityParams {
     }
 }
 
-impl TryFrom<serde_json::Value> for AuthorityParams {
+impl TryFrom<JsonValue> for AuthorityParams {
     type Error = BoxedError;
 
-    fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
-        let s: Self = serde_json::from_value(value)?;
+    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
+        let s: Self = serde_json::from_value(value.inner_value())?;
 
         Ok(s)
     }
@@ -47,11 +47,11 @@ pub struct UserAuthorityParams {
     pub password_hash: String,
 }
 
-impl TryFrom<serde_json::Value> for UserAuthorityParams {
+impl TryFrom<JsonValue> for UserAuthorityParams {
     type Error = BoxedError;
 
-    fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
-        let s: Self = serde_json::from_value(value)?;
+    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
+        let s: Self = serde_json::from_value(value.inner_value())?;
 
         Ok(s)
     }

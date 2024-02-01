@@ -12,7 +12,7 @@ pub mod update_authority;
 
 pub use crate::user_authorities::UserAuthority;
 
-use crate::dev_prelude::*;
+use crate::{dev_prelude::*, JsonValue};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Authority {
@@ -22,7 +22,7 @@ pub struct Authority {
     pub status: AuthorityStatus,
     pub strategy: AuthorityStrategy,
     pub settings: AuthoritySettings,
-    pub params: Value,
+    pub params: JsonValue,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

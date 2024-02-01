@@ -8,6 +8,7 @@ use crate::{
     authorities::AuthorityStrategy,
     dev_prelude::{BoxedError, Service},
     users::{update_user::UpdateUser, User, UserStatus},
+    JsonValue,
 };
 
 pub type AcceptInvitationService = Arc<
@@ -38,7 +39,7 @@ pub struct AcceptInvitationUserParams {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceptInvitationUserAuthorityParams {
     pub strategy: AuthorityStrategy,
-    pub params: Value,
+    pub params: JsonValue,
 }
 
 impl
