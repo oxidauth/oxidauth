@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     auth::UserAuthorityFromRequest, error::BoxedError,
-    user_authorities::create_user_authority::CreateUserAuthority,
+    user_authorities::create_user_authority::CreateUserAuthority, JsonValue,
 };
 use serde_json::Value;
 
@@ -19,7 +19,7 @@ impl UserAuthorityFromRequest for UsernamePassword {
     )]
     async fn user_authority_from_request(
         &self,
-        params: Value,
+        params: JsonValue,
     ) -> Result<CreateUserAuthority, BoxedError> {
         let authority_params: AuthenticateParams = params.clone().try_into()?;
 
@@ -42,7 +42,7 @@ impl UserAuthorityFromRequest for UsernamePassword {
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,
             user_identifier,
-            params,
+            params: JsonValue(params),
         };
 
         Ok(user_authority)

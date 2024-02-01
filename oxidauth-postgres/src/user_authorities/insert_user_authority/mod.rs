@@ -27,7 +27,7 @@ impl InsertUserAuthorityQuery for Database {
         .bind(params.user_id)
         .bind(params.authority_id)
         .bind(&params.user_identifier)
-        .bind(&params.params)
+        .bind(&params.params.inner_value())
         .fetch_one(&self.pool)
         .await?;
 

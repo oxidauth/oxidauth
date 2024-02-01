@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
@@ -9,6 +8,7 @@ use crate::{
         find_authority_by_strategy::FindAuthorityByStrategy, AuthorityStrategy,
     },
     dev_prelude::{BoxedError, Service},
+    JsonValue,
 };
 
 pub type RegisterService = Arc<
@@ -22,7 +22,7 @@ pub type RegisterService = Arc<
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegisterParams {
     pub strategy: AuthorityStrategy,
-    pub params: Value,
+    pub params: JsonValue,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

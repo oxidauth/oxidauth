@@ -9,6 +9,7 @@ use crate::{
         find_authority_by_strategy::FindAuthorityByStrategy, AuthorityStrategy,
     },
     error::BoxedError,
+    JsonValue,
 };
 
 pub use super::UserAuthority;
@@ -21,20 +22,11 @@ pub type CreateUserAuthorityService = Arc<
     >,
 >;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityParams {
     pub user_id: Uuid,
     pub strategy: AuthorityStrategy,
-    pub params: Value,
-}
-
-impl fmt::Debug for CreateUserAuthorityParams {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("CreateUserAuthorityParams")
-            .field("user_id", &self.user_id)
-            .field("strategy", &self.strategy)
-            .finish()
-    }
+    pub params: JsonValue,
 }
 
 impl From<&CreateUserAuthorityParams> for FindAuthorityByStrategy {
@@ -45,26 +37,11 @@ impl From<&CreateUserAuthorityParams> for FindAuthorityByStrategy {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CreateUserAuthority {
     pub authority_id: Uuid,
     pub user_identifier: String,
-    pub params: Value,
-}
-
-impl fmt::Debug for CreateUserAuthority {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("CreateUserAuthority")
-            .field(
-                "authority_id",
-                &self.authority_id,
-            )
-            .field(
-                "user_identifier",
-                &self.user_identifier,
-            )
-            .finish()
-    }
+    pub params: JsonValue,
 }
 
 #[cfg(test)]
@@ -78,11 +55,11 @@ mod tests {
         let create_user_authority = CreateUserAuthority {
             authority_id: uuid::uuid!("97edd536-4c3c-4feb-8a27-efde58cbd21c"),
             user_identifier: "username".to_owned(),
-            params: json!({
+            params: JsonValue(json!({
                 "password": "super_secret_password",
-            }),
+            })),
         };
 
-        assert_eq!(format!("{create_user_authority:?}"), "CreateUserAuthority { authority_id: 97edd536-4c3c-4feb-8a27-efde58cbd21c, user_identifier: \"username\" }");
+        assert_eq!(format!("{create_user_authority:?}"), "CreateUserAuthority { authority_id: 97edd536-4c3c-4feb-8a27-efde58cbd21c, user_identifier: \"username\", params: }");
     }
 }

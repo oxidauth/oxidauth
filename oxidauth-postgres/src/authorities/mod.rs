@@ -7,8 +7,9 @@ pub mod select_authority_by_id;
 pub mod select_authority_by_strategy;
 pub mod update_authority;
 
-use oxidauth_kernel::authorities::{
-    Authority, AuthorityStatus, AuthorityStrategy,
+use oxidauth_kernel::{
+    authorities::{Authority, AuthorityStatus, AuthorityStrategy},
+    JsonValue,
 };
 use oxidauth_repository::authorities::AuthorityRow as RepoAuthorityRow;
 
@@ -54,7 +55,7 @@ impl TryFrom<PgAuthority> for Authority {
             status: AuthorityStatus::from_str(&value.status)?,
             strategy: AuthorityStrategy::from_str(&value.strategy)?,
             settings: serde_json::from_value(value.settings)?,
-            params: value.params,
+            params: JsonValue(value.params),
             created_at: value.created_at,
             updated_at: value.updated_at,
         })

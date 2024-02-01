@@ -1,3 +1,8 @@
+use std::fmt;
+
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
 pub mod auth;
 pub mod authorities;
 pub mod bootstrap;
@@ -24,4 +29,20 @@ pub mod users;
 
 pub mod base64 {
     pub use base64::prelude::*;
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+pub struct JsonValue(pub Value);
+
+impl JsonValue {
+    pub fn inner_value(self) -> Value {
+        self.0
+    }
+}
+
+impl fmt::Debug for JsonValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("JsonValue")
+            .finish()
+    }
 }

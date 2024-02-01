@@ -3,10 +3,10 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use oxidauth_kernel::user_authorities::create_user_authority::*;
 use oxidauth_kernel::{
     authorities::AuthorityStrategy, error::IntoOxidAuthError,
 };
+use oxidauth_kernel::{user_authorities::create_user_authority::*, JsonValue};
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -34,7 +34,7 @@ pub struct CreateUserAuthorityBodyReq {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserAuthorityParams {
-    pub params: Value,
+    pub params: JsonValue,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

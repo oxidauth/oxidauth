@@ -5,6 +5,7 @@ use oxidauth_kernel::{
     error::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority,
     users::{create_user::CreateUser, UserKind, UserStatus},
+    JsonValue,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -20,7 +21,7 @@ impl Registrar for UsernamePassword {
     #[tracing::instrument(name = "username_password register", skip(self))]
     async fn register(
         &self,
-        register_params: serde_json::Value,
+        register_params: JsonValue,
     ) -> Result<
         (
             CreateUser,
@@ -56,7 +57,7 @@ impl Registrar for UsernamePassword {
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,
             user_identifier: user.username.clone(),
-            params,
+            params: JsonValue(params),
         };
 
         Ok((user, user_authority))
@@ -96,11 +97,11 @@ impl UsernamePasswordRegisterParams {
     }
 }
 
-impl TryFrom<Value> for UsernamePasswordRegisterParams {
+impl TryFrom<JsonValue> for UsernamePasswordRegisterParams {
     type Error = BoxedError;
 
-    fn try_from(value: Value) -> Result<Self, Self::Error> {
-        let s: Self = serde_json::from_value(value)?;
+    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
+        let s: Self = serde_json::from_value(value.inner_value())?;
 
         Ok(s)
     }

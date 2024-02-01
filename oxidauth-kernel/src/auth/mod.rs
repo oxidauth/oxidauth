@@ -3,19 +3,18 @@ pub mod register;
 pub mod tree;
 
 use async_trait::async_trait;
-use serde_json::Value;
 
 use crate::{
     authorities::UserAuthority, dev_prelude::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority,
-    users::create_user::CreateUser,
+    users::create_user::CreateUser, JsonValue,
 };
 
 #[async_trait]
 pub trait Registrar: UserAuthorityFromRequest + Send + Sync + 'static {
     async fn register(
         &self,
-        params: Value,
+        params: JsonValue,
     ) -> Result<
         (
             CreateUser,
@@ -29,7 +28,7 @@ pub trait Registrar: UserAuthorityFromRequest + Send + Sync + 'static {
 pub trait UserAuthorityFromRequest: Send + Sync + 'static {
     async fn user_authority_from_request(
         &self,
-        params: Value,
+        params: JsonValue,
     ) -> Result<CreateUserAuthority, BoxedError>;
 }
 
@@ -39,7 +38,7 @@ pub trait Authenticator:
 {
     async fn authenticate(
         &self,
-        params: Value,
+        params: JsonValue,
         user_authority: &UserAuthority,
     ) -> Result<(), BoxedError>;
 }
@@ -48,6 +47,6 @@ pub trait Authenticator:
 pub trait UserIdentifierFromRequest: Send + Sync + 'static {
     async fn user_identifier_from_request(
         &self,
-        request: &Value,
+        request: &JsonValue,
     ) -> Result<String, BoxedError>;
 }

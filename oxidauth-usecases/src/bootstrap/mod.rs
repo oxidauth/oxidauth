@@ -62,6 +62,7 @@ use oxidauth_kernel::{
         },
         User, UserNotFoundError,
     },
+    JsonValue,
 };
 use rand::{distributions, thread_rng, Rng};
 use tracing::{error, info};
@@ -424,7 +425,7 @@ async fn first_or_register_user(
 
                 let register_params = RegisterParams {
                     strategy: authority.strategy,
-                    params: username_password_params,
+                    params: JsonValue(username_password_params),
                 };
 
                 register_user
