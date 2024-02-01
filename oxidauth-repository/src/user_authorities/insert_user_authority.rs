@@ -13,12 +13,27 @@ pub trait InsertUserAuthorityQuery: Send + Sync + 'static {
     ) -> Result<UserAuthority, BoxedError>;
 }
 
-#[derive(Debug)]
 pub struct InsertUserAuthority {
     pub user_id: Uuid,
     pub authority_id: Uuid,
     pub user_identifier: String,
     pub params: Value,
+}
+
+impl fmt::Debug for InsertUserAuthority {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("InsertUserAuthority")
+            .field("user_id", &self.user_id)
+            .field(
+                "authority_id",
+                &self.authority_id,
+            )
+            .field(
+                "user_identifier",
+                &self.user_identifier,
+            )
+            .finish()
+    }
 }
 
 impl From<(Uuid, &CreateUserAuthority)> for InsertUserAuthority {
