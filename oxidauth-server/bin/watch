@@ -1,4 +1,0 @@
-#! /bin/bash
-
-# cargo watch --ignore server/hurl --ignore server/bin -c -x 'test' -x 'run'
-cargo watch --ignore server/hurl --ignore server/bin -c -x 'run'

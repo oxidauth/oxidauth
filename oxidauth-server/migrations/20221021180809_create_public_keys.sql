@@ -1,7 +1,0 @@
-CREATE TABLE public_keys (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    public_key BYTEA NOT NULL,
-    private_key BYTEA NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
