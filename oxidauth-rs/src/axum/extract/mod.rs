@@ -1,21 +1,16 @@
 use axum::{
     async_trait,
-    extract::{FromRef, FromRequestParts},
+    extract::FromRequestParts,
     http::{self, request::Parts},
     RequestPartsExt,
 };
+
+pub use axum::extract::FromRef;
 use axum_extra::{
     headers::{authorization::Bearer, Authorization},
     TypedHeader,
 };
-use oxidauth_kernel::{
-    base64::*,
-    jwt::Jwt,
-    public_keys::{
-        list_all_public_keys::{ListAllPublicKeys, ListAllPublicKeysService},
-        PublicKey,
-    },
-};
+use oxidauth_kernel::{base64::*, jwt::Jwt, public_keys::PublicKey};
 
 use crate::OxidAuthClient;
 
@@ -75,7 +70,11 @@ where
 pub struct ExtractEntitlements(pub Vec<String>);
 
 #[async_trait]
-impl FromRequestParts<OxidAuthClient> for ExtractEntitlements {
+impl<S> FromRequestParts<S> for ExtractEntitlements
+where
+    OxidAuthClient: FromRef<S>,
+    S: Send + Sync,
+{
     type Rejection = http::StatusCode;
 
     #[tracing::instrument(
@@ -87,7 +86,7 @@ impl FromRequestParts<OxidAuthClient> for ExtractEntitlements {
     )]
     async fn from_request_parts(
         parts: &mut Parts,
-        state: &OxidAuthClient,
+        state: &S,
     ) -> Result<Self, Self::Rejection> {
         let ExtractJwt(jwt) =
             ExtractJwt::from_request_parts(parts, state).await?;
