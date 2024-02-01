@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::RoleRoleGrant;
 const METHOD: &str = "create_role_role_grant";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_role_role_grant<T>(
         &self,
         role_role_grant: T,
     ) -> Result<CreateRoleRoleGrantRes, BoxedError>
     where
-        T: Into<CreateRoleRoleGrantReq>,
+        T: Into<CreateRoleRoleGrantReq> + fmt::Debug,
     {
         let role_role_grant = role_role_grant.into();
 

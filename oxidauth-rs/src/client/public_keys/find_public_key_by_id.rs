@@ -9,12 +9,13 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "find_public_key_by_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn find_public_key_by_id<T>(
         &self,
         public_key_id: T,
     ) -> Result<FindPublicKeyByIdRes, BoxedError>
     where
-        T: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
     {
         let public_key_id = public_key_id.into();
 

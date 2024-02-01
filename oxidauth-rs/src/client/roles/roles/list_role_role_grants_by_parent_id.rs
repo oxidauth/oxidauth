@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::RoleRoleGrant;
 const METHOD: &str = "list_role_role_grants_by_parent_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_role_role_grants_by_parent_id<T>(
         &self,
         params: T,
     ) -> Result<ListRoleRoleGrantsByParentIdRes, BoxedError>
     where
-        T: Into<ListRoleRoleGrantsByParentIdReq>,
+        T: Into<ListRoleRoleGrantsByParentIdReq> + fmt::Debug,
     {
         let params = params.into();
 

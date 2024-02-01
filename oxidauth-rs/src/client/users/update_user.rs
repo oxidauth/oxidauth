@@ -11,14 +11,15 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "update_user";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn update_user<T, U>(
         &self,
         user_id: T,
         user: U,
     ) -> Result<UpdateUserRes, BoxedError>
     where
-        T: Into<Uuid>,
-        U: Into<UpdateUserBodyReq>,
+        T: Into<Uuid> + fmt::Debug,
+        U: Into<UpdateUserBodyReq> + fmt::Debug,
     {
         let user_id = user_id.into();
         let user = user.into();

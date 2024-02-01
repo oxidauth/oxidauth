@@ -1,4 +1,4 @@
-use std::fmt;
+pub use std::fmt;
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -69,6 +69,7 @@ impl Client {
         })
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     async fn get_public_keys(&self) -> Result<Vec<PublicKey>, ClientError> {
         let public_keys: Response<ListAllPublicKeysRes> =
             reqwest::Client::new()
@@ -119,6 +120,7 @@ impl Client {
         Ok(public_keys)
     }
 
+    #[tracing::instrument(skip(self))]
     async fn auth(&self) -> Result<bool, ClientError> {
         let mut state = self.state.write().await;
 
@@ -251,6 +253,7 @@ impl Client {
         Ok(true)
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn refresh(&self) -> Result<bool, ClientError> {
         let mut state = self.state.write().await;
 
@@ -367,6 +370,7 @@ impl Client {
         Ok(true)
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     async fn check_auth_state(&self) -> AuthState {
         let state = self.state.read().await;
 
@@ -383,6 +387,7 @@ impl Client {
         AuthState::Valid
     }
 
+    #[tracing::instrument(level = "debug", skip(self))]
     async fn authenticate_if_needed(&self) -> Result<bool, ClientError> {
         match self.check_auth_state().await {
             AuthState::Valid => Ok(true),
@@ -394,6 +399,7 @@ impl Client {
         }
     }
 
+    #[tracing::instrument(level = "trace", skip(self))]
     pub async fn request<Req, Res>(
         &self,
         method: Method,
@@ -596,15 +602,16 @@ impl std::error::Error for ClientError {
     }
 }
 
+#[tracing::instrument(level = "debug")]
 fn handle_response<T>(
     resource: Resource,
     method: &'static str,
     response: Response<T>,
 ) -> Result<T, ClientError>
 where
-    T: Serialize,
+    T: Serialize + fmt::Debug,
 {
-    if response.success != true {
+    if !response.success {
         return Err(ClientError {
             kind: ClientErrorKind::APIResponseError,
             source: response.errors.map(|err| {

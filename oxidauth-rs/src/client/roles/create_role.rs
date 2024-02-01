@@ -10,9 +10,13 @@ const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "create_role";
 
 impl Client {
-    async fn create_role<T>(&self, role: T) -> Result<CreateRoleRes, BoxedError>
+    #[tracing::instrument(skip(self))]
+    pub async fn create_role<T>(
+        &self,
+        role: T,
+    ) -> Result<CreateRoleRes, BoxedError>
     where
-        T: Into<CreateRoleReq>,
+        T: Into<CreateRoleReq> + fmt::Debug,
     {
         let role = role.into();
 

@@ -10,14 +10,15 @@ const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "delete_user_role";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn delete_user_role<T, R>(
         &self,
         user_id: T,
         role_id: R,
     ) -> Result<DeleteUserRoleRes, BoxedError>
     where
-        T: Into<Uuid>,
-        R: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
+        R: Into<Uuid> + fmt::Debug,
     {
         let user_id = user_id.into();
         let role_id = role_id.into();

@@ -9,12 +9,13 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "find_authority_by_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn find_authority_by_id<T>(
         &self,
         authority_id: T,
     ) -> Result<FindAuthorityByIdRes, BoxedError>
     where
-        T: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
     {
         let authority_id = authority_id.into();
 

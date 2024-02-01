@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::RoleRoleGrant;
 const METHOD: &str = "delete_role_role_grant";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn delete_role_role_grant<T>(
         &self,
         role_role_grant: T,
     ) -> Result<DeleteRoleRoleGrantRes, BoxedError>
     where
-        T: Into<DeleteRoleRoleGrantReq>,
+        T: Into<DeleteRoleRoleGrantReq> + fmt::Debug,
     {
         let role_role_grant = role_role_grant.into();
 

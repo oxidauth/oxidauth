@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Setting;
 const METHOD: &str = "save_setting";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn save_setting<T>(
         &self,
         params: T,
     ) -> Result<SaveSettingRes, BoxedError>
     where
-        T: Into<SaveSettingReq>,
+        T: Into<SaveSettingReq> + fmt::Debug,
     {
         let params = params.into();
 

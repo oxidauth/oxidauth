@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "list_user_roles_by_user_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_user_roles_by_user_id<T>(
         &self,
         user_id: T,
     ) -> Result<ListUserRoleGrantsByUserIdRes, BoxedError>
     where
-        T: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
     {
         let user_id = user_id.into();
 

@@ -8,6 +8,7 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "list_all_public_keys";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_all_public_keys<T>(
         &self,
     ) -> Result<ListAllPublicKeysRes, BoxedError> {

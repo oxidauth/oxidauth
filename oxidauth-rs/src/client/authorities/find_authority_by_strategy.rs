@@ -8,12 +8,13 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "find_authority_by_strategy";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn find_authority_by_strategy<T>(
         &self,
         authority_strategy: T,
     ) -> Result<FindAuthorityByStrategyRes, BoxedError>
     where
-        T: Into<String>,
+        T: Into<String> + fmt::Debug,
     {
         let authority_strategy = authority_strategy.into();
 

@@ -8,9 +8,10 @@ const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "can";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn can<T>(&self, params: T) -> Result<bool, BoxedError>
     where
-        T: Into<CanReq>,
+        T: Into<CanReq> + fmt::Debug,
     {
         let params = params.into();
 

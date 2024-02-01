@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "find_role_by_id";
 
 impl Client {
-    async fn find_role_by_id<T>(
+    #[tracing::instrument(skip(self))]
+    pub async fn find_role_by_id<T>(
         &self,
         role_id: T,
     ) -> Result<FindRoleByIdRes, BoxedError>
     where
-        T: Into<Uuid>,
+        T: Into<Uuid> + fmt::Debug,
     {
         let role_id = role_id.into();
 

@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::RefreshToken;
 const METHOD: &str = "exchange_refresh_token";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn exchange_refresh_token<T>(
         &self,
         params: T,
     ) -> Result<ExchangeRefreshTokenRes, BoxedError>
     where
-        T: Into<ExchangeRefreshTokenReq>,
+        T: Into<ExchangeRefreshTokenReq> + fmt::Debug,
     {
         let params = params.into();
 

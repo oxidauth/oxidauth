@@ -8,4 +8,4 @@ mod file_role_by_id;
 mod list_all_roles;
 mod update_role;
 
-use super::{handle_response, Client, ClientError, ClientErrorKind, Resource};
+use super::{fmt, handle_response, Client, Resource};

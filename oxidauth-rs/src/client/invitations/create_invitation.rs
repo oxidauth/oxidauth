@@ -13,12 +13,13 @@ const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "create_invitaion";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_invitation<T>(
         &self,
         user: T,
     ) -> Result<CreateInvitationRes, BoxedError>
     where
-        T: Into<CreateInvitationReq>,
+        T: Into<CreateInvitationReq> + fmt::Debug,
     {
         let user = user.into();
 

@@ -10,12 +10,13 @@ const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "create_authority";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_authority<T>(
         &self,
         authority: T,
     ) -> Result<CreateAuthorityRes, BoxedError>
     where
-        T: Into<CreateAuthorityReq>,
+        T: Into<CreateAuthorityReq> + fmt::Debug,
     {
         let authority = authority.into();
 

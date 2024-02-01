@@ -8,6 +8,6 @@ pub mod permissions;
 pub mod roles;
 pub mod update_user;
 
-use super::{handle_response, Client, Resource};
+use super::{fmt, handle_response, Client, Resource};
 
 pub use oxidauth_kernel::users::*;

@@ -8,12 +8,13 @@ const RESOURCE: Resource = Resource::RolePermissionGrant;
 const METHOD: &str = "list_role_permission_grants_by_role_id";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn list_role_permission_grants_by_role_id<T>(
         &self,
         params: T,
     ) -> Result<ListRolePermissionGrantsByRoleIdRes, BoxedError>
     where
-        T: Into<ListRolePermissionGrantsByRoleIdReq>,
+        T: Into<ListRolePermissionGrantsByRoleIdReq> + fmt::Debug,
     {
         let params = params.into();
 

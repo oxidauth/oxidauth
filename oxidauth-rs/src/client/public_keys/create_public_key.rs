@@ -8,6 +8,7 @@ const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "create_public_key";
 
 impl Client {
+    #[tracing::instrument(skip(self))]
     pub async fn create_public_key<T>(
         &self,
     ) -> Result<CreatePublicKeyRes, BoxedError> {
