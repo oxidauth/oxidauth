@@ -51,7 +51,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn testing_manual_debug_impl() {
+    fn testing_manual_json_value_debug_impl() {
         let create_user_authority = CreateUserAuthority {
             authority_id: uuid::uuid!("97edd536-4c3c-4feb-8a27-efde58cbd21c"),
             user_identifier: "username".to_owned(),
@@ -60,6 +60,6 @@ mod tests {
             })),
         };
 
-        assert_eq!(format!("{create_user_authority:?}"), "CreateUserAuthority { authority_id: 97edd536-4c3c-4feb-8a27-efde58cbd21c, user_identifier: \"username\", params: }");
+        assert_eq!(format!("{create_user_authority:?}"), "CreateUserAuthority { authority_id: 97edd536-4c3c-4feb-8a27-efde58cbd21c, user_identifier: \"username\", params: JsonValue }");
     }
 }
