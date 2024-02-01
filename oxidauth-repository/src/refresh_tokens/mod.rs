@@ -1,4 +1,3 @@
-pub mod delete_refresh_token_by_expires_at;
 pub mod delete_refresh_token;
 pub mod insert_refresh_token;
 pub mod select_refresh_token_by_id;

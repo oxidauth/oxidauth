@@ -1,4 +1,3 @@
-pub mod delete_role_by_id;
 pub mod delete_role;
 pub mod insert_role;
 pub mod select_all_roles;
@@ -18,13 +17,13 @@ pub struct PgRole {
     pub updated_at: DateTime<Utc>,
 }
 
-impl Into<Role> for PgRole {
-    fn into(self) -> Role {
+impl From<PgRole> for Role {
+    fn from(val: PgRole) -> Self {
         Role {
-            id: self.id,
-            name: self.name,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
+            id: val.id,
+            name: val.name,
+            created_at: val.created_at,
+            updated_at: val.updated_at,
         }
     }
 }
