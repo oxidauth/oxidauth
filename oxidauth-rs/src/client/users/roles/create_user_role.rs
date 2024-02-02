@@ -1,26 +1,30 @@
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::roles::create_user_role::CreateUserRoleRes;
 use oxidauth_kernel::error::BoxedError;
+use serde::Serialize;
 use uuid::Uuid;
 
 use super::*;
+
+#[derive(Debug, Serialize)]
+pub struct CreateUserRole {
+    pub user_id: Uuid,
+    pub role_id: Uuid,
+}
 
 const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "create_user_role";
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn create_user_role<T, R>(
+    pub async fn create_user_role<T>(
         &self,
-        user_id: T,
-        role_id: R,
+        params: T,
     ) -> Result<CreateUserRoleRes, BoxedError>
     where
-        T: Into<Uuid> + fmt::Debug,
-        R: Into<Uuid> + fmt::Debug,
+        T: Into<CreateUserRole> + fmt::Debug,
     {
-        let user_id = user_id.into();
-        let role_id = role_id.into();
+        let CreateUserRole { user_id, role_id } = params.into();
 
         let resp: Response<CreateUserRoleRes> = self
             .post(

@@ -1,6 +1,6 @@
-mod create_permission;
-mod delete_permission;
-mod find_permission_by_parts;
-mod list_all_permissions;
+pub mod create_permission;
+pub mod delete_permission;
+pub mod find_permission_by_parts;
+pub mod list_all_permissions;
 
 use super::{fmt, handle_response, Client, Resource};

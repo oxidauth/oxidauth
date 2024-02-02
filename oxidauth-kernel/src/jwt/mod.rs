@@ -7,6 +7,7 @@ use jsonwebtoken::{
 };
 
 use crate::dev_prelude::*;
+use crate::public_keys::PublicKey;
 
 pub const DEFAULT_EXP_IN_SEC: u64 = 60 * 300;
 
@@ -58,6 +59,22 @@ impl Jwt {
         .map_err(|_| JwtError {})?;
 
         Ok(result.claims)
+    }
+
+    pub fn decode_public_keys(
+        token: &str,
+        keys: &[PublicKey],
+    ) -> Result<Jwt, JwtError> {
+        for key in keys {
+            let res = Jwt::decode(token, key.public_key.as_ref());
+
+            match res {
+                Ok(jwt) => return Ok(jwt),
+                Err(_) => continue,
+            }
+        }
+
+        Err(JwtError {})
     }
 }
 

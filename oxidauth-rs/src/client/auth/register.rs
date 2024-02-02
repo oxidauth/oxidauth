@@ -1,8 +1,12 @@
 pub use oxidauth_http::{
     response::Response,
-    server::api::v1::auth::register::{RegisterReq, RegisterRes},
+    server::api::v1::auth::register::{
+        AuthorityStrategy, RegisterReq, RegisterRes,
+    },
 };
 use oxidauth_kernel::error::BoxedError;
+
+pub use oxidauth_usecases::auth::strategies::*;
 
 use super::*;
 

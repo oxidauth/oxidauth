@@ -1590,6 +1590,7 @@ dependencies = [
  "oxidauth-http",
  "oxidauth-kernel",
  "oxidauth-permission",
+ "oxidauth-usecases",
  "reqwest",
  "serde",
  "serde_json",

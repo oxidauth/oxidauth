@@ -18,6 +18,7 @@ path = "bin/test_client.rs"
 oxidauth-kernel = { path = "../oxidauth-kernel" }
 oxidauth-http = { path = "../oxidauth-http" }
 oxidauth-permission = { path = "../oxidauth-permission" }
+oxidauth-usecases = { path = "../oxidauth-usecases" }
 
 axum = "0.7.3"
 axum-extra = { version = "0.9.2", features = ["typed-header"] }

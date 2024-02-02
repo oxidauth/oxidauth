@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use base64::prelude::*;
 
 use oxidauth_kernel::{
     error::BoxedError, public_keys::list_all_public_keys::*, service::Service,
@@ -34,8 +35,24 @@ where
         &self,
         req: &'a ListAllPublicKeys,
     ) -> Result<Self::Response, Self::Error> {
-        self.public_keys
+        let public_keys = self
+            .public_keys
             .call(req)
-            .await
+            .await?;
+
+        let public_keys = public_keys
+            .into_iter()
+            .map(|mut pk| {
+                let decoded = BASE64_STANDARD
+                    .decode(&pk.public_key)
+                    .unwrap();
+
+                pk.public_key = String::from_utf8(decoded).unwrap();
+
+                pk
+            })
+            .collect();
+
+        Ok(public_keys)
     }
 }

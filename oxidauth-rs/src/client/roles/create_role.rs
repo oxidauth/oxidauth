@@ -1,6 +1,6 @@
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::roles::create_role::{
-    CreateRoleReq, CreateRoleRes,
+    CreateRole, CreateRoleReq, CreateRoleRes,
 };
 use oxidauth_kernel::error::BoxedError;
 

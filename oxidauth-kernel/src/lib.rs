@@ -96,3 +96,9 @@ impl fmt::Debug for Password {
         f.debug_struct(&res).finish()
     }
 }
+
+impl From<String> for Password {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
