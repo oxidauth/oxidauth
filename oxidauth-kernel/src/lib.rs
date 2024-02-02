@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -34,6 +34,14 @@ pub mod base64 {
 #[derive(Clone, Deserialize, Serialize)]
 pub struct JsonValue(Value);
 
+impl Deref for JsonValue {
+    type Target = Value;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl JsonValue {
     pub fn new(json: Value) -> Self {
         Self(json)
@@ -48,6 +56,12 @@ impl fmt::Debug for JsonValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("JsonValue")
             .finish()
+    }
+}
+
+impl From<Value> for JsonValue {
+    fn from(value: Value) -> Self {
+        JsonValue(value)
     }
 }
 
@@ -66,7 +80,19 @@ impl Password {
 
 impl fmt::Debug for Password {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("******")
-            .finish()
+        let res: String = self
+            .0
+            .chars()
+            .enumerate()
+            .map(|(i, ch)| {
+                if i == 0 {
+                    ch
+                } else {
+                    '*'
+                }
+            })
+            .collect();
+
+        f.debug_struct(&res).finish()
     }
 }

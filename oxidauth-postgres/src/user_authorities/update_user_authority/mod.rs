@@ -25,7 +25,7 @@ impl<'a> Service<&'a UpdateUserAuthority> for Database {
         ))
         .bind(params.user_id)
         .bind(params.authority_id)
-        .bind(&params.params)
+        .bind(&*params.params)
         .fetch_one(&self.pool)
         .await?;
 
