@@ -168,60 +168,42 @@ impl Client {
                 payload: Some(payload),
                 ..
             } => {
-                let mut jwt: Option<Jwt> = None;
+                let jwt = Jwt::decode_public_keys(&payload.jwt, &public_keys)
+                    .map_err(|_| {
+                    ClientError::new(
+                        ClientErrorKind::Other("failed to validate jwt"),
+                        None,
+                    )
+                })?;
 
-                for PublicKey { public_key, .. } in public_keys.into_iter() {
-                    let decoded = match BASE64_STANDARD.decode(public_key) {
-                        Ok(decoded) => decoded,
-                        Err(_) => continue,
-                    };
+                state.jwt = Some(jwt);
+                state.refresh_token = Some(payload.refresh_token);
 
-                    if let Ok(decoded_jwt) = Jwt::decode(&payload.jwt, &decoded)
-                    {
-                        jwt = Some(decoded_jwt);
+                let bearer = format!("Bearer {}", payload.jwt)
+                    .parse()
+                    .map_err(|err| {
+                        ClientError::new(
+                            ClientErrorKind::Other(
+                                "unable to create bearer token",
+                            ),
+                            Some(Box::new(err)),
+                        )
+                    })?;
 
-                        break;
-                    }
-                }
+                let mut headers = HeaderMap::new();
+                headers.insert("Authorization", bearer);
 
-                match jwt {
-                    Some(jwt) => {
-                        state.jwt = Some(jwt);
-                        state.refresh_token = Some(payload.refresh_token);
-
-                        let bearer = format!("Bearer {}", payload.jwt)
-                            .parse()
-                            .map_err(|err| {
-                                ClientError::new(
-                                    ClientErrorKind::Other(
-                                        "unable to create bearer token",
-                                    ),
-                                    Some(Box::new(err)),
-                                )
-                            })?;
-
-                        let mut headers = HeaderMap::new();
-                        headers.insert("Authorization", bearer);
-
-                        state.client = reqwest::Client::builder()
-                            .default_headers(headers)
-                            .build()
-                            .map_err(|err| {
-                                ClientError::new(
-                                    ClientErrorKind::Other(
-                                        "unable to build client in auth",
-                                    ),
-                                    Some(Box::new(err)),
-                                )
-                            })?;
-                    },
-                    None => {
-                        return Err(ClientError::new(
-                            ClientErrorKind::Other("failed to validate jwt"),
-                            None,
-                        ));
-                    },
-                }
+                state.client = reqwest::Client::builder()
+                    .default_headers(headers)
+                    .build()
+                    .map_err(|err| {
+                        ClientError::new(
+                            ClientErrorKind::Other(
+                                "unable to build client in auth",
+                            ),
+                            Some(Box::new(err)),
+                        )
+                    })?;
             },
             Response {
                 success: false,
