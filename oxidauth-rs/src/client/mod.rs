@@ -414,7 +414,9 @@ impl Client {
                     ClientErrorKind::Other("http request failed"),
                     Some(Box::new(err)),
                 )
-            })?
+            })?;
+
+        let res = res
             .json()
             .await
             .map_err(|err| {

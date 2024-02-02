@@ -56,18 +56,10 @@ where
             .await
             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-        for PublicKey { public_key, .. } in public_keys.into_iter() {
-            let decoded = match BASE64_STANDARD.decode(public_key) {
-                Ok(decoded) => decoded,
-                Err(_) => continue,
-            };
+        let jwt = Jwt::decode_public_keys(bearer.token(), &public_keys)
+            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-            if let Ok(jwt) = Jwt::decode(bearer.token(), &decoded) {
-                return Ok(ExtractJwt(jwt));
-            }
-        }
-
-        Err(http::StatusCode::UNAUTHORIZED)
+        Ok(ExtractJwt(jwt))
     }
 }
 
