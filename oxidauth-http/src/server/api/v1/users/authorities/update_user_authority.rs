@@ -67,7 +67,7 @@ pub async fn handle(
         .call(&UpdateUserAuthority {
             user_id: params.user_id,
             authority_id: params.authority_id,
-            params: request.params,
+            params: request.params.into(),
         })
         .await;
 
