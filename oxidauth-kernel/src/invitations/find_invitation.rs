@@ -17,5 +17,5 @@ pub type FindInvitationService = Arc<
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindInvitationParams {
-    pub id: Uuid,
+    pub invitation_id: Uuid,
 }

@@ -416,6 +416,8 @@ impl Client {
                 )
             })?;
 
+        dbg!(&res);
+
         let res = res
             .json()
             .await
