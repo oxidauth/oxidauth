@@ -1,7 +1,8 @@
 use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::find_user_by_id::FindUserByIdRes;
+pub use oxidauth_http::server::api::v1::users::find_user_by_id::{
+    FindUserByIdReq, FindUserByIdRes,
+};
 use oxidauth_kernel::error::BoxedError;
-use uuid::Uuid;
 
 use super::*;
 
@@ -12,15 +13,15 @@ impl Client {
     #[tracing::instrument(skip(self))]
     pub async fn find_user_by_id<T>(
         &self,
-        user_id: T,
+        params: T,
     ) -> Result<FindUserByIdRes, BoxedError>
     where
-        T: Into<Uuid> + fmt::Debug,
+        T: Into<FindUserByIdReq> + fmt::Debug,
     {
-        let user_id = user_id.into();
+        let params = params.into();
 
         let resp: Response<FindUserByIdRes> = self
-            .get("/users/{}", user_id)
+            .get("/users/{}", params.user_id)
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
