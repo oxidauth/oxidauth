@@ -10,6 +10,7 @@ use axum_extra::{
     headers::{authorization::Bearer, Authorization},
     TypedHeader,
 };
+use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::{base64::*, jwt::Jwt, public_keys::PublicKey};
 
 use crate::OxidAuthClient;
@@ -43,26 +44,15 @@ where
 
         let client = OxidAuthClient::from_ref(state);
 
-        let public_keys_result = client
+        let ListAllPublicKeysRes { public_keys } = client
             .list_all_public_keys()
             .await
             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-        for PublicKey { public_key, .. } in public_keys_result
-            .public_keys
-            .into_iter()
-        {
-            let decoded = match BASE64_STANDARD.decode(public_key) {
-                Ok(decoded) => decoded,
-                Err(_) => continue,
-            };
+        let jwt = Jwt::decode_public_keys(bearer.token(), &public_keys)
+            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-            if let Ok(jwt) = Jwt::decode(bearer.token(), &decoded) {
-                return Ok(ExtractJwt(jwt));
-            }
-        }
-
-        Err(http::StatusCode::UNAUTHORIZED)
+        Ok(ExtractJwt(jwt))
     }
 }
 
