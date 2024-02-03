@@ -3,14 +3,9 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+pub use oxidauth_kernel::invitations::accept_invitation::*;
 use oxidauth_kernel::{
-    error::IntoOxidAuthError,
-    invitations::accept_invitation::{
-        AcceptInvitationParams, AcceptInvitationService,
-        AcceptInvitationUserAuthorityParams, AcceptInvitationUserParams,
-    },
-    provider::Provider,
-    users::User,
+    error::IntoOxidAuthError, provider::Provider, users::User,
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -30,7 +25,7 @@ pub struct AcceptInvitationBodyReq {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AcceptInvitationBodyRes {
+pub struct AcceptInvitationRes {
     pub user: User,
 }
 
@@ -59,7 +54,7 @@ pub async fn handle(
                 user = ?user,
             );
 
-            Response::success().payload(AcceptInvitationBodyRes { user })
+            Response::success().payload(AcceptInvitationRes { user })
         },
         Err(err) => {
             info!(

@@ -11,7 +11,7 @@ use axum_extra::{
     TypedHeader,
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
-use oxidauth_kernel::{base64::*, jwt::Jwt, public_keys::PublicKey};
+use oxidauth_kernel::jwt::Jwt;
 
 use crate::OxidAuthClient;
 

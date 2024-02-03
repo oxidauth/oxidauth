@@ -19,7 +19,7 @@ pub type AcceptInvitationService = Arc<
     >,
 >;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceptInvitationParams {
     pub invitation_id: Uuid,
     pub user: AcceptInvitationUserParams,

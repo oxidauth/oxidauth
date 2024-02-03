@@ -1,4 +1,7 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+};
 use oxidauth_kernel::{
     error::IntoOxidAuthError,
     invitations::{
@@ -18,10 +21,7 @@ use crate::response::Response;
 
 pub const PERMISSION: &str = "oxidauth:invitations:read";
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FindInvitationReq {
-    pub invitation: FindInvitationParams,
-}
+pub type FindInvitationReq = FindInvitationParams;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindInvitationRes {
@@ -33,7 +33,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     ExtractJwt(jwt): ExtractJwt,
     ExtractEntitlements(permissions): ExtractEntitlements,
-    Json(params): Json<FindInvitationReq>,
+    Path(params): Path<FindInvitationReq>,
 ) -> impl IntoResponse {
     match parse_and_validate(PERMISSION, &permissions) {
         Ok(true) => info!(
@@ -55,9 +55,7 @@ pub async fn handle(
 
     info!("provided FindInvitationService");
 
-    let result = service
-        .call(&params.invitation)
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(invitation) => {
