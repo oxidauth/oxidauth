@@ -22,7 +22,7 @@ impl<'a> Service<&'a FindInvitationParams> for Database {
         let result = sqlx::query_as::<_, PgInvitation>(include_str!(
             "./select_invitation_by_id_query.sql"
         ))
-        .bind(params.id)
+        .bind(params.invitation_id)
         .fetch_one(&self.pool)
         .await?;
 

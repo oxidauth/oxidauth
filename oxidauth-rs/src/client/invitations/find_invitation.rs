@@ -25,7 +25,10 @@ impl Client {
 
         let resp: Response<FindInvitationRes> = self
             .get(
-                &format!("/invitations/{}", params.id),
+                &format!(
+                    "/invitations/{}",
+                    params.invitation_id
+                ),
                 None::<()>,
             )
             .await?;
