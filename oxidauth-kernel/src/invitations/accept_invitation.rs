@@ -5,10 +5,9 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
-    authorities::AuthorityStrategy,
+    auth::register::RegisterParams,
     dev_prelude::{BoxedError, Service},
     users::{update_user::UpdateUser, User, UserStatus},
-    JsonValue,
 };
 
 pub type AcceptInvitationService = Arc<
@@ -23,7 +22,7 @@ pub type AcceptInvitationService = Arc<
 pub struct AcceptInvitationParams {
     pub invitation_id: Uuid,
     pub user: AcceptInvitationUserParams,
-    pub user_authority: AcceptInvitationUserAuthorityParams,
+    pub user_authority: RegisterParams,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,12 +33,6 @@ pub struct AcceptInvitationUserParams {
     pub last_name: Option<String>,
     pub status: Option<UserStatus>,
     pub profile: Option<Value>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AcceptInvitationUserAuthorityParams {
-    pub strategy: AuthorityStrategy,
-    pub params: JsonValue,
 }
 
 impl

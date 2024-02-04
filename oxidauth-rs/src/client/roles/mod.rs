@@ -9,3 +9,4 @@ pub mod list_all_roles;
 pub mod update_role;
 
 use super::{fmt, handle_response, Client, Resource};
+pub use oxidauth_kernel::roles::Role;

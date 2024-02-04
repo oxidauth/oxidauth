@@ -21,7 +21,10 @@ impl Client {
         let params = params.into();
 
         let resp: Response<FindUserByIdRes> = self
-            .get("/users/{}", params.user_id)
+            .get(
+                &format!("/users/{}", params.user_id),
+                None::<()>,
+            )
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;

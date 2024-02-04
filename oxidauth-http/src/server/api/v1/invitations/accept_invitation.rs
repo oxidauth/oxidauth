@@ -5,7 +5,8 @@ use axum::{
 };
 pub use oxidauth_kernel::invitations::accept_invitation::*;
 use oxidauth_kernel::{
-    error::IntoOxidAuthError, provider::Provider, users::User,
+    auth::register::RegisterParams, error::IntoOxidAuthError,
+    provider::Provider, users::User,
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -21,7 +22,7 @@ pub struct AcceptInvitationPathReq {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AcceptInvitationBodyReq {
     pub user: AcceptInvitationUserParams,
-    pub user_authority: AcceptInvitationUserAuthorityParams,
+    pub user_authority: RegisterParams,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
