@@ -21,7 +21,7 @@ impl Client {
         T: Into<Uuid> + fmt::Debug,
         U: Into<UpdateUserBodyReq> + fmt::Debug,
     {
-        let user_id = user_id.into();
+        let _user_id = user_id.into();
         let user = user.into();
 
         let resp: Response<UpdateUserRes> = self

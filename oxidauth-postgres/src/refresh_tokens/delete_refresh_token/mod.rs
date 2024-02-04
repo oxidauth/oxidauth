@@ -31,10 +31,10 @@ impl<'a> Service<&'a DeleteRefreshToken> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_delete_a_refresh_token_successfully(pool: PgPool) {}
+    async fn it_should_delete_a_refresh_token_successfully(_pool: PgPool) {}
 }
 

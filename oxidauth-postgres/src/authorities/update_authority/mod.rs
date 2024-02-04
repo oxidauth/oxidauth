@@ -34,12 +34,12 @@ impl<'a> Service<&'a UpdateAuthority> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::authorities::insert_authority::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_update_an_authority_successfully(pool: PgPool) {}
+    async fn it_should_update_an_authority_successfully(_pool: PgPool) {}
 }

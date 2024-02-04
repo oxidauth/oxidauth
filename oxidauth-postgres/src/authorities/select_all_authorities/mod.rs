@@ -30,12 +30,12 @@ impl<'a> Service<&'a ListAllAuthorities> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::authorities::insert_authority::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_all_authorities_successfully(pool: PgPool) {}
+    async fn it_should_query_all_authorities_successfully(_pool: PgPool) {}
 }

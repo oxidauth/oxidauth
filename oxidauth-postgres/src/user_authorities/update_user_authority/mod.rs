@@ -39,12 +39,12 @@ impl<'a> Service<&'a UpdateUserAuthority> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
     async fn it_should_be_able_to_update_an_existing_user_authority(
-        pool: PgPool,
+        _pool: PgPool,
     ) {
     }
 }

@@ -9,11 +9,9 @@ use axum_extra::{
     TypedHeader,
 };
 use oxidauth_kernel::{
-    base64::*,
     jwt::Jwt,
     public_keys::{
         list_all_public_keys::{ListAllPublicKeys, ListAllPublicKeysService},
-        PublicKey,
     },
 };
 

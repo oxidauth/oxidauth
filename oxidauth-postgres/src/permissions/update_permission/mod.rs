@@ -26,10 +26,10 @@ impl UpdatePermission for Database {
     }
 }
 mod tests {
-    use oxidauth_repository::permissions::insert_permission::*;
-    use sqlx::PgPool;
+    
+    
 
-    use super::*;
+    
 
     // #[sqlx::test]
     // async fn it_should_udpate_a_permission_successfully(pool: PgPool) {

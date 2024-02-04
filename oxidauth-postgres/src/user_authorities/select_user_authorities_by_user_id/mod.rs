@@ -37,15 +37,15 @@ impl<'a> Service<&'a ListUserAuthoritiesByUserId> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::users::insert_user::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
     async fn it_should_query_user_authorities_by_user_id_successfully(
-        pool: PgPool,
+        _pool: PgPool,
     ) {
     }
 }

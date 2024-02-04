@@ -28,12 +28,12 @@ impl<'a> Service<&'a FindAuthorityById> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::authorities::insert_authority::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_an_authority_by_id_successfully(pool: PgPool) {}
+    async fn it_should_query_an_authority_by_id_successfully(_pool: PgPool) {}
 }

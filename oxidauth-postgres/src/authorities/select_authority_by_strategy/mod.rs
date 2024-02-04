@@ -34,15 +34,15 @@ impl<'a> Service<&'a FindAuthorityByStrategy> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::authorities::insert_authority::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
     async fn it_should_query_an_authority_by_strategy_successfully(
-        pool: PgPool,
+        _pool: PgPool,
     ) {
     }
 }

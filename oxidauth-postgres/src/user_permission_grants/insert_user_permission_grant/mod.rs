@@ -42,12 +42,12 @@ impl<'a> Service<&'a CreateUserPermissionGrant> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
     async fn it_should_be_able_to_insert_a_new_user_permission_grant(
-        pool: PgPool,
+        _pool: PgPool,
     ) {
     }
 }

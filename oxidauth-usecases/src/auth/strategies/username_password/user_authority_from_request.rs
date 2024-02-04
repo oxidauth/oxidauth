@@ -3,7 +3,7 @@ use oxidauth_kernel::{
     auth::UserAuthorityFromRequest, error::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority, JsonValue,
 };
-use serde_json::Value;
+
 
 use super::{
     authenticator::AuthenticateParams,

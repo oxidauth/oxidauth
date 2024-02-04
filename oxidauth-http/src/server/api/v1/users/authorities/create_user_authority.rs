@@ -9,7 +9,7 @@ use oxidauth_kernel::{
 use oxidauth_kernel::{user_authorities::create_user_authority::*, JsonValue};
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
 use tracing::{info, warn};
 use uuid::Uuid;
 

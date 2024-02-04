@@ -34,12 +34,12 @@ impl<'a> Service<&'a FindMostRecentPrivateKey> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
     async fn it_should_query_most_recent_private_key_successfully(
-        pool: PgPool,
+        _pool: PgPool,
     ) {
     }
 }

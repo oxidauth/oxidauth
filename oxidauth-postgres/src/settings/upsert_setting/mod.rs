@@ -36,15 +36,15 @@ impl<'a> Service<&'a SaveSettingParams> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[sqlx::test]
-    async fn it_should_be_able_to_upsert_a_new_setting(pool: PgPool) {
+    async fn it_should_be_able_to_upsert_a_new_setting(_pool: PgPool) {
         // let db = Database::new(pool).expect("should be able to make a db");
     }
 
     #[sqlx::test]
-    async fn it_should_be_able_to_upsert_an_existing_setting(pool: PgPool) {
+    async fn it_should_be_able_to_upsert_an_existing_setting(_pool: PgPool) {
         // let db = Database::new(pool).expect("should be able to make a db");
     }
 }

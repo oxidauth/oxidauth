@@ -32,12 +32,12 @@ impl<'a> Service<&'a InsertPublicKeyParams> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::public_keys::insert_public_key::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore = "not done yet"]
     #[sqlx::test]
-    async fn it_should_a_public_key_successfully(pool: PgPool) {}
+    async fn it_should_a_public_key_successfully(_pool: PgPool) {}
 }

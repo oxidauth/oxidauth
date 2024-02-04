@@ -31,12 +31,12 @@ impl<'a> Service<&'a ListAllUsers> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::users::insert_user::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_users_successfully(pool: PgPool) {}
+    async fn it_should_query_users_successfully(_pool: PgPool) {}
 }

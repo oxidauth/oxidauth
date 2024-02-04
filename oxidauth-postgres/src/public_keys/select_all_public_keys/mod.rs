@@ -29,12 +29,12 @@ impl<'a> Service<&'a ListAllPublicKeys> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::public_keys::insert_public_key::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_all_public_keys_successfully(pool: PgPool) {}
+    async fn it_should_query_all_public_keys_successfully(_pool: PgPool) {}
 }

@@ -1,7 +1,7 @@
 use std::ops::Add;
 
 use async_trait::async_trait;
-use chrono::{Days, Duration, Utc};
+use chrono::{Days, Utc};
 use oxidauth_kernel::{
     error::BoxedError,
     invitations::create_invitation::{

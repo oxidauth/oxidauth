@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use uuid::Uuid;
+
 
 use oxidauth_kernel::{
     error::BoxedError, service::Service, users::find_user_by_id::*,

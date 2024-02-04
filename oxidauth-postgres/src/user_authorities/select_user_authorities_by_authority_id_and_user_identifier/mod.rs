@@ -37,15 +37,15 @@ impl<'a>
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::users::insert_user::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
     async fn it_should_query_a_user_authority_by_authority_id_and_user_identifier_successfully(
-        pool: PgPool,
+        _pool: PgPool,
     ) {
     }
 }

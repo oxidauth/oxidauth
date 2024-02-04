@@ -31,14 +31,14 @@ impl<'a> Service<&'a Username> for Database {
 
 #[cfg(test)]
 mod tests {
-    use oxidauth_repository::users::insert_user::*;
+    
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_a_user_by_username_successfully(pool: PgPool) {
+    async fn it_should_query_a_user_by_username_successfully(_pool: PgPool) {
         // let db = Database { pool };
         //
         // let user_id = Uuid::new_v4();

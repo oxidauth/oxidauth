@@ -33,9 +33,9 @@ impl<'a> Service<&'a InsertRolePermissionGrant> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_insert_a_role_permission_grant_successfully(pool: PgPool) {}
+    async fn it_should_insert_a_role_permission_grant_successfully(_pool: PgPool) {}
 }

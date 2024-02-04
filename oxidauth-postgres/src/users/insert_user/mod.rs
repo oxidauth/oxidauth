@@ -59,17 +59,17 @@ impl<'a> Service<&'a CreateUser> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_be_able_to_insert_a_new_user(pool: PgPool) {}
+    async fn it_should_be_able_to_insert_a_new_user(_pool: PgPool) {}
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_fail_to_parse_an_invalid_user_status(pool: PgPool) {}
+    async fn it_should_fail_to_parse_an_invalid_user_status(_pool: PgPool) {}
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_fail_to_parse_an_invalid_user_kind(pool: PgPool) {}
+    async fn it_should_fail_to_parse_an_invalid_user_kind(_pool: PgPool) {}
 }

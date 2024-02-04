@@ -41,9 +41,9 @@ pub async fn select_role_by_id_query(
 mod tests {
     use sqlx::PgPool;
 
-    use super::*;
+    
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_a_role_by_id_successfully(pool: PgPool) {}
+    async fn it_should_query_a_role_by_id_successfully(_pool: PgPool) {}
 }
