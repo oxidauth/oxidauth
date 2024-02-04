@@ -12,6 +12,7 @@ use axum_extra::{
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::jwt::Jwt;
+use uuid::Uuid;
 
 use crate::OxidAuthClient;
 
@@ -94,5 +95,38 @@ where
         Ok(ExtractEntitlements(
             permissions,
         ))
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct UserId(Uuid);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for UserId
+where
+    OxidAuthClient: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = http::StatusCode;
+
+    #[tracing::instrument(
+        name = "oxidauth extract entitlements",
+        level = "trace",
+        skip_all,
+        ret,
+        err
+    )]
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let ExtractJwt(jwt) =
+            ExtractJwt::from_request_parts(parts, state).await?;
+
+        let Some(user_id) = jwt.sub else {
+            return Err(http::StatusCode::UNAUTHORIZED);
+        };
+
+        Ok(UserId(user_id))
     }
 }
