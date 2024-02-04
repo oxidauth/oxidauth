@@ -63,10 +63,19 @@ where
             id: params.invitation_id,
         };
 
-        let Invitation { user_id, .. } = self
+        // let Invitation { user_id, .. } = self
+        //     .delete_invitation
+        //     .call(&delete_invitation)
+        //     .await?;
+
+        let invitation = self
             .delete_invitation
             .call(&delete_invitation)
-            .await?;
+            .await;
+
+        dbg!(&invitation);
+
+        let Invitation { user_id, .. } = invitation?;
 
         let create_user_authority = CreateUserAuthorityParams {
             user_id,
@@ -77,17 +86,25 @@ where
                 .clone(),
         };
 
-        let _user_authority = self
+        let user_authority = self
             .user_authority
             .call(&create_user_authority)
-            .await?;
+            .await;
+
+        dbg!(&user_authority);
+
+        user_authority?;
 
         let update_user = (user_id, &params.user).into();
 
         let user = self
             .update_user
             .call(&update_user)
-            .await?;
+            .await;
+
+        dbg!(&user);
+
+        let user = user?;
 
         Ok(user)
     }
