@@ -9,7 +9,7 @@ use oxidauth_kernel::{
     user_authorities::create_user_authority::{
         CreateUserAuthorityParams, CreateUserAuthorityService,
     },
-    users::User,
+    users::{update_user::UpdateUser, User, UserStatus},
 };
 use oxidauth_repository::{
     invitations::delete_invitation_by_id::DeleteInvitationByIdQuery,
@@ -95,7 +95,9 @@ where
 
         user_authority?;
 
-        let update_user = (user_id, &params.user).into();
+        let mut update_user: UpdateUser = (user_id, &params.user).into();
+
+        update_user.status = Some(UserStatus::Enabled);
 
         let user = self
             .update_user
