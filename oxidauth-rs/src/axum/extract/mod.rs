@@ -50,7 +50,7 @@ where
             .await
             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-        let jwt = Jwt::decode_public_keys(bearer.token(), &public_keys)
+        let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
         Ok(ExtractJwt(jwt))

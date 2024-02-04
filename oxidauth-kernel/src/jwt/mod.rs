@@ -61,7 +61,7 @@ impl Jwt {
         Ok(result.claims)
     }
 
-    pub fn decode_public_keys(
+    pub fn decode_with_public_keys(
         token: &str,
         keys: &[PublicKey],
     ) -> Result<Jwt, JwtError> {

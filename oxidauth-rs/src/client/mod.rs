@@ -168,7 +168,7 @@ impl Client {
                 payload: Some(payload),
                 ..
             } => {
-                let jwt = Jwt::decode_public_keys(&payload.jwt, &public_keys)
+                let jwt = Jwt::decode_with_public_keys(&payload.jwt, &public_keys)
                     .map_err(|_| {
                     ClientError::new(
                         ClientErrorKind::Other("failed to validate jwt"),
