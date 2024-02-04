@@ -125,7 +125,7 @@ where
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
 
-        let jwt = Jwt::new()
+        let jwt = Jwt::builder()
             .with_subject(user.id)
             .with_issuer("oxidauth".to_owned())
             .with_expires_in(authority.settings.jwt_ttl)

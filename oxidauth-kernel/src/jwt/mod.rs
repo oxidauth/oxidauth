@@ -31,7 +31,7 @@ pub struct Jwt {
 }
 
 impl Jwt {
-    pub fn new() -> JwtBuilder {
+    pub fn builder() -> JwtBuilder {
         JwtBuilder::default()
     }
 
@@ -215,7 +215,7 @@ pub fn epoch_from_time(t: time::SystemTime) -> Result<usize, JwtError> {
 //     fn works_with_rsa() {
 //         let KeyPair { public, private } = generate().unwrap();
 //
-//         let claims = Jwt::new()
+//         let claims = Jwt::builder()
 //             .with_entitlements(vec!["realm:resource:action".to_string()])
 //             .with_expires_in(Duration::from_secs(60 * 300))
 //             .build()
