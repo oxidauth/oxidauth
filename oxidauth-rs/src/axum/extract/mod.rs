@@ -99,10 +99,10 @@ where
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct UserId(Uuid);
+pub struct ExtractUserId(pub Uuid);
 
 #[async_trait]
-impl<S> FromRequestParts<S> for UserId
+impl<S> FromRequestParts<S> for ExtractUserId
 where
     OxidAuthClient: FromRef<S>,
     S: Send + Sync,
@@ -127,6 +127,6 @@ where
             return Err(http::StatusCode::UNAUTHORIZED);
         };
 
-        Ok(UserId(user_id))
+        Ok(ExtractUserId(user_id))
     }
 }
