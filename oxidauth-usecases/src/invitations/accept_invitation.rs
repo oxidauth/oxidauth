@@ -9,30 +9,28 @@ use oxidauth_kernel::{
     user_authorities::create_user_authority::{
         CreateUserAuthorityParams, CreateUserAuthorityService,
     },
-    users::{update_user::UpdateUser, User, UserStatus},
+    users::{
+        update_user::{UpdateUser, UpdateUserService},
+        User, UserStatus,
+    },
 };
-use oxidauth_repository::{
-    invitations::delete_invitation_by_id::DeleteInvitationByIdQuery,
-    users::update_user::UpdateUserQuery,
-};
+use oxidauth_repository::invitations::delete_invitation_by_id::DeleteInvitationByIdQuery;
 
-pub struct AcceptInvitationUseCase<U, I>
+pub struct AcceptInvitationUseCase<I>
 where
-    U: UpdateUserQuery,
     I: DeleteInvitationByIdQuery,
 {
-    update_user: U,
+    update_user: UpdateUserService,
     user_authority: CreateUserAuthorityService,
     delete_invitation: I,
 }
 
-impl<U, I> AcceptInvitationUseCase<U, I>
+impl<I> AcceptInvitationUseCase<I>
 where
-    U: UpdateUserQuery,
     I: DeleteInvitationByIdQuery,
 {
     pub fn new(
-        update_user: U,
+        update_user: UpdateUserService,
         user_authority: CreateUserAuthorityService,
         delete_invitation: I,
     ) -> Self {
@@ -45,10 +43,8 @@ where
 }
 
 #[async_trait]
-impl<'a, U, I> Service<&'a AcceptInvitationParams>
-    for AcceptInvitationUseCase<U, I>
+impl<'a, I> Service<&'a AcceptInvitationParams> for AcceptInvitationUseCase<I>
 where
-    U: UpdateUserQuery,
     I: DeleteInvitationByIdQuery,
 {
     type Response = User;
@@ -97,11 +93,9 @@ where
 
         let mut update_user: UpdateUser = (user_id, &params.user).into();
 
-        update_user.status = Some(UserStatus::Enabled);
-
         let user = self
             .update_user
-            .call(&update_user)
+            .call(&mut update_user)
             .await;
 
         dbg!(&user);

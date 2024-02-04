@@ -49,7 +49,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<CreateUserService>(create_user_service);
     }
 
-    {
+    let update_user_service = {
         use oxidauth_kernel::users::update_user::UpdateUserService;
         use oxidauth_usecases::users::update_user::UpdateUserUseCase;
 
@@ -57,8 +57,10 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             db.clone(),
             db.clone(),
         ));
-        provider.store::<UpdateUserService>(update_user_service);
-    }
+        provider.store::<UpdateUserService>(update_user_service.clone());
+
+        update_user_service
+    };
 
     {
         use oxidauth_kernel::users::find_user_by_id::FindUserByIdService;
@@ -601,7 +603,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_usecases::invitations::accept_invitation::AcceptInvitationUseCase;
 
         let accept_invitation_service = Arc::new(AcceptInvitationUseCase::new(
-            db.clone(),
+            update_user_service,
             create_user_authority_service,
             db.clone(),
         ));
