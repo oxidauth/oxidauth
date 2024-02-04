@@ -11,7 +11,7 @@ use oxidauth_kernel::{
     },
     users::{
         update_user::{UpdateUser, UpdateUserService},
-        User, UserStatus,
+        User,
     },
 };
 use oxidauth_repository::invitations::delete_invitation_by_id::DeleteInvitationByIdQuery;

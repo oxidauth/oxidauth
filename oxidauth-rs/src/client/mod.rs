@@ -168,13 +168,16 @@ impl Client {
                 payload: Some(payload),
                 ..
             } => {
-                let jwt = Jwt::decode_with_public_keys(&payload.jwt, &public_keys)
-                    .map_err(|_| {
-                    ClientError::new(
-                        ClientErrorKind::Other("failed to validate jwt"),
-                        None,
-                    )
-                })?;
+                let jwt =
+                    Jwt::decode_with_public_keys(&payload.jwt, &public_keys)
+                        .map_err(|_| {
+                            ClientError::new(
+                                ClientErrorKind::Other(
+                                    "failed to validate jwt",
+                                ),
+                                None,
+                            )
+                        })?;
 
                 state.jwt = Some(jwt);
                 state.refresh_token = Some(payload.refresh_token);
@@ -416,7 +419,7 @@ impl Client {
                 )
             })?;
 
-        dbg!(&res);
+        info!(message = "oxdiauth client request response", res = ?res);
 
         let res = res
             .json()
