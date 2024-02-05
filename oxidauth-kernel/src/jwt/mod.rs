@@ -117,7 +117,7 @@ impl JwtBuilder {
         let exp_from_ttl = {
             let ttl = ttl.unwrap_or(Duration::from_secs(60 * 3));
             epoch_from_now(ttl)?
-        };
+        } * 1000;
 
         let exp = exp.unwrap_or(exp_from_ttl);
 
