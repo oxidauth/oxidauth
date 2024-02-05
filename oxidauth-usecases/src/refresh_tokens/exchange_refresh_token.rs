@@ -199,6 +199,12 @@ where
             })
             .await?;
 
+        self.delete_refresh_tokens
+            .call(&DeleteRefreshToken {
+                refresh_token_id: req.refresh_token,
+            })
+            .await?;
+
         Ok(AuthenticateResponse {
             jwt,
             refresh_token: refresh_token.id,

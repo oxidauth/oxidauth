@@ -17,7 +17,7 @@ impl<'a> Service<&'a DeleteRefreshToken> for Database {
         let result = sqlx::query_as::<_, PgRefreshToken>(include_str!(
             "./delete_refresh_token.sql"
         ))
-        .bind(&params.refresh_token_id)
+        .bind(params.refresh_token_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -31,10 +31,7 @@ impl<'a> Service<&'a DeleteRefreshToken> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
     async fn it_should_delete_a_refresh_token_successfully(_pool: PgPool) {}
 }
-
