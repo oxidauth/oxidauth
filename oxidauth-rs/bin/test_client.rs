@@ -6,7 +6,7 @@ async fn main() -> Result<(), BoxedError> {
     println!("testing client...");
 
     let client = OxidAuthClient::new(
-        "http://api.oxidauth.test",
+        "http://api.oxidauth.localhost",
         "malreynolds",
         "password123",
     )?;

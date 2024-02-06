@@ -10,7 +10,7 @@ services:
     tty: true
     environment:
       CARGO_TARGET_DIR: /home/rust/shared_target
-      VIRTUAL_HOST: api.oxidauth.test
+      VIRTUAL_HOST: api.oxidauth.localhost
     ports:
       - "80"
     env_file:
@@ -23,7 +23,7 @@ services:
     networks:
       default:
         aliases:
-          - api.oxidauth.test
+          - api.oxidauth.localhost
 
   postgres:
     image: postgres:16.1
@@ -37,7 +37,7 @@ services:
     networks:
       default:
         aliases:
-          - postgres.oxidauth.test
+          - postgres.oxidauth.localhost
 
 
 volumes:

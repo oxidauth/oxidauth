@@ -1,2 +1,2 @@
 scheme=http
-host=api.oxidauth.test
+host=api.oxidauth.localhost
