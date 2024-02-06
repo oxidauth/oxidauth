@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::RwLock;
 use tracing::info;
+use url::Url;
 use uuid::Uuid;
 
 pub mod auth;
@@ -41,7 +42,7 @@ pub struct Client {
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    base_url: String,
+    base_url: Url,
     username: String,
     password: Password,
 }
@@ -55,13 +56,22 @@ pub struct State {
 
 impl Client {
     pub fn new(
-        base_url: &str,
+        base_url: &Url,
         username: &str,
         password: &str,
     ) -> Result<Self, ClientError> {
+        let base_url = base_url
+            .join("/api/v1")
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::UrlParseError,
+                    Some(Box::new(err)),
+                )
+            })?;
+
         Ok(Self {
             config: Config {
-                base_url: format!("{}/api/v1", base_url),
+                base_url,
                 username: username.to_owned(),
                 password: Password::new(password.to_owned()),
             },
@@ -554,6 +564,7 @@ pub enum ClientErrorKind {
     RefreshError,
     EmptyPayload(Resource, &'static str),
     APIResponseError,
+    UrlParseError,
     Other(&'static str),
 }
 
@@ -577,6 +588,7 @@ impl fmt::Display for ClientError {
                 method
             ),
             APIResponseError => write!(f, "error reported when making a request to the API"),
+            UrlParseError => write!(f, "encountered an error while parsing url"),
             Other(reason) => write!(f, "error: {}", reason),
         }
     }
