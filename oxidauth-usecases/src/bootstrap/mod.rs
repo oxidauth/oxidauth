@@ -410,7 +410,7 @@ async fn first_or_register_user(
                 let password = random_string();
 
                 println!(
-                    ":::\nDEFAULT ADMIN PASSWORD: \n{}\n:::",
+                    ":::\nDEFAULT ADMIN PASSWORD: {}\n:::",
                     password
                 );
 
