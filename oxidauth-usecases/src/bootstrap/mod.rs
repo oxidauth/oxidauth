@@ -390,7 +390,7 @@ async fn first_or_create_authority(
 }
 
 pub const DEFAULT_ADMIN_USERNAME: &str = "oxidauth:admin";
-pub const DEFAULT_ADMIN_PASSWORD: &str = "DEFAULT_ADMIN_PASSWORD";
+pub const DEFAULT_ADMIN_PASSWORD: &str = "OXIDAUTH_DEFAULT_ADMIN_PASSWORD";
 
 #[tracing::instrument(skip_all)]
 async fn first_or_register_user(
