@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use async_trait::async_trait;
 use oxidauth_kernel::{
@@ -390,6 +390,7 @@ async fn first_or_create_authority(
 }
 
 pub const DEFAULT_ADMIN_USERNAME: &str = "oxidauth:admin";
+pub const DEFAULT_ADMIN_PASSWORD: &str = "DEFAULT_ADMIN_PASSWORD";
 
 #[tracing::instrument(skip_all)]
 async fn first_or_register_user(
@@ -407,7 +408,8 @@ async fn first_or_register_user(
         Ok(user) => return Ok(user),
         Err(err) => match err.downcast_ref::<Box<UserNotFoundError>>() {
             Some(_) => {
-                let password = random_string();
+                let password = env::var(DEFAULT_ADMIN_PASSWORD)
+                    .unwrap_or_else(|_| random_string());
 
                 println!(
                     ":::\nDEFAULT ADMIN PASSWORD: {}\n:::",
