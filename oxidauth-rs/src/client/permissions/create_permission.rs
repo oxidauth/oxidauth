@@ -35,3 +35,7 @@ impl Client {
         Ok(permission_res)
     }
 }
+
+pub struct CreatePermissionError {
+    pub reason: String,
+}
