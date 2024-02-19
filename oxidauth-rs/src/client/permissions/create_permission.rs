@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::permissions::create_permission::{
     CreatePermissionReq, CreatePermissionRes,
@@ -36,6 +38,19 @@ impl Client {
     }
 }
 
+#[derive(Debug)]
 pub struct CreatePermissionError {
     pub reason: String,
 }
+
+impl fmt::Display for CreatePermissionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "unable to create permission: {}",
+            self.reason
+        )
+    }
+}
+
+impl Error for CreatePermissionError {}
