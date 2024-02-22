@@ -1,8 +1,8 @@
-FROM --platform=$TARGETPLATFORM debian:12.4
+FROM --platform=$TARGETPLATFORM registry.vizerapp.cloud/lib/debian:12.1-2024.8.0
 
-RUN apt-get update -y && apt-get upgrade -y
+ARG TARGETPLATFORM
 
-COPY tmp/oxidauth-http /bin/oxidauth-http
+COPY tmp/$TARGETPLATFORM/oxidauth-http /bin/oxidauth-http
 
 EXPOSE 80
 
