@@ -2,13 +2,18 @@ use std::sync::Arc;
 
 use oxidauth_kernel::error::BoxedError;
 pub use oxidauth_kernel::provider::Provider;
+use oxidauth_postgres::Database;
 
 pub async fn setup() -> Result<Provider, BoxedError> {
     let mut provider = Provider::new();
 
-    let db = oxidauth_postgres::Database::from_env().await?;
+    let db = Database::from_env().await?;
 
     db.migrate().await?;
+
+    {
+        provider.store::<Database>(db.clone());
+    }
 
     {
         use oxidauth_kernel::auth::register::RegisterService;
