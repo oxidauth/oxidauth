@@ -46,7 +46,7 @@ impl Database {
     }
 
     pub async fn ping(&self) -> Result<(), sqlx::Error> {
-        sqlx::query_as::<_, (i64,)>("SELECT (1)")
+        sqlx::query_as::<_, (i32,)>("SELECT (1)")
             .fetch_one(&self.pool)
             .await?;
 
