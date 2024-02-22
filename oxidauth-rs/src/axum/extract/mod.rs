@@ -12,6 +12,7 @@ use axum_extra::{
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::jwt::Jwt;
+use tracing::error;
 use uuid::Uuid;
 
 use crate::OxidAuthClient;
@@ -41,17 +42,29 @@ where
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
-            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+            .map_err(|err| {
+                error!(msg = "error getting authorization header", err = ?err);
+
+                http::StatusCode::UNAUTHORIZED
+            })?;
 
         let client = OxidAuthClient::from_ref(state);
 
         let ListAllPublicKeysRes { public_keys } = client
             .list_all_public_keys()
             .await
-            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+            .map_err(|err| {
+                error!(msg = "error getting public keys", err = ?err);
+
+                http::StatusCode::UNAUTHORIZED
+            })?;
 
         let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
-            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+            .map_err(|err| {
+                error!(msg = "error decoding public keys", err = ?err);
+
+                http::StatusCode::UNAUTHORIZED
+            })?;
 
         Ok(ExtractJwt(jwt))
     }
@@ -124,6 +137,8 @@ where
             ExtractJwt::from_request_parts(parts, state).await?;
 
         let Some(user_id) = jwt.sub else {
+            error!("error getting sub from jwt");
+
             return Err(http::StatusCode::UNAUTHORIZED);
         };
 
