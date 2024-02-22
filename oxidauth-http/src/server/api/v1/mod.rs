@@ -2,6 +2,7 @@ pub mod auth;
 pub mod authorities;
 pub mod can;
 pub mod invitations;
+pub mod meta;
 pub mod permissions;
 pub mod public_keys;
 pub mod refresh_tokens;
@@ -15,6 +16,7 @@ use crate::provider::Provider;
 
 pub fn router() -> Router<Provider> {
     Router::new()
+        .nest("/__meta", meta::router())
         .nest("/auth", auth::router())
         .nest(
             "/authorities",
