@@ -1,6 +1,6 @@
 [package]
 name = "oxidauth-http"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 license = "GPL-3.0"
 description = "http lib and server for oxidauth"
