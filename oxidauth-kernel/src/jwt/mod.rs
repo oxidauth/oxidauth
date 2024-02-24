@@ -110,7 +110,7 @@ impl JwtBuilder {
 
         let now = epoch_from_time(time::SystemTime::now())?;
 
-        let nbf = Some(nbf.unwrap_or(Ok(now))?);
+        let nbf = Some(nbf.unwrap_or(Ok(now - 10))?);
 
         let iat = Some(iat.unwrap_or(Ok(now))?);
 
