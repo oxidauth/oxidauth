@@ -51,6 +51,7 @@ pub struct Config {
 pub struct State {
     client: reqwest::Client,
     jwt: Option<Jwt>,
+    raw_jwt: Option<String>,
     refresh_token: Option<Uuid>,
 }
 
@@ -77,6 +78,40 @@ impl Client {
             },
             state: Arc::new(RwLock::new(State::default())),
         })
+    }
+
+    pub async fn get_jwt(&self) -> Result<String, ClientError> {
+        self.authenticate_if_needed()
+            .await?;
+
+        let state = self.state.read().await;
+
+        let jwt = state
+            .raw_jwt
+            .as_deref()
+            .ok_or(ClientError::new(
+                ClientErrorKind::NoJwtFound,
+                None,
+            ))?;
+
+        Ok(jwt.to_string())
+    }
+
+    pub async fn get_jwt_decoded(&self) -> Result<Jwt, ClientError> {
+        self.authenticate_if_needed()
+            .await?;
+
+        let state = self.state.read().await;
+
+        let jwt = state
+            .jwt
+            .clone()
+            .ok_or(ClientError::new(
+                ClientErrorKind::NoJwtFound,
+                None,
+            ))?;
+
+        Ok(jwt)
     }
 
     #[tracing::instrument(level = "debug", skip(self))]
@@ -189,6 +224,7 @@ impl Client {
                             )
                         })?;
 
+                state.raw_jwt = Some(payload.jwt.clone());
                 state.jwt = Some(jwt);
                 state.refresh_token = Some(payload.refresh_token);
 
@@ -560,6 +596,7 @@ impl fmt::Display for Resource {
 
 #[derive(Debug)]
 pub enum ClientErrorKind {
+    NoJwtFound,
     AuthError,
     RefreshError,
     EmptyPayload(Resource, &'static str),
@@ -573,6 +610,7 @@ impl fmt::Display for ClientError {
         use ClientErrorKind::*;
 
         match self.kind {
+            NoJwtFound => write!(f, "no jwt found when calling get_jwt"),
             AuthError => write!(
                 f,
                 "encountered an error authenticating"
