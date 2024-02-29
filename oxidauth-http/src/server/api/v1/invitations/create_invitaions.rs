@@ -1,9 +1,9 @@
 use axum::{extract::State, response::IntoResponse, Json};
+pub use oxidauth_kernel::invitations::create_invitation::CreateInvitationParams;
 use oxidauth_kernel::{
     error::IntoOxidAuthError,
     invitations::create_invitation::{
-        CreateInvitationParams, CreateInvitationResponse,
-        CreateInvitationService,
+        CreateInvitationResponse, CreateInvitationService,
     },
 };
 use oxidauth_permission::parse_and_validate;
