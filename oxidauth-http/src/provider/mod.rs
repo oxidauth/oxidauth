@@ -268,6 +268,16 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     {
+        use oxidauth_kernel::roles::find_role_by_name::FindRoleByNameService;
+        use oxidauth_usecases::roles::find_role_by_name::FindRoleByNameUseCase;
+
+        let find_role_by_name_service = Arc::new(FindRoleByNameUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<FindRoleByNameService>(find_role_by_name_service);
+    }
+
+    {
         use oxidauth_kernel::roles::list_all_roles::ListAllRolesService;
         use oxidauth_usecases::roles::list_all_roles::ListAllRolesUseCase;
 
