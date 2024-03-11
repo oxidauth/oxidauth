@@ -1,6 +1,7 @@
 pub mod create_role;
 pub mod delete_role;
 pub mod find_role_by_id;
+pub mod find_role_by_name;
 pub mod list_all_roles;
 pub mod permissions;
 pub mod roles;
@@ -33,6 +34,10 @@ pub fn router() -> Router<Provider> {
         .route(
             "/:role_id",
             delete(delete_role::handle),
+        )
+        .route(
+            "/by_name/:role",
+            get(find_role_by_name::handle),
         )
         .nest(
             "/:parent_id/roles",
