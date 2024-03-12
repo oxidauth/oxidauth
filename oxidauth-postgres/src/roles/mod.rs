@@ -2,6 +2,7 @@ pub mod delete_role;
 pub mod insert_role;
 pub mod select_all_roles;
 pub mod select_role_by_id;
+pub mod select_role_by_name;
 pub mod update_role;
 
 use oxidauth_kernel::roles::Role;
