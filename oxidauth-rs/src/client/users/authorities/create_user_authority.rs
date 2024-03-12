@@ -1,6 +1,6 @@
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::authorities::create_user_authority::{
-    CreateUserAuthorityBodyReq, CreateUserAuthorityRes,
+    CreateUserAuthorityBodyReq, CreateUserAuthorityRes, UserAuthorityParams,
 };
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
