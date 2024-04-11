@@ -78,6 +78,16 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     {
+        use oxidauth_kernel::users::find_users_by_ids::FindUsersByIdsService;
+        use oxidauth_usecases::users::find_users_by_ids::FindUsersByIdsUseCase;
+
+        let find_users_by_ids_service = Arc::new(FindUsersByIdsUseCase::new(
+            db.clone(),
+        ));
+        provider.store::<FindUsersByIdsService>(find_users_by_ids_service);
+    }
+
+    {
         use oxidauth_kernel::users::delete_user_by_id::DeleteUserByIdService;
         use oxidauth_usecases::users::delete_user_by_id::DeleteUserByIdUseCase;
 
