@@ -20,6 +20,8 @@ pub struct FindUsersByIdsRes {
     pub user_ids_not_found: Vec<Uuid>,
 }
 
+const CHALLENGES: [&str; 1] = ["oxidauth:users:manage"];
+
 #[tracing::instrument(name = "find_users_by_ids_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
@@ -27,17 +29,15 @@ pub async fn handle(
     ExtractEntitlements(permissions): ExtractEntitlements,
     Json(params): Json<FindUsersByIdsReq>,
 ) -> impl IntoResponse {
-    let challenges = vec!["oxidauth:users:manage".to_string()];
-
-    match parse_and_validate_multiple(&challenges, &permissions) {
+    match parse_and_validate_multiple(&CHALLENGES, &permissions) {
         Ok(true) => info!(
             "{:?} has {:?}",
-            jwt.sub, challenges
+            jwt.sub, CHALLENGES
         ),
         Ok(false) => {
             warn!(
                 "{:?} doesn't have {:?}",
-                jwt.sub, challenges
+                jwt.sub, CHALLENGES
             );
 
             return Response::unauthorized();
@@ -52,15 +52,19 @@ pub async fn handle(
     let result = service.call(&params).await;
 
     match result {
-        Ok(res) => {
+        Ok(UsersByIds {
+            users,
+            user_ids_not_found,
+        }) => {
             info!(
                 message = "successfully found users by ids",
-                res = ?res,
+                users = ?users,
+                user_ids_not_found = ?user_ids_not_found,
             );
 
             Response::success().payload(FindUsersByIdsRes {
-                users: res.0,
-                user_ids_not_found: res.1,
+                users,
+                user_ids_not_found,
             })
         },
         Err(err) => {

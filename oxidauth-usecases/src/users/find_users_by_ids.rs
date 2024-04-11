@@ -4,7 +4,6 @@ use oxidauth_kernel::{
     error::BoxedError, service::Service, users::find_users_by_ids::*,
 };
 use oxidauth_repository::users::select_users_by_ids_query::SelectUsersByIdsQuery;
-use uuid::Uuid;
 
 pub struct FindUsersByIdsUseCase<T>
 where
@@ -27,7 +26,7 @@ impl<'a, T> Service<&'a FindUsersByIds> for FindUsersByIdsUseCase<T>
 where
     T: SelectUsersByIdsQuery,
 {
-    type Response = (Vec<User>, Vec<Uuid>);
+    type Response = UsersByIds;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "find_users_by_ids_usecase", skip(self))]

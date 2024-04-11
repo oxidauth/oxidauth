@@ -5,7 +5,7 @@ pub use super::User;
 pub type FindUsersByIdsService = Arc<
     dyn for<'a> Service<
         &'a FindUsersByIds,
-        Response = (Vec<User>, Vec<Uuid>),
+        Response = UsersByIds,
         Error = BoxedError,
     >,
 >;
@@ -13,4 +13,10 @@ pub type FindUsersByIdsService = Arc<
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindUsersByIds {
     pub user_ids: Vec<Uuid>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UsersByIds {
+    pub users: Vec<User>,
+    pub user_ids_not_found: Vec<Uuid>,
 }

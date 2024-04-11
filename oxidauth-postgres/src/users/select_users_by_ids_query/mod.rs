@@ -1,3 +1,4 @@
+use oxidauth_kernel::users::{find_users_by_ids::UsersByIds, User};
 use oxidauth_repository::users::select_users_by_ids_query::*;
 use sqlx::PgConnection;
 
@@ -7,7 +8,7 @@ use super::{TryFromUserRowError, UserRow};
 
 #[async_trait]
 impl<'a> Service<&'a FindUsersByIds> for Database {
-    type Response = (Vec<User>, Vec<Uuid>);
+    type Response = UsersByIds;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "select_users_by_ids_query", skip(self))]
@@ -38,7 +39,10 @@ impl<'a> Service<&'a FindUsersByIds> for Database {
             })
             .collect::<Result<Vec<User>, BoxedError>>()?;
 
-        Ok((users, user_ids_not_found))
+        Ok(UsersByIds {
+            users,
+            user_ids_not_found,
+        })
     }
 }
 
