@@ -21,7 +21,7 @@ impl Client {
         let params = params.into();
 
         let resp: Response<FindUsersByIdsRes> = self
-            .post("/users", Some(params))
+            .post("/users/by_ids", Some(params))
             .await?;
 
         let users_res = handle_response(RESOURCE, METHOD, resp)?;
