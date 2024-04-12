@@ -38,6 +38,6 @@ Columns: id, user_id, code, created_at, expires_at
 - Is an external library needed to generate an HOTP code, or can a cryptographicaly secure pseudo-random number be used instead
 
 ### UI
-<img width="743" alt="Screenshot 2024-04-12-login" src="rfcs/images/Screenshot 2024-04-12-email-login.png">
+<img width="743" alt="Screenshot 2024-04-12-login" src="./images/rfc1-login.png">
 
-<img width="751" alt="Screenshot 2024-04-12 at 10 46 52 AM" src="rfcs/images/Screenshot 2024-04-12-email-code.png">
+<img width="751" alt="Screenshot 2024-04-12 at 10 46 52 AM" src="./images/rfc1-email-code.png">
