@@ -6,4 +6,4 @@ CREATE TABLE email_codes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 );
 
-CREATE INDEX email_code ON email_codes(code);
+CREATE INDEX email_code_user_id ON email_codes(user_id);
