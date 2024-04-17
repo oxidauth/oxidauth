@@ -1,41 +1,50 @@
-# RFC: 2FA - Email
+# Summary
 
-### Summary
-Enable two factor authentication via email. The user would provide their email/username and password (existing functionality) then be prompted to input a 6 digit code delivered to their email (new functionality) in order to login. The 6 digit code will be generated as an HOTP (HMAC based One Time Password) code with a SHA215 encoding algorithm.
+Enable two factor authentication via email. The user would provide their email/username and password (existing functionality) then be prompted to input a 6 digit code delivered to their email (new functionality) in order to login. The 6 digit code will be generated as an TOTP (Time based One Time Password) code.
 
 ### Benefit
-Many companies are now requiring 2FA on all accounts and platforms their employees may use. The addition of this feature would allow companies using oxidauth to comply with this requirement. 
+
+Many companies are now requiring 2FA on all accounts and platforms their employees may use. The addition of this feature would allow companies using oxidauth to comply with this requirement.
+
 
 ### Technical Flow
-From the frontend login screen, a user provides username & password combo, if password is correct:
-1. oxidauth generates a secure code with expiration set to 10 min
-2. code is stored in a DB table
-3. code is also emailed to the users email
-4. if 10 minutes pass and the code expires, the code is deleted from the table
-5. if a new code is requested by the user, the previous code is deleted from the table (meaning 1 code per user id allowed in the table at a time)
-6. if incorrect code is provided, an error message is returned saying the code was not valid
-7. if correct code is provided, the sign in process is completed and the user is logged in
+Each user is assigned a static auth key at creation (stored in new table auth_keys). From the frontend login screen, a user provides username & password combo, if password is correct:
+
+- a temporary jwt is sent to the browser, allowing the user to access the 2FA code input screen
+- a 6 digit code is created from the secret key + current time, then emailed to the user
+- user inputs the 6 digit code from their email which is diffed against the secrety key + current time
+- if 5 minutes have passed, the new code will not match the user entered code, and login will fail. Returns an error.
+- if user input code does match the new code for any reason, login will fail. Returns an error
+- if user requests a new code, the 6 digit code is recreated with new current time, and emailed to the user
+- user can continue to try codes until the temporary jwt times out (or, max number of tries is reached, if we implement)
+- if user input matches new code, a jwt is returned and user is logged in
 
 ### New Endpoints
 - [POST] /auth_codes - body supplies a code for verification
-- [GET] /auth_codes - requests new code & email 
+- [GET] /auth_codes - requests new code & email
+
+### New Frontend Pages
+- Email code entry form
+
+### Other changes
+- OxidAuth Authority will now have an added property of `require-2fa`, which, if true, will create a 2fa code for each new user and impact the sign in flow.
 
 ### Libraries
-Code generation library: [otps](https://lib.rs/crates/otps) This package is a library designed to provide out-of-box HOTP and TOTP clients to generate one-time passwords.
+Code generation library: [Boring Auth](https://docs.rs/boringauth) This package is a library designed to provide out-of-box HOTP and TOTP clients to generate one-time passwords.
 
 ### Database Migrations
-Table: auth_codes
-Columns: id, user_id, code, created_at, expires_at
+Table: auth_keys
+Columns: id, user_id, key, created_at, updated_at
 
 ### Research & Alternatives
-- Alternate library [rust-otp](https://github.com/WesleyBatista/rust-otp)
-- HOTP spec [hotp RFC](https://datatracker.ietf.org/doc/html/rfc4226)
+- Alternate library rust-otp, otps, libreauth
+- HOTP spec hotp RFC
 - a company that did this (gosquared)[https://www.gosquared.com/blog/building-two-factor-authentication]
 - a resource - used multiple articles here (onelogin)[https://www.onelogin.com/learn/otp-totp-hotp]
 
 ### Outstanding Questions
-- Should this be required by default and a part of all log in flows? Or, should there be an opt in variable passed to allow 1FA 
-- Is an external library needed to generate an HOTP code, or can a cryptographicaly secure pseudo-random number be used instead
+- addressed in April 16 meeting
+
 
 ### UI
 <img width="743" alt="Screenshot 2024-04-12-login" src="./images/rfc1-login.png">
