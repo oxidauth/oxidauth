@@ -329,6 +329,8 @@ async fn add_admin_permission_to_admin_role(
 
 pub const DEFAULT_JWT_TTL: Duration = Duration::from_secs(60 * 2);
 
+pub const DEFAULT_2FA: bool = false;
+
 pub const DEFAULT_REFRESH_TOKEN_TTL: Duration =
     Duration::from_secs(60 * 60 * 24 * 2);
 
@@ -362,6 +364,7 @@ async fn first_or_create_authority(
                     let authority_settings = AuthoritySettings {
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
+                        require_2fa: DEFAULT_2FA,
                     };
 
                     let mut create_authority_params = CreateAuthority {
