@@ -31,6 +31,7 @@ pub struct Authority {
 pub struct AuthoritySettings {
     pub jwt_ttl: std::time::Duration,
     pub refresh_token_ttl: std::time::Duration,
+    pub require_2fa: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
