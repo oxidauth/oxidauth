@@ -34,4 +34,7 @@ where
     ) -> Result<Self::Response, Self::Error> {
         self.users.call(req).await
     }
+
+    // if authority requires 2FA
+    // create user 2FA key
 }
