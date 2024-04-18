@@ -1,6 +1,11 @@
-use oxidauth_kernel::private_keys::PrivateKey;
-use rand::rngs::StdRng;
-use uuid::Uuid;
+use crate::prelude::*;
+use rand::prelude::*;
+
+use oxidauth_kernel::auth_keys::create_auth_key::{
+    AuthKey, InsertAuthKeyParams,
+};
+
+use super::PgAuthKey;
 
 #[async_trait]
 impl<'a> Service<&'a InsertAuthKeyParams> for Database {
