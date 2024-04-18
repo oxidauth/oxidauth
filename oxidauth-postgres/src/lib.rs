@@ -2,6 +2,7 @@ use sqlx::PgPool;
 use std::{env, error::Error};
 
 pub mod auth;
+pub mod auth_keys;
 pub mod authorities;
 pub mod invitations;
 pub mod permissions;
