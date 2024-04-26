@@ -66,7 +66,9 @@ where
 
         let create_user_authority = CreateUserAuthorityParams {
             user_id,
-            strategy: params.user_authority.strategy,
+            client_key: params
+                .user_authority
+                .client_key,
             params: params
                 .user_authority
                 .params

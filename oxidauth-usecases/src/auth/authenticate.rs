@@ -13,7 +13,7 @@ use oxidauth_kernel::{
     service::Service, jwt::{Jwt, epoch_from_now}, private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
 };
 use oxidauth_repository::{
-    authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,
+    authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
     user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{
         SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
         SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams
@@ -25,18 +25,19 @@ use oxidauth_repository::{
         InsertRefreshTokenQuery,
     },
 };
+use uuid::Uuid;
 
 use crate::auth::strategies::*;
 
 pub struct AuthenticateUseCase<T, U, P, M, R>
 where
-    T: SelectAuthorityByStrategyQuery,
+    T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
 {
-    authority_by_strategy: T,
+    authority_by_client_key: T,
     user_authority: U,
     permission_tree: P,
     private_keys: M,
@@ -45,21 +46,21 @@ where
 
 impl<T, U, P, M, R> AuthenticateUseCase<T, U, P, M, R>
 where
-    T: SelectAuthorityByStrategyQuery,
+    T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
 {
     pub fn new(
-        authority_by_strategy: T,
+        authority_by_client_key: T,
         user_authority: U,
         permission_tree: P,
         private_keys: M,
         refresh_tokens: R,
     ) -> Self {
         Self {
-            authority_by_strategy,
+            authority_by_client_key,
             user_authority,
             permission_tree,
             private_keys,
@@ -72,7 +73,7 @@ where
 impl<'a, T, U, P, M, R> Service<&'a AuthenticateParams>
     for AuthenticateUseCase<T, U, P, M, R>
 where
-    T: SelectAuthorityByStrategyQuery,
+    T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
@@ -87,13 +88,15 @@ where
         params: &'a AuthenticateParams,
     ) -> Result<Self::Response, Self::Error> {
         let authority = self
-            .authority_by_strategy
+            .authority_by_client_key
             .call(&params.into())
             .await?
-            .ok_or_else(|| AuthorityNotFoundError::strategy(params.strategy))?;
+            .ok_or_else(|| {
+                AuthorityNotFoundError::client_key(params.client_key)
+            })?;
 
         let authenticator =
-            build_authenticator(&authority, &params.strategy).await?;
+            build_authenticator(&authority, &params.client_key).await?;
 
         let user_identifier = authenticator
             .user_identifier_from_request(&params.params)
@@ -187,9 +190,11 @@ where
 
 pub async fn build_authenticator(
     authority: &Authority,
-    strategy: &AuthorityStrategy,
+    client_key: &Uuid,
 ) -> Result<Box<dyn Authenticator>, BoxedError> {
     use AuthorityStrategy::*;
+
+    // @ALYSSA GEORGE - I don't really understand this part. What does build authenticator need to do?
 
     match strategy {
         UsernamePassword => {

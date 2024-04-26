@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub mod create_authority;
 pub mod delete_authority;
 pub mod find_authority_by_client_id;
+pub mod find_authority_by_client_key;
 pub mod find_authority_by_id;
 pub mod find_authority_by_strategy;
 pub mod list_all_authorities;
@@ -134,13 +135,13 @@ impl Error for ParseAuthorityStrategyError {}
 
 #[derive(Debug)]
 pub enum AuthorityNotFoundError {
-    Strategy(AuthorityStrategy),
+    ClientKey(Uuid),
     Id(Uuid),
 }
 
 impl AuthorityNotFoundError {
-    pub fn strategy(strategy: AuthorityStrategy) -> Box<Self> {
-        Box::new(Self::Strategy(strategy))
+    pub fn client_key(client_key: Uuid) -> Box<Self> {
+        Box::new(Self::ClientKey(client_key))
     }
 
     pub fn id(id: Uuid) -> Box<Self> {
@@ -151,7 +152,9 @@ impl AuthorityNotFoundError {
 impl fmt::Display for AuthorityNotFoundError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let missing = match self {
-            AuthorityNotFoundError::Strategy(strategy) => strategy.to_string(),
+            AuthorityNotFoundError::ClientKey(client_key) => {
+                client_key.to_string()
+            },
             AuthorityNotFoundError::Id(id) => id.to_string(),
         };
 
