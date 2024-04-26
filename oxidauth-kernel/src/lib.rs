@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub mod auth;
+pub mod auth_keys;
 pub mod authorities;
 pub mod bootstrap;
 pub mod dev_prelude;
