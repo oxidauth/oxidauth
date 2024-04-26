@@ -1,0 +1,2 @@
+- [187508393](https://www.pivotaltracker.com/story/show/187508393)
+    - starting to switch out strategy usage for client key
