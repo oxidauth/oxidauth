@@ -1,18 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{
+    authorities::find_authority_by_client_key::FindAuthorityByClientKey,
+    error::BoxedError, JsonValue,
+};
+
 use std::sync::Arc;
 use uuid::Uuid;
 
-pub use crate::service::Service;
-use crate::{
-    authorities::{
-        find_authority_by_strategy::FindAuthorityByStrategy, AuthorityStrategy,
-    },
-    error::BoxedError,
-    JsonValue,
-};
-
 pub use super::UserAuthority;
+pub use crate::service::Service;
 
 pub type CreateUserAuthorityService = Arc<
     dyn for<'a> Service<
@@ -25,17 +22,25 @@ pub type CreateUserAuthorityService = Arc<
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityParams {
     pub user_id: Uuid,
-    pub strategy: AuthorityStrategy,
+    pub client_key: Uuid,
     pub params: JsonValue,
 }
 
-impl From<&CreateUserAuthorityParams> for FindAuthorityByStrategy {
+impl From<&CreateUserAuthorityParams> for FindAuthorityByClientKey {
     fn from(value: &CreateUserAuthorityParams) -> Self {
         Self {
-            strategy: value.strategy,
+            client_key: value.client_key,
         }
     }
 }
+
+// impl From<&CreateUserAuthorityParams> for FindAuthorityByStrategy {
+//     fn from(value: &CreateUserAuthorityParams) -> Self {
+//         Self {
+//             strategy: value.strategy,
+//         }
+//     }
+// }
 
 #[derive(Debug, Deserialize)]
 pub struct CreateUserAuthority {

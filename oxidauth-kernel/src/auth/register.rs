@@ -4,9 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    authorities::{
-        find_authority_by_strategy::FindAuthorityByStrategy, AuthorityStrategy,
-    },
+    authorities::find_authority_by_client_key::FindAuthorityByClientKey,
     dev_prelude::{BoxedError, Service},
     JsonValue,
 };
@@ -21,7 +19,7 @@ pub type RegisterService = Arc<
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegisterParams {
-    pub strategy: AuthorityStrategy,
+    pub client_key: Uuid,
     pub params: JsonValue,
 }
 
@@ -31,10 +29,18 @@ pub struct RegisterResponse {
     pub refresh_token: Uuid,
 }
 
-impl From<&RegisterParams> for FindAuthorityByStrategy {
+// impl From<&RegisterParams> for FindAuthorityByStrategy {
+//     fn from(value: &RegisterParams) -> Self {
+//         Self {
+//             strategy: value.strategy,
+//         }
+//     }
+// }
+
+impl From<&RegisterParams> for FindAuthorityByClientKey {
     fn from(value: &RegisterParams) -> Self {
         Self {
-            strategy: value.strategy,
+            client_key: value.client_key,
         }
     }
 }
