@@ -134,12 +134,12 @@ impl fmt::Display for ParseAuthorityStrategyError {
 impl Error for ParseAuthorityStrategyError {}
 
 #[derive(Debug)]
-pub enum AuthorityNotFoundError {
+pub enum AuthorityNotFoundByClientKeyError {
     ClientKey(Uuid),
     Id(Uuid),
 }
 
-impl AuthorityNotFoundError {
+impl AuthorityNotFoundByClientKeyError {
     pub fn client_key(client_key: Uuid) -> Box<Self> {
         Box::new(Self::ClientKey(client_key))
     }
@@ -149,21 +149,56 @@ impl AuthorityNotFoundError {
     }
 }
 
-impl fmt::Display for AuthorityNotFoundError {
+impl fmt::Display for AuthorityNotFoundByClientKeyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let missing = match self {
-            AuthorityNotFoundError::ClientKey(client_key) => {
+            AuthorityNotFoundByClientKeyError::ClientKey(client_key) => {
                 client_key.to_string()
             },
-            AuthorityNotFoundError::Id(id) => id.to_string(),
+            AuthorityNotFoundByClientKeyError::Id(id) => id.to_string(),
         };
 
         write!(
             f,
-            "authority not found: {}",
+            "authority not found with client key: {}",
             missing
         )
     }
 }
 
-impl Error for AuthorityNotFoundError {}
+impl Error for AuthorityNotFoundByClientKeyError {}
+
+#[derive(Debug)]
+pub enum AuthorityNotFoundByStrategyError {
+    Strategy(AuthorityStrategy),
+    Id(Uuid),
+}
+
+impl AuthorityNotFoundByStrategyError {
+    pub fn strategy(strategy: AuthorityStrategy) -> Box<Self> {
+        Box::new(Self::Strategy(strategy))
+    }
+
+    pub fn id(id: Uuid) -> Box<Self> {
+        Box::new(Self::Id(id))
+    }
+}
+
+impl fmt::Display for AuthorityNotFoundByStrategyError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let missing = match self {
+            AuthorityNotFoundByStrategyError::Strategy(strategy) => {
+                strategy.to_string()
+            },
+            AuthorityNotFoundByStrategyError::Id(id) => id.to_string(),
+        };
+
+        write!(
+            f,
+            "authority not found with strategy: {}",
+            missing
+        )
+    }
+}
+
+impl Error for AuthorityNotFoundByStrategyError {}

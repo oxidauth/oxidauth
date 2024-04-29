@@ -8,7 +8,7 @@ use oxidauth_kernel::{
         find_authority_by_strategy::{
             FindAuthorityByStrategy, FindAuthorityByStrategyService,
         },
-        Authority, AuthorityNotFoundError, AuthoritySettings,
+        Authority, AuthorityNotFoundByStrategyError, AuthoritySettings,
         AuthorityStrategy,
     },
     bootstrap::BootstrapParams,
@@ -351,7 +351,7 @@ async fn first_or_create_authority(
         Err(err) => {
             info!("authority not found");
 
-            match err.downcast_ref::<Box<AuthorityNotFoundError>>() {
+            match err.downcast_ref::<Box<AuthorityNotFoundByStrategyError>>() {
                 Some(_) => {
                     info!("attempting to create authority");
 

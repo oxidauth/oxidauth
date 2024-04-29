@@ -6,7 +6,9 @@ use oxidauth_kernel::{
         register::{RegisterParams, RegisterResponse},
         Registrar,
     },
-    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
+    authorities::{
+        Authority, AuthorityNotFoundByClientKeyError, AuthorityStrategy,
+    },
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
@@ -14,7 +16,7 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::{
     auth::tree::{PermissionSearch, PermissionTreeQuery},
-    authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,
+    authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
     private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
     refresh_tokens::insert_refresh_token::{
         CreateRefreshToken, InsertRefreshTokenQuery,
@@ -23,19 +25,20 @@ use oxidauth_repository::{
     users::insert_user::InsertUserQuery,
 };
 use std::time::Duration;
+use uuid::Uuid;
 
 use crate::auth::strategies;
 
 pub struct RegisterUseCase<T, U, A, P, M, R>
 where
-    T: SelectAuthorityByStrategyQuery,
+    T: SelectAuthorityByClientKeyQuery,
     U: InsertUserQuery,
     A: InsertUserAuthorityQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
 {
-    authority_by_strategy: T,
+    authority_by_client_key: T,
     users: U,
     user_authorities: A,
     permission_tree: P,
@@ -45,7 +48,7 @@ where
 
 impl<T, U, A, P, M, R> RegisterUseCase<T, U, A, P, M, R>
 where
-    T: SelectAuthorityByStrategyQuery,
+    T: SelectAuthorityByClientKeyQuery,
     U: InsertUserQuery,
     A: InsertUserAuthorityQuery,
     P: PermissionTreeQuery,
@@ -53,7 +56,7 @@ where
     R: InsertRefreshTokenQuery,
 {
     pub fn new(
-        authority_by_strategy: T,
+        authority_by_client_key: T,
         users: U,
         user_authorities: A,
         permission_tree: P,
@@ -61,7 +64,7 @@ where
         refresh_tokens: R,
     ) -> Self {
         Self {
-            authority_by_strategy,
+            authority_by_client_key,
             users,
             user_authorities,
             permission_tree,
@@ -75,7 +78,7 @@ where
 impl<'a, T, U, A, P, M, R> Service<&'a RegisterParams>
     for RegisterUseCase<T, U, A, P, M, R>
 where
-    T: SelectAuthorityByStrategyQuery,
+    T: SelectAuthorityByClientKeyQuery,
     U: InsertUserQuery,
     A: InsertUserAuthorityQuery,
     P: PermissionTreeQuery,
@@ -91,12 +94,14 @@ where
         params: &'a RegisterParams,
     ) -> Result<Self::Response, Self::Error> {
         let authority = self
-            .authority_by_strategy
+            .authority_by_client_key
             .call(&params.into())
             .await?
-            .ok_or_else(|| AuthorityNotFoundError::strategy(params.strategy))?;
+            .ok_or_else(|| {
+                AuthorityNotFoundByClientKeyError::strategy(params.client_key)
+            })?;
 
-        let registrar = build_registrar(&authority, &params.strategy).await?;
+        let registrar = build_registrar(&authority, &params.client_key).await?;
 
         let (user, user_authority) = registrar
             .register(params.params.clone())
@@ -180,7 +185,7 @@ where
 
 pub async fn build_registrar(
     authority: &Authority,
-    strategy: &AuthorityStrategy,
+    client_key: &Uuid,
 ) -> Result<Box<dyn Registrar>, BoxedError> {
     use AuthorityStrategy::*;
 
