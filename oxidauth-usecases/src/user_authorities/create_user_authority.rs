@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::AuthorityNotFoundError, error::BoxedError,
+    authorities::AuthorityNotFoundByStrategyError, error::BoxedError,
     user_authorities::create_user_authority::*,
 };
 use oxidauth_repository::{
@@ -52,7 +52,9 @@ where
             .authority_by_strategy
             .call(&params.into())
             .await?
-            .ok_or_else(|| AuthorityNotFoundError::strategy(params.strategy))?;
+            .ok_or_else(|| {
+                AuthorityNotFoundByStrategyError::strategy(params.strategy)
+            })?;
 
         let registrar = build_registrar(&authority, &params.strategy).await?;
 
