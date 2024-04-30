@@ -1,4 +1,4 @@
-use oxidauth::OxidAuthClient;
+
 use oxidauth_kernel::error::BoxedError;
 
 #[tokio::main]

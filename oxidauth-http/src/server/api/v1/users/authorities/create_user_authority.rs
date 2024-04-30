@@ -4,7 +4,7 @@ use axum::{
     Json,
 };
 use oxidauth_kernel::{
-    authorities::AuthorityStrategy, error::IntoOxidAuthError,
+    error::IntoOxidAuthError,
 };
 use oxidauth_kernel::{user_authorities::create_user_authority::*, JsonValue};
 use oxidauth_permission::parse_and_validate;

@@ -10,7 +10,7 @@ use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPu
 use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
     ExchangeRefreshTokenReq, ExchangeRefreshTokenRes,
 };
-use oxidauth_kernel::authorities::AuthorityStrategy::UsernamePassword;
+
 use oxidauth_kernel::jwt::Jwt;
 use oxidauth_kernel::public_keys::PublicKey;
 use oxidauth_kernel::{base64::*, JsonValue, Password};
