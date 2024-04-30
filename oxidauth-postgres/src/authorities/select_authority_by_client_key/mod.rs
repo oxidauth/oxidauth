@@ -1,4 +1,5 @@
-use oxidauth_repository::authorities::select_authority_by_strategy::*;
+use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKey;
+use oxidauth_repository::authorities::select_authority_by_client_key::*;
 
 use crate::prelude::*;
 
@@ -20,7 +21,7 @@ impl<'a> Service<&'a FindAuthorityByClientKey> for Database {
         let result = sqlx::query_as::<_, PgAuthority>(include_str!(
             "./select_authority_by_client_key.sql"
         ))
-        .bind(&params.strategy.to_string())
+        .bind(params.client_key)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -34,7 +35,6 @@ impl<'a> Service<&'a FindAuthorityByClientKey> for Database {
 
 #[cfg(test)]
 mod tests {
-
     use sqlx::PgPool;
 
     #[ignore]
