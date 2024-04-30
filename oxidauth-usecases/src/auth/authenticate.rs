@@ -26,6 +26,8 @@ use uuid::Uuid;
 
 use crate::auth::strategies::*;
 
+use super::strategies;
+
 pub struct AuthenticateUseCase<T, U, P, M, R>
 where
     T: SelectAuthorityByClientKeyQuery,
@@ -92,8 +94,7 @@ where
                 AuthorityNotFoundByClientKeyError::client_key(params.client_key)
             })?;
 
-        let authenticator =
-            build_authenticator(&authority, &params.client_key).await?;
+        let authenticator = build_authenticator(&authority).await?;
 
         let user_identifier = authenticator
             .user_identifier_from_request(&params.params)
@@ -185,15 +186,15 @@ where
     }
 }
 
+/// build_authenticator hydrates and returns an Authenticator
+/// It takes the Authority (which has settings/params) and the strategy
+/// and returns a Box<dyn Authenticator>
 pub async fn build_authenticator(
     authority: &Authority,
-    client_key: &Uuid,
 ) -> Result<Box<dyn Authenticator>, BoxedError> {
     use AuthorityStrategy::*;
 
-    // @ALYSSA GEORGE - I don't really understand this part. What does build authenticator need to do?
-
-    match strategy {
+    match authority.strategy {
         UsernamePassword => {
             username_password::authenticator::new(authority).await
         },
