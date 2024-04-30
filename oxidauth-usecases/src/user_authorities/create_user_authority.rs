@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::AuthorityNotFoundByStrategyError, error::BoxedError,
+    authorities::AuthorityNotFoundError, error::BoxedError,
     user_authorities::create_user_authority::*,
 };
 use oxidauth_repository::{
-    authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery,
+    authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
     user_authorities::insert_user_authority::InsertUserAuthorityQuery,
 };
 
@@ -13,21 +13,21 @@ use crate::auth::register::build_registrar;
 
 pub struct CreateUserAuthorityUseCase<A, U>
 where
-    A: SelectAuthorityByStrategyQuery,
+    A: SelectAuthorityByClientKeyQuery,
     U: InsertUserAuthorityQuery,
 {
-    authority_by_strategy: A,
+    authority_by_client_key: A,
     insert_user_authority: U,
 }
 
 impl<A, U> CreateUserAuthorityUseCase<A, U>
 where
-    A: SelectAuthorityByStrategyQuery,
+    A: SelectAuthorityByClientKeyQuery,
     U: InsertUserAuthorityQuery,
 {
-    pub fn new(authority_by_strategy: A, insert_user_authority: U) -> Self {
+    pub fn new(authority_by_client_key: A, insert_user_authority: U) -> Self {
         Self {
-            authority_by_strategy,
+            authority_by_client_key,
             insert_user_authority,
         }
     }
@@ -37,7 +37,7 @@ where
 impl<'a, A, U> Service<&'a CreateUserAuthorityParams>
     for CreateUserAuthorityUseCase<A, U>
 where
-    A: SelectAuthorityByStrategyQuery,
+    A: SelectAuthorityByClientKeyQuery,
     U: InsertUserAuthorityQuery,
 {
     type Response = UserAuthority;
@@ -49,14 +49,14 @@ where
         params: &'a CreateUserAuthorityParams,
     ) -> Result<Self::Response, Self::Error> {
         let authority = self
-            .authority_by_strategy
+            .authority_by_client_key
             .call(&params.into())
             .await?
             .ok_or_else(|| {
-                AuthorityNotFoundByStrategyError::strategy(params.strategy)
+                AuthorityNotFoundError::client_key(params.client_key)
             })?;
 
-        let registrar = build_registrar(&authority, &params.strategy).await?;
+        let registrar = build_registrar(&authority).await?;
 
         let user_authority = registrar
             .user_authority_from_request(params.params.clone())

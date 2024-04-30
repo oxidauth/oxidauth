@@ -6,9 +6,7 @@ use oxidauth_kernel::{
         register::{RegisterParams, RegisterResponse},
         Registrar,
     },
-    authorities::{
-        Authority, AuthorityNotFoundByClientKeyError, AuthorityStrategy,
-    },
+    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
@@ -98,10 +96,10 @@ where
             .call(&params.into())
             .await?
             .ok_or_else(|| {
-                AuthorityNotFoundByClientKeyError::strategy(params.client_key)
+                AuthorityNotFoundError::client_key(params.client_key)
             })?;
 
-        let registrar = build_registrar(&authority, &params.client_key).await?;
+        let registrar = build_registrar(&authority).await?;
 
         let (user, user_authority) = registrar
             .register(params.params.clone())
@@ -185,11 +183,10 @@ where
 
 pub async fn build_registrar(
     authority: &Authority,
-    client_key: &Uuid,
 ) -> Result<Box<dyn Registrar>, BoxedError> {
     use AuthorityStrategy::*;
 
-    match strategy {
+    match authority.strategy {
         UsernamePassword => {
             strategies::username_password::registrar::new(authority).await
         },

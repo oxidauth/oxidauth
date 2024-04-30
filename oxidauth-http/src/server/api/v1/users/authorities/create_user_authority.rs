@@ -28,7 +28,7 @@ pub struct CreateUserAuthorityPathReq {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserAuthorityBodyReq {
-    pub authority_strategy: AuthorityStrategy,
+    pub client_key: Uuid,
     pub user_authority: UserAuthorityParams,
 }
 
@@ -73,7 +73,7 @@ pub async fn handle(
     let result = service
         .call(&CreateUserAuthorityParams {
             user_id: params.user_id,
-            strategy: request.authority_strategy,
+            client_key: request.client_key,
             params: request.user_authority.params,
         })
         .await;

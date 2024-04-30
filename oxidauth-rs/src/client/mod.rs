@@ -43,6 +43,7 @@ pub struct Client {
 #[derive(Debug, Clone)]
 pub struct Config {
     base_url: Url,
+    client_key: Uuid,
     username: String,
     password: Password,
 }
@@ -58,6 +59,7 @@ pub struct State {
 impl Client {
     pub fn new(
         base_url: &Url,
+        client_key: Uuid,
         username: &str,
         password: &str,
     ) -> Result<Self, ClientError> {
@@ -73,6 +75,7 @@ impl Client {
         Ok(Self {
             config: Config {
                 base_url,
+                client_key,
                 username: username.to_owned(),
                 password: Password::new(password.to_owned()),
             },
@@ -173,7 +176,7 @@ impl Client {
 
         // authenticate
         let json = AuthenticateReq {
-            strategy: UsernamePassword,
+            client_key: self.config.client_key,
             params: JsonValue::new(json!({
                 "username": self.config.username,
                 "password": self.config.password,

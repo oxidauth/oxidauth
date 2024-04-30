@@ -133,47 +133,13 @@ impl fmt::Display for ParseAuthorityStrategyError {
 impl Error for ParseAuthorityStrategyError {}
 
 #[derive(Debug)]
-pub enum AuthorityNotFoundByClientKeyError {
-    ClientKey(Uuid),
-    Id(Uuid),
-}
-
-impl AuthorityNotFoundByClientKeyError {
-    pub fn client_key(client_key: Uuid) -> Box<Self> {
-        Box::new(Self::ClientKey(client_key))
-    }
-
-    pub fn id(id: Uuid) -> Box<Self> {
-        Box::new(Self::Id(id))
-    }
-}
-
-impl fmt::Display for AuthorityNotFoundByClientKeyError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let missing = match self {
-            AuthorityNotFoundByClientKeyError::ClientKey(client_key) => {
-                client_key.to_string()
-            },
-            AuthorityNotFoundByClientKeyError::Id(id) => id.to_string(),
-        };
-
-        write!(
-            f,
-            "authority not found with client key: {}",
-            missing
-        )
-    }
-}
-
-impl Error for AuthorityNotFoundByClientKeyError {}
-
-#[derive(Debug)]
-pub enum AuthorityNotFoundByStrategyError {
+pub enum AuthorityNotFoundError {
     Strategy(AuthorityStrategy),
     Id(Uuid),
+    ClientKey(Uuid),
 }
 
-impl AuthorityNotFoundByStrategyError {
+impl AuthorityNotFoundError {
     pub fn strategy(strategy: AuthorityStrategy) -> Box<Self> {
         Box::new(Self::Strategy(strategy))
     }
@@ -181,23 +147,32 @@ impl AuthorityNotFoundByStrategyError {
     pub fn id(id: Uuid) -> Box<Self> {
         Box::new(Self::Id(id))
     }
-}
 
-impl fmt::Display for AuthorityNotFoundByStrategyError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let missing = match self {
-            AuthorityNotFoundByStrategyError::Strategy(strategy) => {
-                strategy.to_string()
-            },
-            AuthorityNotFoundByStrategyError::Id(id) => id.to_string(),
-        };
-
-        write!(
-            f,
-            "authority not found with strategy: {}",
-            missing
-        )
+    pub fn client_key(id: Uuid) -> Box<Self> {
+        Box::new(Self::ClientKey(id))
     }
 }
 
-impl Error for AuthorityNotFoundByStrategyError {}
+impl fmt::Display for AuthorityNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AuthorityNotFoundError::Strategy(strategy) => write!(
+                f,
+                "authority not found by strategy: {}",
+                strategy
+            ),
+            AuthorityNotFoundError::Id(id) => write!(
+                f,
+                "authority not found by id: {}",
+                id,
+            ),
+            AuthorityNotFoundError::ClientKey(id) => write!(
+                f,
+                "authority not found by client_key: {}",
+                id,
+            ),
+        }
+    }
+}
+
+impl Error for AuthorityNotFoundError {}

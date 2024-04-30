@@ -7,7 +7,7 @@ use oxidauth_kernel::{
     auth::{
         authenticate::{AuthenticateParams, AuthenticateResponse},
         Authenticator,
-    }, authorities::{Authority, AuthorityNotFoundByClientKeyError, AuthorityStrategy}, error::BoxedError, jwt::{epoch_from_now, Jwt}, private_keys::find_most_recent_private_key::FindMostRecentPrivateKey, service::Service
+    }, authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy}, error::BoxedError, jwt::{epoch_from_now, Jwt}, private_keys::find_most_recent_private_key::FindMostRecentPrivateKey, service::Service
 };
 use oxidauth_repository::{
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
@@ -91,7 +91,7 @@ where
             .call(&params.into())
             .await?
             .ok_or_else(|| {
-                AuthorityNotFoundByClientKeyError::client_key(params.client_key)
+                AuthorityNotFoundError::client_key(params.client_key)
             })?;
 
         let authenticator = build_authenticator(&authority).await?;
