@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::error::BoxedError;
 pub use crate::service::Service;

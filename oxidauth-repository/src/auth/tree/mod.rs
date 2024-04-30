@@ -4,10 +4,10 @@ pub use crate::prelude::*;
 
 pub trait PermissionTreeQuery:
     for<'a> Service<
-        &'a PermissionSearch,
-        Response = PermissionsResponse,
-        Error = BoxedError,
-    >
+    &'a PermissionSearch,
+    Response = PermissionsResponse,
+    Error = BoxedError,
+>
 {
 }
 

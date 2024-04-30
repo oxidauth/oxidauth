@@ -14,11 +14,12 @@ impl<'a> Service<&'a DeleteAuthority> for Database {
         &self,
         params: &'a DeleteAuthority,
     ) -> Result<Authority, BoxedError> {
-        let result =
-            sqlx::query_as::<_, PgAuthority>(include_str!("./delete_authority.sql"))
-                .bind(&params.authority_id)
-                .fetch_one(&self.pool)
-                .await?;
+        let result = sqlx::query_as::<_, PgAuthority>(include_str!(
+            "./delete_authority.sql"
+        ))
+        .bind(&params.authority_id)
+        .fetch_one(&self.pool)
+        .await?;
 
         let authority = result.try_into()?;
 
@@ -28,10 +29,8 @@ impl<'a> Service<&'a DeleteAuthority> for Database {
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

@@ -20,7 +20,11 @@ impl<'a> Service<&'a ListRoleRoleGrantsByParentId> for Database {
     ) -> Result<Vec<RoleRoleGrantDetail>, BoxedError> {
         let mut conn = self.pool.acquire().await?;
 
-        let result = select_role_role_grants_by_parent_id_query(&mut conn, params.parent_id).await?;
+        let result = select_role_role_grants_by_parent_id_query(
+            &mut conn,
+            params.parent_id,
+        )
+        .await?;
 
         let role_role_grant = result
             .into_iter()

@@ -1,5 +1,5 @@
 use oxidauth_kernel::roles::update_role::UpdateRole;
-pub use oxidauth_kernel::{service::Service, roles::Role};
+pub use oxidauth_kernel::{roles::Role, service::Service};
 
 pub use crate::prelude::*;
 

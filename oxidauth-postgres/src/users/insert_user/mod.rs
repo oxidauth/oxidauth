@@ -59,8 +59,6 @@ impl<'a> Service<&'a CreateUser> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
     async fn it_should_be_able_to_insert_a_new_user(_pool: PgPool) {}

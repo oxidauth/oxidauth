@@ -14,11 +14,12 @@ impl<'a> Service<&'a FindAuthorityById> for Database {
         &self,
         params: &'a FindAuthorityById,
     ) -> Result<Authority, BoxedError> {
-        let result =
-            sqlx::query_as::<_, PgAuthority>(include_str!("./query_authority_by_id.sql"))
-                .bind(&params.authority_id)
-                .fetch_one(&self.pool)
-                .await?;
+        let result = sqlx::query_as::<_, PgAuthority>(include_str!(
+            "./query_authority_by_id.sql"
+        ))
+        .bind(&params.authority_id)
+        .fetch_one(&self.pool)
+        .await?;
 
         let authority = result.try_into()?;
 
@@ -28,10 +29,8 @@ impl<'a> Service<&'a FindAuthorityById> for Database {
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

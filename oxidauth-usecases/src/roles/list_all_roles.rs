@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{roles::list_all_roles::*, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, roles::list_all_roles::*};
 use oxidauth_repository::roles::select_all_roles::SelectAllRolesQuery;
 
 pub struct ListAllRolesUseCase<T>
@@ -28,9 +28,10 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "list_all_roles_usecase", skip(self))]
-    async fn call(&self, req: &'a ListAllRoles) -> Result<Self::Response, Self::Error> {
-        self.roles
-            .call(req)
-            .await
+    async fn call(
+        &self,
+        req: &'a ListAllRoles,
+    ) -> Result<Self::Response, Self::Error> {
+        self.roles.call(req).await
     }
 }

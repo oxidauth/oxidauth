@@ -20,4 +20,3 @@ pub type FindAuthorityByIdService = Arc<
 pub struct FindAuthorityById {
     pub authority_id: Uuid,
 }
-

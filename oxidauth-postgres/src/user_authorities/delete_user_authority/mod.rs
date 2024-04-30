@@ -33,10 +33,8 @@ impl<'a> Service<&'a DeleteUserAuthority> for Database {
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

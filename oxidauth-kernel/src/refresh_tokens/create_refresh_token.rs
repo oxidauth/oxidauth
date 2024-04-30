@@ -23,4 +23,3 @@ pub struct CreateRefreshToken {
     pub authority_id: Uuid,
     pub expires_at: DateTime<Utc>,
 }
-

@@ -1,5 +1,5 @@
 pub use oxidauth_kernel::authorities::update_authority::UpdateAuthority;
-pub use oxidauth_kernel::{service::Service, authorities::Authority};
+pub use oxidauth_kernel::{authorities::Authority, service::Service};
 
 pub use crate::prelude::*;
 
@@ -9,6 +9,10 @@ pub trait UpdateAuthorityQuery:
 }
 
 impl<T> UpdateAuthorityQuery for T where
-    T: for<'a> Service<&'a UpdateAuthority, Response = Authority, Error = BoxedError>
+    T: for<'a> Service<
+        &'a UpdateAuthority,
+        Response = Authority,
+        Error = BoxedError,
+    >
 {
 }

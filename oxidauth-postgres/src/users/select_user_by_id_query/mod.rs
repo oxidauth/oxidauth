@@ -42,10 +42,8 @@ pub async fn select_user_by_id_query(
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

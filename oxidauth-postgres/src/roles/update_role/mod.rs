@@ -11,15 +11,14 @@ impl<'a> Service<&'a UpdateRole> for Database {
     type Error = BoxedError;
 
     #[tracing::instrument(name = "update_role_query", skip(self))]
-    async fn call(
-        &self,
-        params: &'a UpdateRole,
-    ) -> Result<Role, BoxedError> {
-        let result = sqlx::query_as::<_, PgRole>(include_str!("./update_role.sql"))
-            .bind(&params.role_id)
-            .bind(&params.name)
-            .fetch_one(&self.pool)
-            .await?;
+    async fn call(&self, params: &'a UpdateRole) -> Result<Role, BoxedError> {
+        let result = sqlx::query_as::<_, PgRole>(include_str!(
+            "./update_role.sql"
+        ))
+        .bind(&params.role_id)
+        .bind(&params.name)
+        .fetch_one(&self.pool)
+        .await?;
 
         let role = result.into();
 
@@ -30,8 +29,6 @@ impl<'a> Service<&'a UpdateRole> for Database {
 #[cfg(test)]
 mod tests {
     use sqlx::PgPool;
-
-    
 
     #[ignore]
     #[sqlx::test]

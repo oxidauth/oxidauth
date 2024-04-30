@@ -14,15 +14,16 @@ impl<'a> Service<&'a ListAllAuthorities> for Database {
         &self,
         params: &'a ListAllAuthorities,
     ) -> Result<Vec<Authority>, BoxedError> {
-        let result =
-            sqlx::query_as::<_, PgAuthority>(include_str!("./select_all_authorities.sql"))
-                .fetch_all(&self.pool)
-                .await?;
+        let result = sqlx::query_as::<_, PgAuthority>(include_str!(
+            "./select_all_authorities.sql"
+        ))
+        .fetch_all(&self.pool)
+        .await?;
 
         let authorities = result
-                .into_iter()
-                .map(|a| a.try_into())
-                .collect::<Result<Vec<Authority>, BoxedError>>()?;
+            .into_iter()
+            .map(|a| a.try_into())
+            .collect::<Result<Vec<Authority>, BoxedError>>()?;
 
         Ok(authorities)
     }
@@ -30,10 +31,8 @@ impl<'a> Service<&'a ListAllAuthorities> for Database {
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

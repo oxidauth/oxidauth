@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{roles::create_role::*, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, roles::create_role::*};
 use oxidauth_repository::roles::insert_role::InsertRoleQuery;
 
 pub struct CreateRoleUseCase<T>
@@ -28,9 +28,10 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "create_role_usecase", skip(self))]
-    async fn call(&self, req: &'a CreateRole) -> Result<Self::Response, Self::Error> {
-        self.roles
-            .call(req)
-            .await
+    async fn call(
+        &self,
+        req: &'a CreateRole,
+    ) -> Result<Self::Response, Self::Error> {
+        self.roles.call(req).await
     }
 }

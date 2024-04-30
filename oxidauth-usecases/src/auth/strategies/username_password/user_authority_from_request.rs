@@ -4,7 +4,6 @@ use oxidauth_kernel::{
     user_authorities::create_user_authority::CreateUserAuthority, JsonValue,
 };
 
-
 use super::{
     authenticator::AuthenticateParams,
     helpers::{hash_password, raw_password_hash},

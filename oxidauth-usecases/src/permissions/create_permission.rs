@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{permissions::create_permission::*, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, permissions::create_permission::*};
 use oxidauth_repository::permissions::insert_permission::InsertPermissionQuery;
 
 pub struct CreatePermissionUseCase<T>
@@ -28,10 +28,12 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "create_permission_usecase", skip(self))]
-    async fn call(&self, req: &'a CreatePermission) -> Result<Self::Response, Self::Error> {
+    async fn call(
+        &self,
+        req: &'a CreatePermission,
+    ) -> Result<Self::Response, Self::Error> {
         self.permissions
             .call(req)
             .await
     }
 }
-

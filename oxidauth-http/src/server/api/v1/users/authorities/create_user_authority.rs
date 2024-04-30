@@ -3,9 +3,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
-use oxidauth_kernel::{
-    error::IntoOxidAuthError,
-};
+use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::{user_authorities::create_user_authority::*, JsonValue};
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};

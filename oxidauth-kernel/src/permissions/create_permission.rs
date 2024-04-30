@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::error::BoxedError;
@@ -18,4 +18,3 @@ pub type CreatePermissionService = Arc<
 pub struct CreatePermission {
     pub permission: String,
 }
-

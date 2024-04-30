@@ -23,7 +23,10 @@ impl<'a> Service<&'a ListUserPermissionGrantsByUserId> for Database {
         let mut conn = self.pool.acquire().await?;
 
         let user_permission_grants =
-            select_user_permission_grants_by_user_id_query(&mut conn, params.user_id)
+            select_user_permission_grants_by_user_id_query(
+                &mut conn,
+                params.user_id,
+            )
             .await?
             .into_iter()
             .map(Into::into)
@@ -49,13 +52,13 @@ pub async fn select_user_permission_grants_by_user_id_query(
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_user_permission_grants_successfully(_pool: PgPool) {
+    async fn it_should_query_user_permission_grants_successfully(
+        _pool: PgPool,
+    ) {
     }
 }

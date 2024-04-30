@@ -29,13 +29,18 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "create_authority_usecase", skip(self))]
-    async fn call(&self, req: &'a mut CreateAuthority) -> Result<Self::Response, Self::Error> {
+    async fn call(
+        &self,
+        req: &'a mut CreateAuthority,
+    ) -> Result<Self::Response, Self::Error> {
         if req.client_key.is_none() {
-            req.client_key.replace(Uuid::new_v4());
+            req.client_key
+                .replace(Uuid::new_v4());
         }
 
         if req.status.is_none() {
-            req.status.replace(AuthorityStatus::Enabled);
+            req.status
+                .replace(AuthorityStatus::Enabled);
         }
 
         self.authorities
@@ -43,4 +48,3 @@ where
             .await
     }
 }
-

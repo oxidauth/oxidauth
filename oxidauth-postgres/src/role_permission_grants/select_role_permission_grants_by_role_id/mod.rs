@@ -39,9 +39,9 @@ pub async fn select_role_permission_grants_by_role_id_query(
     conn: &mut PgConnection,
     role_id: Uuid,
 ) -> Result<Vec<PgRolePermission>, BoxedError> {
-    let result = sqlx::query_as::<_, PgRolePermission>(
-        include_str!("./select_role_permission_grants_by_role_id.sql"),
-    )
+    let result = sqlx::query_as::<_, PgRolePermission>(include_str!(
+        "./select_role_permission_grants_by_role_id.sql"
+    ))
     .bind(role_id)
     .fetch_all(conn)
     .await?;

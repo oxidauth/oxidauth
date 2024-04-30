@@ -34,10 +34,10 @@ impl<'a> Service<&'a FindRefreshTokenById> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
-    async fn it_should_select_a_refresh_token_by_id_successfully(_pool: PgPool) {
+    async fn it_should_select_a_refresh_token_by_id_successfully(
+        _pool: PgPool,
+    ) {
     }
 }

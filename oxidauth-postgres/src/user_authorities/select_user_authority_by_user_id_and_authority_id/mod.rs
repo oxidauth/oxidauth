@@ -34,10 +34,8 @@ impl<'a> Service<&'a FindUserAuthorityByUserIdAndAuthorityId> for Database {
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

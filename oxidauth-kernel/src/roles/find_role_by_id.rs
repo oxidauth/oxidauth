@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub use crate::error::BoxedError;
@@ -9,11 +9,7 @@ pub use crate::service::Service;
 pub use super::Role;
 
 pub type FindRoleByIdService = Arc<
-    dyn for<'a> Service<
-        &'a FindRoleById,
-        Response = Role,
-        Error = BoxedError,
-    >,
+    dyn for<'a> Service<&'a FindRoleById, Response = Role, Error = BoxedError>,
 >;
 
 #[derive(Debug, Serialize, Deserialize)]

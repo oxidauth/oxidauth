@@ -49,8 +49,6 @@ impl<'a> Service<&'a CreateAuthority> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
     async fn it_should_insert_an_authority_successfully(_pool: PgPool) {}
