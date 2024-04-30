@@ -28,11 +28,12 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "delete_authority_usecase", skip(self))]
-    async fn call(&self, req: &'a DeleteAuthority) -> Result<Self::Response, Self::Error> {
+    async fn call(
+        &self,
+        req: &'a DeleteAuthority,
+    ) -> Result<Self::Response, Self::Error> {
         self.authorities
             .call(req)
             .await
     }
 }
-
-

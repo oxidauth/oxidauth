@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{permissions::delete_permission::*, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, permissions::delete_permission::*};
 use oxidauth_repository::permissions::delete_permission::DeletePermissionQuery;
 
 pub struct DeletePermissionUseCase<T>
@@ -28,11 +28,12 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "delete_permission_usecase", skip(self))]
-    async fn call(&self, req: &'a DeletePermission) -> Result<Self::Response, Self::Error> {
+    async fn call(
+        &self,
+        req: &'a DeletePermission,
+    ) -> Result<Self::Response, Self::Error> {
         self.permissions
             .call(req)
             .await
     }
 }
-
-

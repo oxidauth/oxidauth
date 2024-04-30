@@ -26,10 +26,6 @@ impl UpdatePermission for Database {
     }
 }
 mod tests {
-    
-    
-
-    
 
     // #[sqlx::test]
     // async fn it_should_udpate_a_permission_successfully(pool: PgPool) {

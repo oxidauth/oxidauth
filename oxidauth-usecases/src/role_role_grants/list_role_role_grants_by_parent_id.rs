@@ -31,7 +31,10 @@ where
     type Response = Vec<RoleRoleGrantDetail>;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "list_role_role_grants_by_parent_id_usecase", skip(self))]
+    #[tracing::instrument(
+        name = "list_role_role_grants_by_parent_id_usecase",
+        skip(self)
+    )]
     async fn call(
         &self,
         req: &'a ListRoleRoleGrantsByParentId,

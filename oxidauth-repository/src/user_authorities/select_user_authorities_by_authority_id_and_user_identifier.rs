@@ -1,6 +1,8 @@
 use uuid::Uuid;
 
-use oxidauth_kernel::{error::BoxedError, service::Service, user_authorities::UserAuthority};
+use oxidauth_kernel::{
+    error::BoxedError, service::Service, user_authorities::UserAuthority,
+};
 
 pub trait SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery:
     for<'a> Service<

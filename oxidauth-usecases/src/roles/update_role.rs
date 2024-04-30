@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{roles::update_role::*, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, roles::update_role::*};
 use oxidauth_repository::roles::update_role::UpdateRoleQuery;
 
 pub struct UpdateRoleUseCase<T>
@@ -28,9 +28,10 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "update_role_usecase", skip(self))]
-    async fn call(&self, req: &'a UpdateRole) -> Result<Self::Response, Self::Error> {
-        self.roles
-            .call(req)
-            .await
+    async fn call(
+        &self,
+        req: &'a UpdateRole,
+    ) -> Result<Self::Response, Self::Error> {
+        self.roles.call(req).await
     }
 }

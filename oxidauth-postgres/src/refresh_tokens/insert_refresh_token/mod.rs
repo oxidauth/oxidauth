@@ -34,8 +34,6 @@ impl<'a> Service<&'a CreateRefreshToken> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
     async fn it_should_insert_a_refresh_token_successfully(_pool: PgPool) {}

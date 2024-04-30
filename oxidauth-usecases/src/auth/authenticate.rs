@@ -23,10 +23,7 @@ use oxidauth_repository::{
     },
 };
 
-
 use crate::auth::strategies::*;
-
-
 
 pub struct AuthenticateUseCase<T, U, P, M, R>
 where

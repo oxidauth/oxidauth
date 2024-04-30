@@ -48,10 +48,8 @@ pub async fn select_user_role_grants_by_user_id_query(
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore]
     #[sqlx::test]

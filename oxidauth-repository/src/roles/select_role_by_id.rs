@@ -1,5 +1,5 @@
 use oxidauth_kernel::roles::find_role_by_id::FindRoleById;
-pub use oxidauth_kernel::{service::Service, roles::Role};
+pub use oxidauth_kernel::{roles::Role, service::Service};
 
 pub use crate::prelude::*;
 

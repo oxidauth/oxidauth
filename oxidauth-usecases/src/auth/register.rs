@@ -24,7 +24,6 @@ use oxidauth_repository::{
 };
 use std::time::Duration;
 
-
 use crate::auth::strategies;
 
 pub struct RegisterUseCase<T, U, A, P, M, R>

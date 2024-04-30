@@ -4,7 +4,7 @@ pub mod select_role_permission_grants_by_role_id;
 
 use oxidauth_kernel::{
     permissions::Permission,
-    role_permission_grants::{RolePermissionGrant, RolePermission},
+    role_permission_grants::{RolePermission, RolePermissionGrant},
 };
 
 use crate::prelude::*;

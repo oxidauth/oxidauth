@@ -2,7 +2,10 @@ pub mod delete_role_role_grant;
 pub mod insert_role_role_grant;
 pub mod select_role_role_grants_by_parent_id;
 
-use oxidauth_kernel::{role_role_grants::{RoleRoleGrant, RoleRoleGrantDetail}, roles::Role};
+use oxidauth_kernel::{
+    role_role_grants::{RoleRoleGrant, RoleRoleGrantDetail},
+    roles::Role,
+};
 use oxidauth_repository::role_role_grants::RoleRoleGrantRow as RepoRoleRoleGrantRow;
 
 use crate::prelude::*;

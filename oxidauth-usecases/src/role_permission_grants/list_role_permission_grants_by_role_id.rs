@@ -18,7 +18,9 @@ where
     T: SelectRolePermissionGrantsByRoleIdQuery,
 {
     pub fn new(role_permission_grants: T) -> Self {
-        Self { role_permission_grants }
+        Self {
+            role_permission_grants,
+        }
     }
 }
 
@@ -31,7 +33,10 @@ where
     type Response = Vec<RolePermission>;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "list_role_permission_grants_by_role_id_usecase", skip(self))]
+    #[tracing::instrument(
+        name = "list_role_permission_grants_by_role_id_usecase",
+        skip(self)
+    )]
     async fn call(
         &self,
         req: &'a ListRolePermissionGrantsByRoleId,

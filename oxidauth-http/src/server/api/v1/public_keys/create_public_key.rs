@@ -7,7 +7,7 @@ use oxidauth_kernel::{
     },
 };
 use oxidauth_permission::parse_and_validate;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{

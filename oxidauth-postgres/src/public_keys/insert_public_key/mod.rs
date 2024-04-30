@@ -32,10 +32,8 @@ impl<'a> Service<&'a InsertPublicKeyParams> for Database {
 
 #[cfg(test)]
 mod tests {
-    
-    use sqlx::PgPool;
 
-    
+    use sqlx::PgPool;
 
     #[ignore = "not done yet"]
     #[sqlx::test]

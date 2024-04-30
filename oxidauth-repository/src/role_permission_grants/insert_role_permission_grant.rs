@@ -4,12 +4,20 @@ pub use oxidauth_kernel::service::Service;
 pub use crate::prelude::*;
 
 pub trait InsertRolePermissionGrantQuery:
-    for<'a> Service<&'a InsertRolePermissionGrant, Response = RolePermissionGrant, Error = BoxedError>
+    for<'a> Service<
+    &'a InsertRolePermissionGrant,
+    Response = RolePermissionGrant,
+    Error = BoxedError,
+>
 {
 }
 
 impl<T> InsertRolePermissionGrantQuery for T where
-    T: for<'a> Service<&'a InsertRolePermissionGrant, Response = RolePermissionGrant, Error = BoxedError>
+    T: for<'a> Service<
+        &'a InsertRolePermissionGrant,
+        Response = RolePermissionGrant,
+        Error = BoxedError,
+    >
 {
 }
 

@@ -1,5 +1,5 @@
 pub use oxidauth_kernel::authorities::create_authority::CreateAuthority;
-pub use oxidauth_kernel::{service::Service, authorities::Authority};
+pub use oxidauth_kernel::{authorities::Authority, service::Service};
 
 pub use crate::prelude::*;
 
@@ -9,6 +9,10 @@ pub trait InsertAuthorityQuery:
 }
 
 impl<T> InsertAuthorityQuery for T where
-    T: for<'a> Service<&'a CreateAuthority, Response = Authority, Error = BoxedError>
+    T: for<'a> Service<
+        &'a CreateAuthority,
+        Response = Authority,
+        Error = BoxedError,
+    >
 {
 }

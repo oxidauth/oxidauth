@@ -15,12 +15,14 @@ impl<'a> Service<&'a ListAllRoles> for Database {
         &self,
         _params: &'a ListAllRoles,
     ) -> Result<Vec<Role>, BoxedError> {
-        let result = sqlx::query_as::<_, PgRole>(include_str!("./select_all_roles.sql"))
-            .fetch_all(&self.pool)
-            .await?
-            .into_iter()
-            .map(Into::into)
-            .collect();
+        let result = sqlx::query_as::<_, PgRole>(include_str!(
+            "./select_all_roles.sql"
+        ))
+        .fetch_all(&self.pool)
+        .await?
+        .into_iter()
+        .map(Into::into)
+        .collect();
 
         Ok(result)
     }
@@ -30,10 +32,7 @@ impl<'a> Service<&'a ListAllRoles> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
     async fn it_should_query_a_role_by_id_successfully(_pool: PgPool) {}
 }
-

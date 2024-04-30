@@ -9,7 +9,7 @@ use oxidauth_kernel::{
         PublicKey,
     },
 };
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use crate::{provider::Provider, response::Response};

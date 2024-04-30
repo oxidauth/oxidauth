@@ -41,8 +41,6 @@ impl<'a> Service<&'a CreatePermission> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
     async fn it_should_insert_a_permission_by_id_successfully(_pool: PgPool) {}

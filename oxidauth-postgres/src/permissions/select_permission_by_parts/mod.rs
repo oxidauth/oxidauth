@@ -42,9 +42,8 @@ impl<'a> Service<&'a FindPermissionByParts> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
-    async fn it_should_query_a_permission_by_parts_successfully(_pool: PgPool) {}
+    async fn it_should_query_a_permission_by_parts_successfully(_pool: PgPool) {
+    }
 }

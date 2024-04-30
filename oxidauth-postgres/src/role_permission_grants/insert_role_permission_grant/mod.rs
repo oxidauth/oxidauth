@@ -10,7 +10,10 @@ impl<'a> Service<&'a InsertRolePermissionGrant> for Database {
     type Response = RolePermissionGrant;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "insert_role_permission_grant_query", skip(self))]
+    #[tracing::instrument(
+        name = "insert_role_permission_grant_query",
+        skip(self)
+    )]
     async fn call(
         &self,
         params: &'a InsertRolePermissionGrant,
@@ -33,9 +36,10 @@ impl<'a> Service<&'a InsertRolePermissionGrant> for Database {
 mod tests {
     use sqlx::PgPool;
 
-    
-
     #[ignore]
     #[sqlx::test]
-    async fn it_should_insert_a_role_permission_grant_successfully(_pool: PgPool) {}
+    async fn it_should_insert_a_role_permission_grant_successfully(
+        _pool: PgPool,
+    ) {
+    }
 }

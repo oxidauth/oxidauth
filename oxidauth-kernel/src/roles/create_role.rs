@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 pub use crate::error::BoxedError;
@@ -7,11 +7,7 @@ pub use crate::service::Service;
 pub use super::Role;
 
 pub type CreateRoleService = Arc<
-    dyn for<'a> Service<
-        &'a CreateRole,
-        Response = Role,
-        Error = BoxedError,
-    >,
+    dyn for<'a> Service<&'a CreateRole, Response = Role, Error = BoxedError>,
 >;
 
 #[derive(Debug, Serialize, Deserialize)]

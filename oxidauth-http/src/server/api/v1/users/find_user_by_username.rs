@@ -5,7 +5,7 @@ use axum::{
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::users::find_user_by_username::*;
 use oxidauth_permission::parse_and_validate_multiple;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{

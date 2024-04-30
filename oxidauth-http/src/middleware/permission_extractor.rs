@@ -10,8 +10,8 @@ use axum_extra::{
 };
 use oxidauth_kernel::{
     jwt::Jwt,
-    public_keys::{
-        list_all_public_keys::{ListAllPublicKeys, ListAllPublicKeysService},
+    public_keys::list_all_public_keys::{
+        ListAllPublicKeys, ListAllPublicKeysService,
     },
 };
 

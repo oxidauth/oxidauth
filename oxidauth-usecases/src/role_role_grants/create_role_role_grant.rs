@@ -32,7 +32,8 @@ where
 }
 
 #[async_trait]
-impl<'a, T, R> Service<&'a CreateRoleRoleGrant> for CreateRoleRoleGrantUseCase<T, R>
+impl<'a, T, R> Service<&'a CreateRoleRoleGrant>
+    for CreateRoleRoleGrantUseCase<T, R>
 where
     T: InsertRoleRoleGrantQuery,
     R: SelectRoleByIdQuery,
@@ -51,13 +52,15 @@ where
             })
             .await?;
 
-        let child = self.roles
+        let child = self
+            .roles
             .call(&FindRoleById {
                 role_id: req.child_id,
             })
             .await?;
 
-        let grant = self.role_role_grants
+        let grant = self
+            .role_role_grants
             .call(req)
             .await?;
 
