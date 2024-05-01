@@ -44,12 +44,22 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<AuthenticateService>(authenticate_service);
     }
 
+    use oxidauth_kernel::auth_keys::create_auth_key::CreateAuthKeyService;
+    use oxidauth_usecases::auth_keys::create_auth_key::CreateAuthKeyUseCase;
+
+    let create_auth_key_service = Arc::new(CreateAuthKeyUseCase::new(
+        db.clone(),
+    ));
+
+    provider.store::<CreateAuthKeyService>(create_auth_key_service);
+
     {
         use oxidauth_kernel::users::create_user::CreateUserService;
         use oxidauth_usecases::users::create_user::CreateUserUseCase;
 
         let create_user_service = Arc::new(CreateUserUseCase::new(
             db.clone(),
+            create_auth_key_service,
         ));
         provider.store::<CreateUserService>(create_user_service);
     }
