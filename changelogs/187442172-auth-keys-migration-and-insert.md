@@ -1,3 +1,0 @@
-- [187442172](https://www.pivotaltracker.com/story/show/187442172)
-    - auth keys migration
-    - auth keys insert
