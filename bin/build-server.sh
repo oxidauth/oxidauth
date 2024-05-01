@@ -21,6 +21,7 @@ IMAGE=registry.vizerapp.cloud/oxidauth/oxidauth-http
 
 docker buildx build \
   --platform=$PLATFORMS \
+  -t $IMAGE:$SEMVER_VERSION \
   -t $IMAGE:$GIT_VERSION \
   --push \
   -f oxidauth-http/Dockerfile .

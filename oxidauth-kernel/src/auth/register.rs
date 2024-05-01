@@ -29,14 +29,6 @@ pub struct RegisterResponse {
     pub refresh_token: Uuid,
 }
 
-// impl From<&RegisterParams> for FindAuthorityByStrategy {
-//     fn from(value: &RegisterParams) -> Self {
-//         Self {
-//             strategy: value.strategy,
-//         }
-//     }
-// }
-
 impl From<&RegisterParams> for FindAuthorityByClientKey {
     fn from(value: &RegisterParams) -> Self {
         Self {
