@@ -27,7 +27,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a mut CreateAuthKey> for CreateAuthKeyUseCase<T>
+impl<'a, T> Service<&'a CreateAuthKey> for CreateAuthKeyUseCase<T>
 where
     T: InsertAuthKeyQuery,
 {
@@ -37,7 +37,7 @@ where
     #[tracing::instrument(name = "create_auth_key_usecase", skip(self))]
     async fn call(
         &self,
-        req: &'a mut CreateAuthKey,
+        req: &'a CreateAuthKey,
     ) -> Result<Self::Response, Self::Error> {
         let nums = generate_secret();
 
