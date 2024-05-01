@@ -34,7 +34,7 @@ Code generation library: [Boring Auth](https://docs.rs/boringauth) This package 
 
 ### Database Migrations
 Table: totp_secrets
-Columns: id, user_id, key, created_at, updated_at
+Columns: id, user_id, totp_secret, created_at, updated_at
 
 ### Research & Alternatives
 - Alternate library rust-otp, otps, libreauth
