@@ -34,14 +34,6 @@ impl From<&CreateUserAuthorityParams> for FindAuthorityByClientKey {
     }
 }
 
-// impl From<&CreateUserAuthorityParams> for FindAuthorityByStrategy {
-//     fn from(value: &CreateUserAuthorityParams) -> Self {
-//         Self {
-//             strategy: value.strategy,
-//         }
-//     }
-// }
-
 #[derive(Debug, Deserialize)]
 pub struct CreateUserAuthority {
     pub authority_id: Uuid,

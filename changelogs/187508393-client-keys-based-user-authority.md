@@ -1,2 +1,2 @@
-- [187508393](https://www.pivotaltracker.com/story/show/187508393)
+- [187508393](https://www.pivotaltracker.com/story/show/187508393) - switch to client keys instead of strategy
     - starting to switch out strategy usage for client key
