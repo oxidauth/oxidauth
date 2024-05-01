@@ -2,17 +2,17 @@ use crate::dev_prelude::*;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateAuthKeyResponse {
+pub struct CreateTotpSecretResponse {
     pub user_id: Uuid,
 }
 
-pub struct InsertAuthKeyParams {
+pub struct InsertTotpSecretParams {
     pub user_id: Uuid,
     pub secret_key: Vec<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AuthKey {
+pub struct TotpSecret {
     pub id: Uuid,
     pub user_id: Uuid,
     pub key: Vec<i32>,
@@ -20,14 +20,14 @@ pub struct AuthKey {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateAuthKey {
+pub struct CreateTotpSecret {
     pub user_id: Uuid,
 }
 
-pub type CreateAuthKeyService = Arc<
+pub type CreateTotpSecretService = Arc<
     dyn for<'a> Service<
-        &'a CreateAuthKey,
-        Response = CreateAuthKeyResponse,
+        &'a CreateTotpSecret,
+        Response = CreateTotpSecretResponse,
         Error = BoxedError,
     >,
 >;
