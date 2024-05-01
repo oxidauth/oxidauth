@@ -1,5 +1,4 @@
 pub mod auth;
-pub mod auth_keys;
 pub mod authorities;
 pub mod invitations;
 pub mod permissions;
@@ -11,6 +10,7 @@ pub mod role_permission_grants;
 pub mod role_role_grants;
 pub mod roles;
 pub mod settings;
+pub mod totp_secrets;
 pub mod user_authorities;
 pub mod user_permission_grants;
 pub mod user_role_grants;

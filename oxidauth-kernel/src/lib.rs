@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub mod auth;
-pub mod auth_keys;
 pub mod authorities;
 pub mod bootstrap;
 pub mod dev_prelude;
@@ -23,6 +22,7 @@ pub mod roles;
 pub mod rsa;
 pub mod service;
 pub mod settings;
+pub mod totp_secrets;
 pub mod user_authorities;
 pub mod user_permission_grants;
 pub mod user_role_grants;

@@ -8,7 +8,7 @@ Many companies are now requiring 2FA on all accounts and platforms their employe
 
 
 ### Technical Flow
-Each user is assigned a static auth key at creation (stored in new table auth_keys). From the frontend login screen, a user provides username & password combo, if password is correct:
+Each user is assigned a static auth key at creation (stored in new table totp_secrets). From the frontend login screen, a user provides username & password combo, if password is correct:
 
 - a temporary jwt is sent to the browser, allowing the user to access the 2FA code input screen
 - a 6 digit code is created from the secret key + current time, then emailed to the user
@@ -33,7 +33,7 @@ Each user is assigned a static auth key at creation (stored in new table auth_ke
 Code generation library: [Boring Auth](https://docs.rs/boringauth) This package is a library designed to provide out-of-box HOTP and TOTP clients to generate one-time passwords.
 
 ### Database Migrations
-Table: auth_keys
+Table: totp_secrets
 Columns: id, user_id, key, created_at, updated_at
 
 ### Research & Alternatives

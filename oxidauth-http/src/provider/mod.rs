@@ -44,17 +44,19 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<AuthenticateService>(authenticate_service);
     }
 
-    let create_auth_key_service = {
-        use oxidauth_kernel::auth_keys::create_auth_key::CreateAuthKeyService;
-        use oxidauth_usecases::auth_keys::create_auth_key::CreateAuthKeyUseCase;
+    let create_totp_secret_service = {
+        use oxidauth_kernel::totp_secrets::create_totp_secret::CreateTotpSecretService;
+        use oxidauth_usecases::totp_secrets::create_totp_secret::CreateTotpSecretUseCase;
 
-        let create_auth_key_service = Arc::new(CreateAuthKeyUseCase::new(
-            db.clone(),
-        ));
+        let create_totp_secret_service = Arc::new(
+            CreateTotpSecretUseCase::new(db.clone()),
+        );
 
-        provider.store::<CreateAuthKeyService>(create_auth_key_service.clone());
+        provider.store::<CreateTotpSecretService>(
+            create_totp_secret_service.clone(),
+        );
 
-        create_auth_key_service
+        create_totp_secret_service
     };
 
     {
@@ -63,7 +65,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 
         let create_user_service = Arc::new(CreateUserUseCase::new(
             db.clone(),
-            create_auth_key_service,
+            create_totp_secret_service,
         ));
         provider.store::<CreateUserService>(create_user_service);
     }

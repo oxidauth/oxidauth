@@ -1,20 +1,20 @@
-pub mod insert_auth_key;
-use oxidauth_kernel::auth_keys::create_auth_key::AuthKey;
+pub mod insert_totp_secret;
+use oxidauth_kernel::totp_secrets::create_totp_secret::TotpSecret;
 
 use crate::prelude::*;
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct PgAuthKey {
+pub struct PgTotpSecret {
     pub id: Uuid,
     pub user_id: Uuid,
     pub key: Vec<i32>,
     pub created_at: DateTime<Utc>,
 }
 
-impl TryFrom<PgAuthKey> for AuthKey {
+impl TryFrom<PgTotpSecret> for TotpSecret {
     type Error = BoxedError;
 
-    fn try_from(value: PgAuthKey) -> Result<Self, Self::Error> {
+    fn try_from(value: PgTotpSecret) -> Result<Self, Self::Error> {
         Ok(Self {
             id: value.id,
             user_id: value.user_id,
