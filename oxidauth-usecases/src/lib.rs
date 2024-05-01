@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod auth_keys;
 pub mod authorities;
 pub mod bootstrap;
 pub mod dev_prelude;

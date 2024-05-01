@@ -1,15 +1,14 @@
 use crate::prelude::*;
-use rand::prelude::*;
 
 use oxidauth_kernel::auth_keys::create_auth_key::{
-    AuthKey, InsertAuthKeyParams,
+    AuthKey, CreateAuthKeyResponse, InsertAuthKeyParams,
 };
 
 use super::PgAuthKey;
 
 #[async_trait]
 impl<'a> Service<&'a InsertAuthKeyParams> for Database {
-    type Response = AuthKey;
+    type Response = CreateAuthKeyResponse;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "insert_auth_key_query", skip(self, params))]
@@ -17,21 +16,20 @@ impl<'a> Service<&'a InsertAuthKeyParams> for Database {
         &self,
         params: &'a InsertAuthKeyParams,
     ) -> Result<Self::Response, Self::Error> {
-        // generate random vec
-        let mut nums: Vec<i32> = (1..100).collect();
-        let mut rng = rand::thread_rng();
-        nums.shuffle(&mut rng);
-
         let result = sqlx::query_as::<_, PgAuthKey>(include_str!(
             "./insert_auth_key.sql"
         ))
         .bind(&params.user_id)
-        .bind(nums)
+        .bind(&params.secret_key)
         .fetch_one(&self.pool)
         .await?;
 
-        let public_key = result.try_into()?;
+        let public_key: AuthKey = result.try_into()?;
 
-        Ok(public_key)
+        let response = CreateAuthKeyResponse {
+            user_id: public_key.user_id,
+        };
+
+        Ok(response)
     }
 }
