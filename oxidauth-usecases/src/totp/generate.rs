@@ -32,6 +32,18 @@ where
         &self,
         req: &'a GenerateTOTP,
     ) -> Result<Self::Response, Self::Error> {
+
+        // get the secret key for the user by id
+        let key_ascii = "12345678901234567890".to_owned();
+        let key = 
+
+        // use totp library boring auth to generate
+
+        let mut totp = boringauth::oath::TOTPBuilder::new()
+            .ascii_key(&key_ascii)
+            .period(42)
+            .finalize();
+
         self.roles.call(req).await
     }
 }
