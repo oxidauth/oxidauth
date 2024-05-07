@@ -8,6 +8,7 @@ pub mod public_keys;
 pub mod refresh_tokens;
 pub mod roles;
 pub mod settings;
+pub mod totp;
 pub mod users;
 
 use axum::Router;

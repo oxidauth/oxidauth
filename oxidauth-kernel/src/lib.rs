@@ -22,6 +22,7 @@ pub mod roles;
 pub mod rsa;
 pub mod service;
 pub mod settings;
+pub mod totp;
 pub mod totp_secrets;
 pub mod user_authorities;
 pub mod user_permission_grants;
