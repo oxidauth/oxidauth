@@ -7,12 +7,6 @@ use uuid::Uuid;
 use crate::{provider::Provider, response::Response};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ValidateTOTPReq {
-    pub user_id: Uuid,
-    pub code: u32,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateTOTPRes {
     code_validation: bool,
 }

@@ -44,16 +44,18 @@ where
         &self,
         req: &'a GenerateTOTP,
     ) -> Result<Self::Response, Self::Error> {
-        // get the secret key for the user by id
+        // prepare TOTP secret params
         let secret_params = SelectTOTPSecretByUserId {
             user_id: req.user_id,
         };
 
+        // get the secret key for the user by id
         let secret_by_user_id: TOTPSecret = self
             .secret
             .call(&secret_params)
             .await?;
 
+        // generate the totp code using secret, 5 min period
         let totp = boringauth::oath::TOTPBuilder::new()
             .ascii_key(
                 &secret_by_user_id
