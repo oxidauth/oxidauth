@@ -3,10 +3,7 @@ use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
     service::Service,
-    totp::{
-        validate::{ValidateTOTP, ValidateTOTPReq},
-        TOTPValidation,
-    },
+    totp::{validate::ValidateTOTP, TOTPValidation},
 };
 use oxidauth_repository::totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery;
 
