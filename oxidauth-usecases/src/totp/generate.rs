@@ -1,30 +1,42 @@
+use std::fmt::Debug;
+
 use async_trait::async_trait;
 
-use oxidauth_kernel::{error::BoxedError, roles::create_role::*};
-use oxidauth_repository::roles::insert_role::InsertRoleQuery;
+use oxidauth_kernel::{
+    error::BoxedError,
+    service::Service,
+    totp::generate::*,
+    totp_secrets::{
+        select_totp_secret_by_user_id::{
+            SelectTOTPSecretByUserId, SelectTOTPSecretByUserIdError,
+        },
+        TOTPSecret,
+    },
+};
+use oxidauth_repository::totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery;
 
 pub struct GenerateTOTPUseCase<T>
 where
-    T: SelectUserByIdQuery,
+    T: SelectTOTPSecrețByUserIdQuery,
 {
-    user: T,
+    secret: T,
 }
 
 impl<T> GenerateTOTPUseCase<T>
 where
-    T: SelectUserByIdQuery,
+    T: SelectTOTPSecrețByUserIdQuery,
 {
-    pub fn new(user: T) -> Self {
-        Self { user }
+    pub fn new(secret: T) -> Self {
+        Self { secret }
     }
 }
 
 #[async_trait]
 impl<'a, T> Service<&'a GenerateTOTP> for GenerateTOTPUseCase<T>
 where
-    T: SelectUserByIdQuery,
+    T: SelectTOTPSecrețByUserIdQuery,
 {
-    type Response = Role;
+    type Response = TOTPCode;
     type Error = BoxedError;
 
     #[tracing::instrument(name = "generate_totp_usecase", skip(self))]
@@ -32,18 +44,31 @@ where
         &self,
         req: &'a GenerateTOTP,
     ) -> Result<Self::Response, Self::Error> {
-
         // get the secret key for the user by id
-        let key_ascii = "12345678901234567890".to_owned();
-        let key = 
+        let secret_params = SelectTOTPSecretByUserId {
+            user_id: req.user_id,
+        };
 
-        // use totp library boring auth to generate
+        let secret_by_user_id: TOTPSecret = self
+            .secret
+            .call(&secret_params)
+            .await?;
 
-        let mut totp = boringauth::oath::TOTPBuilder::new()
-            .ascii_key(&key_ascii)
-            .period(42)
+        let totp = boringauth::oath::TOTPBuilder::new()
+            .ascii_key(
+                &secret_by_user_id
+                    .secret
+                    .to_string(),
+            )
+            .period(300)
             .finalize();
 
-        self.roles.call(req).await
+        // we need to also send the email
+
+        let code = totp.or(GenerateTOTPError);
+        let result = TOTPCode { code };
+
+        // for now, return the code
+        result
     }
 }
