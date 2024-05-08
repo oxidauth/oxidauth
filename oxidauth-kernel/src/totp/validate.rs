@@ -11,4 +11,7 @@ pub type ValidateTOTPService = Arc<
 >;
 
 #[derive(Debug)]
-pub struct ValidateTOTP;
+pub struct ValidateTOTP {
+    pub user_id: Uuid,
+    pub code: u32,
+}
