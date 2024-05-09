@@ -1668,6 +1668,7 @@ dependencies = [
  "chrono",
  "oxidauth-kernel",
  "oxidauth-repository",
+ "rand",
  "serde",
  "serde_json",
  "sqlx",

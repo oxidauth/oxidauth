@@ -17,6 +17,3 @@ members = [
 ]
 
 exclude = []
-
-[profile.dev.package.num-bigint-dig]
-opt-level = 3
