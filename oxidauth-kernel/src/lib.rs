@@ -10,6 +10,7 @@ pub mod dev_prelude;
 pub mod error;
 pub mod invitations;
 pub mod jwt;
+pub mod mailer;
 pub mod permissions;
 pub mod prelude;
 pub mod private_keys;

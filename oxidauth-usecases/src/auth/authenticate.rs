@@ -22,6 +22,7 @@ use oxidauth_repository::{
         InsertRefreshTokenQuery,
     },
 };
+use oxidauth_kernel::totp::generate::GenerateTOTPService;
 
 use crate::auth::strategies::*;
 
@@ -38,6 +39,7 @@ where
     permission_tree: P,
     private_keys: M,
     refresh_tokens: R,
+    generate_totp_service: GenerateTOTPService,
 }
 
 impl<T, U, P, M, R> AuthenticateUseCase<T, U, P, M, R>
@@ -54,6 +56,7 @@ where
         permission_tree: P,
         private_keys: M,
         refresh_tokens: R,
+        generate_totp_service: GenerateTOTPService,
     ) -> Self {
         Self {
             authority_by_client_key,
@@ -61,6 +64,7 @@ where
             permission_tree,
             private_keys,
             refresh_tokens,
+            generate_totp_service,
         }
     }
 }
@@ -128,14 +132,14 @@ where
         let require_2fa = authority.settings.require_2fa;
 
         if require_2fa {
+            // start the totp generate process (creates code, sends code)
+            self.generate_totp_service
+                .call(user_authority.user_id);
+
             // Permission for viewing just the TOTP code
             let totp_permission: String = "users.TOTP_code".to_string();
 
-            // call generate with user id -- have not pulled in that branch yet
-
-            // generate use case triggers email send -- have not pulled in that branch yet
-
-            // return a jwt with ability to only see the code page
+            // create a jwt with ability to only see the code page
             let private_key = self
                 .private_keys
                 .call(&FindMostRecentPrivateKey {})

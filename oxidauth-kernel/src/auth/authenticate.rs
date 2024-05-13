@@ -48,14 +48,6 @@ impl fmt::Display for ParseAuthorityStrategyError {
     }
 }
 
-// impl From<&AuthenticateParams> for FindAuthorityByStrategy {
-//     fn from(value: &AuthenticateParams) -> Self {
-//         Self {
-//             strategy: value.strategy,
-//         }
-//     }
-// }
-
 impl From<&AuthenticateParams> for FindAuthorityByClientKey {
     fn from(value: &AuthenticateParams) -> Self {
         Self {

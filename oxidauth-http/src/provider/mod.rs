@@ -1,15 +1,25 @@
 use std::sync::Arc;
 
-use oxidauth_kernel::error::BoxedError;
 pub use oxidauth_kernel::provider::Provider;
+use oxidauth_kernel::{error::BoxedError, totp::generate::GenerateTOTPService};
 use oxidauth_postgres::Database;
+use oxidauth_usecases::{
+    mailer::smtp::Smtp, totp::generate::GenerateTOTPUseCase,
+};
 
 pub async fn setup() -> Result<Provider, BoxedError> {
     let mut provider = Provider::new();
 
+    // DB setup ---------------------------------
     let db = Database::from_env().await?;
 
     db.migrate().await?;
+
+    // Mailer setup -----------------------------
+    let sender_service = Smtp::from_env()?.into_sender_service();
+    let mindly_app_base_url = mindly_app_base_url()?;
+    let mindly_admin_invitation_from = mindly_admin_invitation_from()?;
+    let mindly_from = mindly_from()?;
 
     {
         provider.store::<Database>(db.clone());
@@ -30,6 +40,22 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<RegisterService>(register_service);
     }
 
+    let generate_totp_service = {
+        use oxidauth_kernel::totp::generate::GenerateTOTPService;
+        use oxidauth_usecases::totp::generate::GenerateTOTPUseCase;
+
+        let generate_totp_service = Arc::new(GenerateTOTPUseCase::new(
+            db.clone(),
+            &sender_service,
+            &mindly_app_base_url,
+            &mindly_from,
+        ));
+
+        provider.store::<GenerateTOTPService>(generate_totp_service.clone());
+
+        generate_totp_service
+    };
+
     {
         use oxidauth_kernel::auth::authenticate::AuthenticateService;
         use oxidauth_usecases::auth::authenticate::AuthenticateUseCase;
@@ -40,6 +66,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             db.clone(),
             db.clone(),
             db.clone(),
+            generate_totp_service,
         ));
         provider.store::<AuthenticateService>(authenticate_service);
     }
@@ -652,4 +679,67 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     Ok(provider)
+}
+
+// TODO(dewey4iv): all of these env var helpers/etc .. should be moved to a mindly-config package
+const MINDLY_APP_BASE_URL: &str = "MINDLY_APP_BASE_URL";
+
+fn mindly_app_base_url() -> Result<String, EnvVarError> {
+    var(MINDLY_APP_BASE_URL).map_err(EnvVarError::with_field(
+        MINDLY_APP_BASE_URL,
+    ))
+}
+
+const MINDLY_ADMIN_BASE_URL: &str = "MINDLY_ADMIN_BASE_URL";
+
+fn mindly_admin_base_url() -> Result<String, EnvVarError> {
+    var(MINDLY_ADMIN_BASE_URL).map_err(EnvVarError::with_field(
+        MINDLY_ADMIN_BASE_URL,
+    ))
+}
+
+const MINDLY_FROM: &str = "MINDLY_FROM";
+
+fn mindly_from() -> Result<String, EnvVarError> {
+    var(MINDLY_FROM).map_err(EnvVarError::with_field(
+        MINDLY_FROM,
+    ))
+}
+
+const MINDLY_ADMIN_INVITATION_FROM: &str = "MINDLY_ADMIN_INVITATION_FROM";
+
+fn mindly_admin_invitation_from() -> Result<String, EnvVarError> {
+    var(MINDLY_ADMIN_INVITATION_FROM).map_err(EnvVarError::with_field(
+        MINDLY_ADMIN_INVITATION_FROM,
+    ))
+}
+
+#[derive(Debug)]
+pub struct EnvVarError {
+    field: &'static str,
+    source: VarError,
+}
+
+impl EnvVarError {
+    pub fn with_field(
+        field: &'static str,
+    ) -> Box<dyn FnOnce(VarError) -> Self> {
+        Box::new(move |source| Self { field, source })
+    }
+}
+
+impl fmt::Display for EnvVarError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "missing env var: {}: {:?}",
+            self.field, self.source
+        )
+    }
+}
+
+impl std::error::Error for EnvVarError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.source)
+    }
 }

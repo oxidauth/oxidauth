@@ -2,8 +2,10 @@ use std::fmt::Debug;
 
 use async_trait::async_trait;
 
+use crate::sender::smtp::Smtp;
 use oxidauth_kernel::{
     error::BoxedError,
+    mailer::{service::SenderService, Message},
     service::Service,
     totp::generate::*,
     totp_secrets::{
@@ -20,14 +22,27 @@ where
     T: SelectTOTPSecrețByUserIdQuery,
 {
     secret: T,
+    sender_service: SenderService<Smtp>,
+    mindly_app_base_url: String,
+    mindly_from: String,
 }
 
 impl<T> GenerateTOTPUseCase<T>
 where
     T: SelectTOTPSecrețByUserIdQuery,
 {
-    pub fn new(secret: T) -> Self {
-        Self { secret }
+    pub fn new(
+        secret: T,
+        sender_service: &SenderService<Smtp>,
+        mindly_app_base_url: &str,
+        mindly_from: &str,
+    ) -> Self {
+        Self {
+            secret,
+            sender_service: sender_service.clone(),
+            mindly_app_base_url: mindly_app_base_url.to_string(),
+            mindly_from: mindly_from.to_string(),
+        }
     }
 }
 
@@ -65,10 +80,33 @@ where
             .period(300)
             .finalize();
 
-        // we need to also send the email
-
         let code = totp.or(GenerateTOTPError);
         let result = TOTPCode { code };
+
+        // EMAIL -------------------------------------------------------
+
+        // Template
+        let template = include_str!("./totp_code.tmpl");
+
+        // Content replacements
+        let text = template.replace("{{code}}", &code);
+
+        let to = format!(
+            "{} <{}>",
+            &user.name, &user.email
+        );
+
+        let message = Message::builder()
+            .from(&self.mindly_from)
+            .to(&to)
+            .subject("Your Mindly Action Plan ")
+            .text(&text)
+            .build()
+            .map_err(|err| err.to_string())?;
+        self.sender_service
+            .send(&message)
+            .await
+            .map_err(|err| err.to_string())?;
 
         // for now, return the code
         result
