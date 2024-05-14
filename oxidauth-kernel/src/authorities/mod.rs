@@ -1,4 +1,4 @@
-use std::{error::Error, fmt, str::FromStr};
+use std::{error::Error, fmt, str::FromStr, time::Duration};
 
 use serde::{Deserialize, Serialize};
 
@@ -29,9 +29,10 @@ pub struct Authority {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthoritySettings {
-    pub jwt_ttl: std::time::Duration,
-    pub refresh_token_ttl: std::time::Duration,
+    pub jwt_ttl: Duration,
+    pub refresh_token_ttl: Duration,
     pub require_2fa: bool,
+    pub totp_jwt_ttl: Duration,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

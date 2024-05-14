@@ -103,12 +103,13 @@ where
             .text(&text)
             .build()
             .map_err(|err| err.to_string())?;
+
         self.sender_service
             .send(&message)
             .await
             .map_err(|err| err.to_string())?;
 
         // for now, return the code
-        result
+        Ok(result)
     }
 }
