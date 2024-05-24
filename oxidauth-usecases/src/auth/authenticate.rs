@@ -13,7 +13,7 @@ use oxidauth_kernel::{
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     service::Service,
-    totp::{self, generate::{GenerateTOTP, GenerateTOTPTrait}},
+    totp::{generate::{GenerateTOTP, GenerateTOTPTrait}},
 };
 use oxidauth_repository::{
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,

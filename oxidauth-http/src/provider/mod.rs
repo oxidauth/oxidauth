@@ -113,8 +113,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             db.clone(),
             db.clone(),
             db.clone(),
-            db.clone(),
-            db.clone(),
         ));
         provider.store::<ValidateTOTPService>(validate_totp_service);
     }
