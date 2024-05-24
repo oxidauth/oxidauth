@@ -1,17 +1,16 @@
 use crate::dev_prelude::*;
 
-use super::TOTPValidation;
+use std::{
+    error::Error,
+    fmt::{self},
+};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ValidateTOTPReq {
-    pub user_id: Uuid,
-    pub code: u32,
-}
+use super::TOTPValidationRes;
 
 pub type ValidateTOTPService = Arc<
     dyn for<'a> Service<
         &'a ValidateTOTP,
-        Response = TOTPValidation,
+        Response = TOTPValidationRes,
         Error = BoxedError,
     >,
 >;
@@ -19,5 +18,17 @@ pub type ValidateTOTPService = Arc<
 #[derive(Debug)]
 pub struct ValidateTOTP {
     pub user_id: Uuid,
-    pub code: u32,
+    pub code: String,
+    pub client_key: Uuid,
 }
+
+#[derive(Debug)]
+pub struct ValidateTOTPError;
+
+impl fmt::Display for ValidateTOTPError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "could not validate TOTP")
+    }
+}
+
+impl Error for ValidateTOTPError {}

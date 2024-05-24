@@ -7,8 +7,8 @@ use lettre::{
     transport::smtp::{authentication::Credentials, response::Response},
     SmtpTransport, Transport,
 };
-use mindly_kernel::mailer::service::{IntoSenderService, SenderService};
-use mindly_kernel::mailer::{Message, SendError, SendErrorKind, Sender};
+use oxidauth_kernel::mailer::service::{IntoSenderService, SenderService};
+use oxidauth_kernel::mailer::{Message, SendError, SendErrorKind, Sender};
 
 const SMTP_MAILER_HOSTNAME: &str = "SMTP_MAILER_HOSTNAME";
 const SMTP_MAILER_USERNAME: &str = "SMTP_MAILER_USERNAME";

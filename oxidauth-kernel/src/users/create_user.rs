@@ -12,6 +12,16 @@ pub type CreateUserService = Arc<
     dyn for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>,
 >;
 
+pub trait CreateUserTrait:
+    for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
+{
+}
+
+impl<T> CreateUserTrait for T where
+    T: for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
+{
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUser {
     pub id: Option<Uuid>,

@@ -64,11 +64,13 @@ use oxidauth_kernel::{
     },
     JsonValue, Password,
 };
-use rand::{distributions, thread_rng, Rng};
 use tracing::{error, info};
 
-use crate::auth::strategies::username_password::{
-    registrar::UsernamePasswordRegisterParams, AuthorityParams,
+use crate::{
+    auth::strategies::username_password::{
+        registrar::UsernamePasswordRegisterParams, AuthorityParams,
+    },
+    random_string,
 };
 
 pub struct SudoUserBootstrapUseCase {
@@ -238,12 +240,35 @@ async fn first_or_create_public_key(
 }
 
 pub const ADMIN_PERMISSION: &str = "oxidauth:**:**";
+pub const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
 
 #[tracing::instrument(skip_all)]
 async fn first_or_create_permissions(
     permission_by_name: &FindPermissionByPartsService,
     create_permission: &CreatePermissionService,
 ) -> Result<Permission, BoxedError> {
+    let permission_name = TOTP_PERMISSION.to_owned();
+
+    let permission = permission_by_name
+        .call(&FindPermissionByParts {
+            permission: permission_name.clone(),
+        })
+        .await;
+
+    let _totp_permission = match permission {
+        Ok(permission) => Ok(permission),
+        Err(err) => match err.downcast_ref::<PermissionNotFoundError>() {
+            Some(_) => {
+                create_permission
+                    .call(&CreatePermission {
+                        permission: permission_name,
+                    })
+                    .await
+            },
+            None => return Err(err),
+        },
+    };
+
     let permission_name = ADMIN_PERMISSION.to_owned();
 
     let permission = permission_by_name
@@ -331,6 +356,8 @@ pub const DEFAULT_JWT_TTL: Duration = Duration::from_secs(60 * 2);
 
 pub const DEFAULT_2FA: bool = false;
 
+pub const DEFAULT_TOTP_TOKEN_TTL: Duration = Duration::from_secs(60 * 2);
+
 pub const DEFAULT_REFRESH_TOKEN_TTL: Duration =
     Duration::from_secs(60 * 60 * 24 * 2);
 
@@ -365,6 +392,7 @@ async fn first_or_create_authority(
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
                         require_2fa: DEFAULT_2FA,
+                        totp_jwt_ttl: DEFAULT_TOTP_TOKEN_TTL,
                     };
 
                     let mut create_authority_params = CreateAuthority {
@@ -493,13 +521,4 @@ async fn save_bootstrap_setting(
         .await?;
 
     Ok(())
-}
-
-fn random_string() -> String {
-    let s = thread_rng()
-        .sample_iter(&distributions::Alphanumeric)
-        .take(32)
-        .collect::<Vec<_>>();
-
-    String::from_utf8_lossy(&s).to_string()
 }

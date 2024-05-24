@@ -8,7 +8,7 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::totp_secrets::insert_totp_secret::InsertTotpSecretQuery;
 
-use rand::prelude::*;
+use crate::random_string;
 
 pub struct CreateTotpSecretUseCase<T>
 where
@@ -39,7 +39,7 @@ where
         &self,
         req: &'a CreateTotpSecret,
     ) -> Result<Self::Response, Self::Error> {
-        let nums = generate_secret();
+        let nums = random_string();
 
         let totp_secret_params = InsertTotpSecretParams {
             user_id: req.user_id,
@@ -50,14 +50,4 @@ where
             .call(&totp_secret_params)
             .await
     }
-}
-
-fn generate_secret() -> Vec<i32> {
-    let mut nums: Vec<i32> = (1..100).collect();
-
-    let mut rng: ThreadRng = rand::thread_rng();
-
-    nums.shuffle(&mut rng);
-
-    nums
 }

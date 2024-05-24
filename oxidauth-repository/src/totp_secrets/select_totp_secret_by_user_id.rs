@@ -1,6 +1,6 @@
 pub use oxidauth_kernel::service::Service;
 use oxidauth_kernel::totp_secrets::{
-    select_totp_secret_by_user_id::*, TOTPSecret,
+    select_totp_secret_by_user_id::SelectTOTPSecretByUserId, TOTPSecret,
 };
 
 pub use crate::prelude::*;

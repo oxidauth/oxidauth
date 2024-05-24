@@ -7,7 +7,7 @@ pub mod select_totp_secret_by_user_id;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TOTPSecret {
-    pub secret: u32,
+    pub secret: String,
 }
 
 impl fmt::Display for TOTPSecret {

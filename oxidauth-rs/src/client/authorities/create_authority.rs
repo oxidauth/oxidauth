@@ -1,6 +1,6 @@
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::create_authority::{
-    CreateAuthorityReq, CreateAuthorityRes,
+    CreateAuthority, CreateAuthorityReq, CreateAuthorityRes,
 };
 use oxidauth_kernel::error::BoxedError;
 

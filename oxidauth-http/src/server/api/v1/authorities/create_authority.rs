@@ -1,5 +1,5 @@
 use axum::{extract::State, response::IntoResponse, Json};
-use oxidauth_kernel::authorities::create_authority::*;
+pub use oxidauth_kernel::authorities::create_authority::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
