@@ -11,7 +11,7 @@ use oxidauth_kernel::{
     }
 };
 use oxidauth_repository::{
-    auth::tree::PermissionTreeQuery, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery, user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery}, users::select_user_by_id_query::SelectUserByIdQuery
+    auth::tree::PermissionTreeQuery, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery
 };
 
 pub struct ValidateTOTPUseCase<T, K, P, A, R>
