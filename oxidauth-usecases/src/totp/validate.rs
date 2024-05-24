@@ -6,12 +6,27 @@ use chrono::DateTime;
 use std::time::Duration;
 
 use oxidauth_kernel::{
-    auth::tree::PermissionSearch, authorities::{find_authority_by_client_key::FindAuthorityByClientKey, AuthorityNotFoundError}, error::BoxedError, jwt::{epoch_from_now, Jwt}, private_keys::find_most_recent_private_key::FindMostRecentPrivateKey, refresh_tokens::create_refresh_token::CreateRefreshToken, service::Service, totp::{validate::ValidateTOTP, TOTPValidationRes}, totp_secrets::{
+    auth::tree::PermissionSearch,
+    authorities::{
+        find_authority_by_client_key::FindAuthorityByClientKey,
+        AuthorityNotFoundError,
+    },
+    error::BoxedError,
+    jwt::{epoch_from_now, Jwt},
+    private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
+    refresh_tokens::create_refresh_token::CreateRefreshToken,
+    service::Service,
+    totp::{validate::ValidateTOTP, TOTPValidationRes},
+    totp_secrets::{
         select_totp_secret_by_user_id::SelectTOTPSecretByUserId, TOTPSecret,
-    }
+    },
 };
 use oxidauth_repository::{
-    auth::tree::PermissionTreeQuery, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery
+    auth::tree::PermissionTreeQuery,
+    authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
+    private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
+    refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery,
+    totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery,
 };
 
 pub struct ValidateTOTPUseCase<T, K, P, A, R>
