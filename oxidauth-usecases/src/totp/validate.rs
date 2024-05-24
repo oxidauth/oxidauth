@@ -3,81 +3,66 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
-use serde_json::json;
 use std::time::Duration;
 
 use oxidauth_kernel::{
     auth::tree::PermissionSearch, authorities::{find_authority_by_client_key::FindAuthorityByClientKey, AuthorityNotFoundError}, error::BoxedError, jwt::{epoch_from_now, Jwt}, private_keys::find_most_recent_private_key::FindMostRecentPrivateKey, refresh_tokens::create_refresh_token::CreateRefreshToken, service::Service, totp::{validate::ValidateTOTP, TOTPValidationRes}, totp_secrets::{
         select_totp_secret_by_user_id::SelectTOTPSecretByUserId, TOTPSecret,
-    }, users::find_user_by_id::FindUserById
+    }
 };
 use oxidauth_repository::{
-    auth::tree::PermissionTreeQuery, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery, user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery, SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams}, users::select_user_by_id_query::SelectUserByIdQuery
+    auth::tree::PermissionTreeQuery, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery, user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery}, users::select_user_by_id_query::SelectUserByIdQuery
 };
 
-use crate::auth::authenticate::build_authenticator;
-
-pub struct ValidateTOTPUseCase<T, K, P, U, A, R, I>
+pub struct ValidateTOTPUseCase<T, K, P, A, R>
 where
     T: SelectTOTPSecrețByUserIdQuery,
     K: SelectMostRecentPrivateKeyQuery,
     P: PermissionTreeQuery,
-    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     A: SelectAuthorityByClientKeyQuery,
     R: InsertRefreshTokenQuery,
-    I: SelectUserByIdQuery,
 {
     secret: T,
     private_keys: K,
     permission_tree: P,
-    user_authority: U,
     authority_by_client_key: A,
     refresh_tokens: R,
-    user_by_id: I,
 }
 
-impl<T, K, P, U, A, R, I> ValidateTOTPUseCase<T, K, P, U, A, R, I>
+impl<T, K, P, A, R> ValidateTOTPUseCase<T, K, P, A, R>
 where
     T: SelectTOTPSecrețByUserIdQuery,
     K: SelectMostRecentPrivateKeyQuery,
     P: PermissionTreeQuery,
-    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     A: SelectAuthorityByClientKeyQuery,
     R: InsertRefreshTokenQuery,
-    I: SelectUserByIdQuery,
 {
     pub fn new(
         secret: T,
         private_keys: K,
         permission_tree: P,
-        user_authority: U,
         authority_by_client_key: A,
         refresh_tokens: R,
-        user_by_id: I,
     ) -> Self {
         Self {
             secret,
             private_keys,
             permission_tree,
-            user_authority,
             authority_by_client_key,
             refresh_tokens,
-            user_by_id,
         }
     }
 }
 
 #[async_trait]
-impl<'a, T, K, P, U, A, R, I> Service<&'a ValidateTOTP>
-    for ValidateTOTPUseCase<T, K, P, U, A, R, I>
+impl<'a, T, K, P, A, R> Service<&'a ValidateTOTP>
+    for ValidateTOTPUseCase<T, K, P, A, R>
 where
     T: SelectTOTPSecrețByUserIdQuery,
     K: SelectMostRecentPrivateKeyQuery,
     P: PermissionTreeQuery,
-    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     A: SelectAuthorityByClientKeyQuery,
     R: InsertRefreshTokenQuery,
-    I: SelectUserByIdQuery,
 {
     type Response = TOTPValidationRes;
     type Error = BoxedError;
@@ -156,7 +141,7 @@ where
             .await?
             .permissions;
 
-        let mut jwt_builder = Jwt::builder()
+        let jwt_builder = Jwt::builder()
             .with_expires_in(authority.settings.jwt_ttl)
             .with_entitlements(permissions)
             .with_subject(user_id)
