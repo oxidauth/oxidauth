@@ -11,27 +11,19 @@ use oxidauth_postgres::Database;
 use oxidauth_usecases::mailer::smtp::Smtp;
 
 pub async fn setup() -> Result<Provider, BoxedError> {
-    println!("inside provider start...");
-
     let mut provider = Provider::new();
 
     // DB setup ---------------------------------
-    println!("DB setup start...");
 
     let db = Database::from_env().await?;
 
-    println!("DB setup complete, starting migrations...");
-
     db.migrate().await?;
 
-    println!("db migrations complete...");
-
     // Mailer setup -----------------------------
-    println!("mailer service setup...");
+
     let sender_service = Smtp::from_env()?.into_sender_service();
-    println!("sender service done...");
+
     let oxidauth_from = oxidauth_from()?;
-    println!("mailer service setup complete...");
 
     {
         provider.store::<Database>(db.clone());
@@ -62,8 +54,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             &sender_service,
             &oxidauth_from,
         );
-
-        // TODO(berkeleycole): does SelectTOTPSecrețByUserId need a usecase, even though there is no route for it? Don't understand the failure
 
         provider.store::<GenerateTOTPService>(Arc::new(
             generate_totp_service.clone(),
