@@ -111,10 +111,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::users::create_user::CreateUserService;
         use oxidauth_usecases::users::create_user::CreateUserUseCase;
 
-        let create_user_service = CreateUserUseCase::new(
-            db.clone(),
-            create_totp_secret_service,
-        );
+        let create_user_service = CreateUserUseCase::new(db.clone());
 
         provider.store::<CreateUserService>(Arc::new(
             create_user_service.clone(),
@@ -190,8 +187,13 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::user_authorities::create_user_authority::CreateUserAuthorityService;
         use oxidauth_usecases::user_authorities::create_user_authority::CreateUserAuthorityUseCase;
 
-        let create_user_authority_service =
-            Arc::new(CreateUserAuthorityUseCase::new(db.clone(), db.clone()));
+        let create_user_authority_service = Arc::new(
+            CreateUserAuthorityUseCase::new(
+                db.clone(),
+                db.clone(),
+                create_totp_secret_service,
+            ),
+        );
         provider.store::<CreateUserAuthorityService>(
             create_user_authority_service.clone(),
         );
