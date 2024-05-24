@@ -1,7 +1,11 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::AuthorityNotFoundError, error::BoxedError,
+    authorities::AuthorityNotFoundError,
+    error::BoxedError,
+    totp_secrets::create_totp_secret::{
+        CreateTotpSecret, CreateTotpSecretService,
+    },
     user_authorities::create_user_authority::*,
 };
 use oxidauth_repository::{
@@ -18,6 +22,7 @@ where
 {
     authority_by_client_key: A,
     insert_user_authority: U,
+    totp_secrets: CreateTotpSecretService,
 }
 
 impl<A, U> CreateUserAuthorityUseCase<A, U>
@@ -25,10 +30,15 @@ where
     A: SelectAuthorityByClientKeyQuery,
     U: InsertUserAuthorityQuery,
 {
-    pub fn new(authority_by_client_key: A, insert_user_authority: U) -> Self {
+    pub fn new(
+        authority_by_client_key: A,
+        insert_user_authority: U,
+        totp_secrets: CreateTotpSecretService,
+    ) -> Self {
         Self {
             authority_by_client_key,
             insert_user_authority,
+            totp_secrets,
         }
     }
 }
@@ -61,6 +71,17 @@ where
         let user_authority = registrar
             .user_authority_from_request(params.params.clone())
             .await?;
+
+        // If user's authority requires 2FA, ensure the user receives a totp secret
+        if authority.settings.require_2fa {
+            let totp_secret_params = CreateTotpSecret {
+                user_id: params.user_id,
+            };
+
+            self.totp_secrets
+                .call(&totp_secret_params)
+                .await?;
+        }
 
         self.insert_user_authority
             .call((

@@ -1,8 +1,5 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::totp_secrets::create_totp_secret::{
-    CreateTotpSecret, CreateTotpSecretService,
-};
 use oxidauth_kernel::{error::BoxedError, users::create_user::*};
 use oxidauth_repository::users::insert_user::InsertUserQuery;
 
@@ -12,18 +9,14 @@ where
     T: InsertUserQuery,
 {
     users: T,
-    totp_secrets: CreateTotpSecretService,
 }
 
 impl<T> CreateUserUseCase<T>
 where
     T: InsertUserQuery,
 {
-    pub fn new(users: T, totp_secrets: CreateTotpSecretService) -> Self {
-        Self {
-            users,
-            totp_secrets,
-        }
+    pub fn new(users: T) -> Self {
+        Self { users }
     }
 }
 
@@ -41,17 +34,6 @@ where
         req: &'a CreateUser,
     ) -> Result<Self::Response, Self::Error> {
         let user = self.users.call(req).await?;
-
-        let totp_secret_params = CreateTotpSecret { user_id: user.id };
-
-        let _ = self
-            .totp_secrets
-            .call(&totp_secret_params)
-            .await?;
-
-        self.totp_secrets
-            .call(&totp_secret_params)
-            .await?;
 
         Ok(user)
     }

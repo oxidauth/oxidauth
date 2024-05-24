@@ -6,7 +6,6 @@ pub mod server;
 use oxidauth_kernel::bootstrap::{BootstrapParams, BootstrapService};
 use oxidauth_usecases::bootstrap::SudoUserBootstrapUseCase;
 use std::{error::Error, sync::Arc};
-use tracing::info;
 
 use server::Server;
 
