@@ -25,6 +25,7 @@ pub async fn handle(
     let service = provider.fetch::<AuthenticateService>();
 
     info!("provided AuthenticateService");
+    println!("provided AuthenticateService");
 
     let result = service.call(&params).await;
 

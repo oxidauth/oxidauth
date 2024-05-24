@@ -8,32 +8,30 @@ use oxidauth_kernel::{
         CreateInvitationParams, CreateInvitationResponse,
     },
     service::Service,
+    users::create_user::CreateUserTrait,
 };
-use oxidauth_repository::{
-    invitations::insert_invitation::{
-        InsertInvitationParams, InsertInvitationQuery,
-    },
-    users::insert_user::InsertUserQuery,
+use oxidauth_repository::invitations::insert_invitation::{
+    InsertInvitationParams, InsertInvitationQuery,
 };
 
 pub struct CreateInvitationUseCase<T, U>
 where
     T: InsertInvitationQuery,
-    U: InsertUserQuery,
+    U: CreateUserTrait,
 {
     insert_invitation: T,
-    insert_user: U,
+    create_user: U,
 }
 
 impl<T, U> CreateInvitationUseCase<T, U>
 where
     T: InsertInvitationQuery,
-    U: InsertUserQuery,
+    U: CreateUserTrait,
 {
-    pub fn new(insert_invitation: T, insert_user: U) -> Self {
+    pub fn new(insert_invitation: T, create_user: U) -> Self {
         Self {
             insert_invitation,
-            insert_user,
+            create_user,
         }
     }
 }
@@ -43,7 +41,7 @@ impl<'a, T, U> Service<&'a CreateInvitationParams>
     for CreateInvitationUseCase<T, U>
 where
     T: InsertInvitationQuery,
-    U: InsertUserQuery,
+    U: CreateUserTrait,
 {
     type Response = CreateInvitationResponse;
     type Error = BoxedError;
@@ -54,7 +52,7 @@ where
         params: &'a CreateInvitationParams,
     ) -> Result<Self::Response, Self::Error> {
         let user = self
-            .insert_user
+            .create_user
             .call(&params.user)
             .await?;
 

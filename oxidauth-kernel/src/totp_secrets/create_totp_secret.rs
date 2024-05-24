@@ -3,20 +3,12 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTotpSecretResponse {
-    pub user_id: Uuid,
+    pub success: bool,
 }
 
 pub struct InsertTotpSecretParams {
     pub user_id: Uuid,
-    pub secret_key: Vec<i32>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TotpSecret {
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub key: Vec<i32>,
-    pub created_at: DateTime<Utc>,
+    pub secret_key: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

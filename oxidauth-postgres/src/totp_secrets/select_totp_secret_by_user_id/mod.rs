@@ -1,5 +1,6 @@
-use oxidauth_kernel::totp_secrets::select_totp_secret_by_user_id::*;
-use oxidauth_repository::totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserId;
+use oxidauth_kernel::totp_secrets::{
+    select_totp_secret_by_user_id::*, TOTPSecret,
+};
 use sqlx::PgConnection;
 
 use crate::prelude::*;
@@ -7,7 +8,7 @@ use crate::prelude::*;
 use super::*;
 
 #[async_trait]
-impl<'a> Service<&'a SelectTOTPSecrețByUserId> for Database {
+impl<'a> Service<&'a SelectTOTPSecretByUserId> for Database {
     type Response = TOTPSecret;
     type Error = BoxedError;
 
@@ -17,7 +18,7 @@ impl<'a> Service<&'a SelectTOTPSecrețByUserId> for Database {
     )]
     async fn call(
         &self,
-        params: &'a SelectTOTPSecrețByUserId,
+        params: &'a SelectTOTPSecretByUserId,
     ) -> Result<TOTPSecret, BoxedError> {
         let mut conn = self.pool.acquire().await?;
 
@@ -25,7 +26,7 @@ impl<'a> Service<&'a SelectTOTPSecrețByUserId> for Database {
             select_totp_secret_by_user_id_query(&mut conn, params.user_id)
                 .await?;
 
-        Ok(role)
+        Ok(result)
     }
 }
 
@@ -33,14 +34,14 @@ pub async fn select_totp_secret_by_user_id_query(
     conn: &mut PgConnection,
     user_id: Uuid,
 ) -> Result<TOTPSecret, BoxedError> {
-    let result = sqlx::query_as::<_, TOTPSecret>(include_str!(
+    let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
         "./select_totp_secret_by_user_id.sql"
     ))
     .bind(user_id)
     .fetch_one(conn)
     .await?;
 
-    Ok(result)
+    Ok(result.try_into()?)
 }
 
 #[cfg(test)]

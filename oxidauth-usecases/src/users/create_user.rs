@@ -6,6 +6,7 @@ use oxidauth_kernel::totp_secrets::create_totp_secret::{
 use oxidauth_kernel::{error::BoxedError, users::create_user::*};
 use oxidauth_repository::users::insert_user::InsertUserQuery;
 
+#[derive(Clone)]
 pub struct CreateUserUseCase<T>
 where
     T: InsertUserQuery,

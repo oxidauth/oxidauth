@@ -1,25 +1,37 @@
-use std::sync::Arc;
-
-pub use oxidauth_kernel::provider::Provider;
-use oxidauth_kernel::{error::BoxedError, totp::generate::GenerateTOTPService};
-use oxidauth_postgres::Database;
-use oxidauth_usecases::{
-    mailer::smtp::Smtp, totp::generate::GenerateTOTPUseCase,
+use std::fmt;
+use std::{
+    env::{var, VarError},
+    sync::Arc,
 };
 
+use oxidauth_kernel::error::BoxedError;
+use oxidauth_kernel::mailer::service::IntoSenderService;
+pub use oxidauth_kernel::provider::Provider;
+use oxidauth_postgres::Database;
+use oxidauth_usecases::mailer::smtp::Smtp;
+
 pub async fn setup() -> Result<Provider, BoxedError> {
+    println!("inside provider start...");
+
     let mut provider = Provider::new();
 
     // DB setup ---------------------------------
+    println!("DB setup start...");
+
     let db = Database::from_env().await?;
+
+    println!("DB setup complete, starting migrations...");
 
     db.migrate().await?;
 
+    println!("db migrations complete...");
+
     // Mailer setup -----------------------------
+    println!("mailer service setup...");
     let sender_service = Smtp::from_env()?.into_sender_service();
-    let mindly_app_base_url = mindly_app_base_url()?;
-    let mindly_admin_invitation_from = mindly_admin_invitation_from()?;
-    let mindly_from = mindly_from()?;
+    println!("sender service done...");
+    let oxidauth_from = oxidauth_from()?;
+    println!("mailer service setup complete...");
 
     {
         provider.store::<Database>(db.clone());
@@ -44,14 +56,18 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::totp::generate::GenerateTOTPService;
         use oxidauth_usecases::totp::generate::GenerateTOTPUseCase;
 
-        let generate_totp_service = Arc::new(GenerateTOTPUseCase::new(
+        let generate_totp_service = GenerateTOTPUseCase::new(
+            db.clone(),
             db.clone(),
             &sender_service,
-            &mindly_app_base_url,
-            &mindly_from,
-        ));
+            &oxidauth_from,
+        );
 
-        provider.store::<GenerateTOTPService>(generate_totp_service.clone());
+        // TODO(berkeleycole): does SelectTOTPSecrețByUserId need a usecase, even though there is no route for it? Don't understand the failure
+
+        provider.store::<GenerateTOTPService>(Arc::new(
+            generate_totp_service.clone(),
+        ));
 
         generate_totp_service
     };
@@ -68,6 +84,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             db.clone(),
             generate_totp_service,
         ));
+
         provider.store::<AuthenticateService>(authenticate_service);
     }
 
@@ -87,15 +104,36 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     };
 
     {
+        use oxidauth_kernel::totp::validate::ValidateTOTPService;
+        use oxidauth_usecases::totp::validate::ValidateTOTPUseCase;
+
+        let validate_totp_service = Arc::new(ValidateTOTPUseCase::new(
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+        ));
+        provider.store::<ValidateTOTPService>(validate_totp_service);
+    }
+
+    let create_user_service = {
         use oxidauth_kernel::users::create_user::CreateUserService;
         use oxidauth_usecases::users::create_user::CreateUserUseCase;
 
-        let create_user_service = Arc::new(CreateUserUseCase::new(
+        let create_user_service = CreateUserUseCase::new(
             db.clone(),
             create_totp_secret_service,
+        );
+
+        provider.store::<CreateUserService>(Arc::new(
+            create_user_service.clone(),
         ));
-        provider.store::<CreateUserService>(create_user_service);
-    }
+
+        create_user_service
+    };
 
     let update_user_service = {
         use oxidauth_kernel::users::update_user::UpdateUserService;
@@ -641,7 +679,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 
         let create_invitation_service = Arc::new(CreateInvitationUseCase::new(
             db.clone(),
-            db.clone(),
+            create_user_service,
         ));
         provider.store::<CreateInvitationService>(create_invitation_service);
     }
@@ -682,35 +720,12 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 }
 
 // TODO(dewey4iv): all of these env var helpers/etc .. should be moved to a mindly-config package
-const MINDLY_APP_BASE_URL: &str = "MINDLY_APP_BASE_URL";
 
-fn mindly_app_base_url() -> Result<String, EnvVarError> {
-    var(MINDLY_APP_BASE_URL).map_err(EnvVarError::with_field(
-        MINDLY_APP_BASE_URL,
-    ))
-}
+const OXIDAUTH_FROM: &str = "OXIDAUTH_FROM";
 
-const MINDLY_ADMIN_BASE_URL: &str = "MINDLY_ADMIN_BASE_URL";
-
-fn mindly_admin_base_url() -> Result<String, EnvVarError> {
-    var(MINDLY_ADMIN_BASE_URL).map_err(EnvVarError::with_field(
-        MINDLY_ADMIN_BASE_URL,
-    ))
-}
-
-const MINDLY_FROM: &str = "MINDLY_FROM";
-
-fn mindly_from() -> Result<String, EnvVarError> {
-    var(MINDLY_FROM).map_err(EnvVarError::with_field(
-        MINDLY_FROM,
-    ))
-}
-
-const MINDLY_ADMIN_INVITATION_FROM: &str = "MINDLY_ADMIN_INVITATION_FROM";
-
-fn mindly_admin_invitation_from() -> Result<String, EnvVarError> {
-    var(MINDLY_ADMIN_INVITATION_FROM).map_err(EnvVarError::with_field(
-        MINDLY_ADMIN_INVITATION_FROM,
+fn oxidauth_from() -> Result<String, EnvVarError> {
+    var(OXIDAUTH_FROM).map_err(EnvVarError::with_field(
+        OXIDAUTH_FROM,
     ))
 }
 

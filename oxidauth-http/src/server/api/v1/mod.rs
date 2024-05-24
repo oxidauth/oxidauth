@@ -46,4 +46,5 @@ pub fn router() -> Router<Provider> {
             "/invitations",
             invitations::router(),
         )
+        .nest("/totp", totp::router())
 }

@@ -22,7 +22,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
     oxidauth_telemetry::init_subscriber(subscriber);
 
+    println!("beginning provider setup...");
+
     let provider = provider::setup().await?;
+
+    println!("completed provider setup...");
 
     let bootstrap: BootstrapService = Arc::new(SudoUserBootstrapUseCase::new(
         &provider,
