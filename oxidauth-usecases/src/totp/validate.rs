@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
-use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
 use std::time::Duration;
 
@@ -98,28 +97,12 @@ where
             .call(&secret_params)
             .await?;
 
-        let totp = TOTPBuilder::new()
-            .ascii_key(&secret_by_user_id.secret)
-            .period(300)
-            .finalize()
-            .expect("Could not generate totp");
-
-        println!(
-            "TEST NEW CODE :::: {}",
-            totp.generate()
-        );
-
         let valid = boringauth::oath::TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
             .period(300)
             .finalize()
             .unwrap()
             .is_valid(&req.code);
-
-        println!(
-            "IS IT VALID ????? {}, {}",
-            valid, req.code
-        );
 
         if !valid {
             return Err("Code was not valid".into());
@@ -138,8 +121,6 @@ where
             .ok_or_else(|| {
                 AuthorityNotFoundError::client_key(req.client_key)
             })?;
-
-        println!("got authority");
 
         let private_key = self
             .private_keys

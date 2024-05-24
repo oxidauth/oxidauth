@@ -1,6 +1,7 @@
 use std::time::Duration;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use tracing::info;
 use chrono::DateTime;
 use async_trait::async_trait;
 use oxidauth_kernel::{
@@ -13,7 +14,7 @@ use oxidauth_kernel::{
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     service::Service,
-    totp::{generate::{GenerateTOTP, GenerateTOTPTrait}},
+    totp::generate::{GenerateTOTP, GenerateTOTPTrait},
 };
 use oxidauth_repository::{
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
@@ -103,22 +104,12 @@ where
                 AuthorityNotFoundError::client_key(params.client_key)
             })?;
 
-        println!("got authority");
-
         let authenticator = build_authenticator(&authority).await?;
-
-        println!("built authenticator");
 
         let user_identifier = authenticator
             .user_identifier_from_request(&params.params)
             .await?;
 
-        println!("got user identifier");
-
-        println!(
-            "user authority params, {}, {}",
-            authority.id, user_identifier
-        );
         let user_authority_params =
             SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams {
                 authority_id: authority.id,
@@ -130,8 +121,6 @@ where
             .call(&user_authority_params)
             .await?;
 
-        println!("got user authority");
-
         let _ = authenticator
             .authenticate(
                 params.params.clone(),
@@ -139,8 +128,6 @@ where
             )
             .await?;
 
-        // create a jwt with ability to only see the code page
-        println!("making jwt builder");
         let private_key = self
             .private_keys
             .call(&FindMostRecentPrivateKey {})
@@ -153,29 +140,19 @@ where
             .with_issuer("oxidauth".to_owned())
             .with_not_before_from(Duration::from_secs(0));
 
-        println!("completed jwt builder");
-
-        // If we get here, username and password have successfully authenticated
-        // @Alyssa - If user authority has setting of 2FA_required true, start the 2FA process path
-        println!(
-            "checking authority settings, {}",
-            authority.settings.require_2fa
-        );
+        // CHECK FOR 2FA REQUIREMENT AND START 2FA FLOW ---------
         if authority.settings.require_2fa {
-            println!("------------ FOUND 2FA REQUIREMENT!!");
-            // start the totp generate process (creates code, sends code)
-            let totp_res = self
+            info!("Login requires 2FA");
+
+            // start the totp generate process (creates code, sends email)
+            let _ = self
                 .generate_totp_service
                 .call(&GenerateTOTP {
                     user_id: user_authority.user_id,
                 })
                 .await;
 
-            dbg!(&totp_res);
-
-            let _ = totp_res?;
-
-            // Permission for viewing just the TOTP code
+            // Permission for viewing just the email code form in frontend
             const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
 
             jwt_builder = jwt_builder
@@ -195,11 +172,6 @@ where
                 ))
                 .await?
                 .permissions;
-
-            println!(
-                "PERMISSIONS, {:?}",
-                permissions
-            );
 
             jwt_builder = jwt_builder
                 .with_expires_in(authority.settings.jwt_ttl)
