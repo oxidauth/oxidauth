@@ -3,17 +3,20 @@
 resolver = "2"
 
 members = [
-    "oxidauth-cli",
-    "oxidauth-http",
-    "oxidauth-import-export",
-    "oxidauth-kernel",
-    "oxidauth-permission",
-    "oxidauth-postgres",
-    "oxidauth-repository",
-    "oxidauth-rs",
-    "oxidauth-seed",
-    "oxidauth-usecases",
-    "oxidauth-telemetry",
+  "oxidauth-cli",
+  "oxidauth-http",
+  "oxidauth-import-export",
+  "oxidauth-kernel",
+  "oxidauth-permission",
+  "oxidauth-postgres",
+  "oxidauth-repository",
+  "oxidauth-rs",
+  "oxidauth-seed",
+  "oxidauth-usecases",
+  "oxidauth-telemetry",
 ]
 
 exclude = []
+
+[profile.dev.package.num-bigint-dig]
+opt-level = 3
