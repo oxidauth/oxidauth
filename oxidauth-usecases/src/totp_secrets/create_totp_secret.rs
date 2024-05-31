@@ -3,10 +3,12 @@ use oxidauth_kernel::{
     error::BoxedError,
     service::Service,
     totp_secrets::create_totp_secret::{
-        CreateTotpSecret, CreateTotpSecretResponse, InsertTotpSecretParams,
+        CreateTotpSecret, CreateTotpSecretResponse,
     },
 };
-use oxidauth_repository::totp_secrets::insert_totp_secret::InsertTotpSecretQuery;
+use oxidauth_repository::totp_secrets::insert_totp_secret::{
+    InsertTotpSecretParams, InsertTotpSecretQuery,
+};
 
 use crate::random_string;
 

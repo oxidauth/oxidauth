@@ -6,11 +6,6 @@ pub struct CreateTotpSecretResponse {
     pub success: bool,
 }
 
-pub struct InsertTotpSecretParams {
-    pub user_id: Uuid,
-    pub secret_key: String,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTotpSecret {
     pub user_id: Uuid,

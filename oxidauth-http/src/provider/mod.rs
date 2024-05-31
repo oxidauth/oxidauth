@@ -13,14 +13,16 @@ use oxidauth_usecases::mailer::smtp::Smtp;
 pub async fn setup() -> Result<Provider, BoxedError> {
     let mut provider = Provider::new();
 
-    // DB setup ---------------------------------
+    // DB setup
+    let db: Database = {
+        let db = Database::from_env().await?;
 
-    let db = Database::from_env().await?;
+        db.migrate().await?;
 
-    db.migrate().await?;
+        db
+    };
 
-    // Mailer setup -----------------------------
-
+    // Mailer setup
     let sender_service = Smtp::from_env()?.into_sender_service();
 
     let oxidauth_from = oxidauth_from()?;

@@ -1,5 +1,5 @@
 use oxidauth_kernel::totp_secrets::{
-    select_totp_secret_by_user_id::*, TOTPSecret,
+    find_totp_secret_by_user_id::*, TOTPSecret,
 };
 use sqlx::PgConnection;
 
@@ -8,7 +8,7 @@ use crate::prelude::*;
 use super::*;
 
 #[async_trait]
-impl<'a> Service<&'a SelectTOTPSecretByUserId> for Database {
+impl<'a> Service<&'a FindTOTPSecretByUserId> for Database {
     type Response = TOTPSecret;
     type Error = BoxedError;
 
@@ -18,7 +18,7 @@ impl<'a> Service<&'a SelectTOTPSecretByUserId> for Database {
     )]
     async fn call(
         &self,
-        params: &'a SelectTOTPSecretByUserId,
+        params: &'a FindTOTPSecretByUserId,
     ) -> Result<TOTPSecret, BoxedError> {
         let mut conn = self.pool.acquire().await?;
 
