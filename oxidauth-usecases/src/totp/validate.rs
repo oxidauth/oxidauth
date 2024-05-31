@@ -17,7 +17,7 @@ use oxidauth_kernel::{
     service::Service,
     totp::{validate::ValidateTOTP, TOTPValidationRes},
     totp_secrets::{
-        select_totp_secret_by_user_id::SelectTOTPSecretByUserId, TOTPSecret,
+        find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret,
     },
 };
 use oxidauth_repository::{
@@ -89,7 +89,7 @@ where
         let user_id = req.user_id;
 
         // prepare TOTP secret params
-        let secret_params = SelectTOTPSecretByUserId { user_id };
+        let secret_params = FindTOTPSecretByUserId { user_id };
 
         // get the secret key for the user by id
         let secret_by_user_id: TOTPSecret = self

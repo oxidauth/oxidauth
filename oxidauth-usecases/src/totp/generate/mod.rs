@@ -8,7 +8,7 @@ use oxidauth_kernel::{
     service::Service,
     totp::generate::*,
     totp_secrets::{
-        select_totp_secret_by_user_id::SelectTOTPSecretByUserId, TOTPSecret,
+        find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret,
     },
     users::find_user_by_id::FindUserById,
 };
@@ -66,7 +66,7 @@ where
         // get the secret key for the user by id
         let secret_by_user_id: TOTPSecret = self
             .secret
-            .call(&SelectTOTPSecretByUserId {
+            .call(&FindTOTPSecretByUserId {
                 user_id: req.user_id,
             })
             .await?;

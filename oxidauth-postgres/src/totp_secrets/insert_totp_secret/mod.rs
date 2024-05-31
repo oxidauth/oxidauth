@@ -1,9 +1,9 @@
 use crate::prelude::*;
 
 use oxidauth_kernel::totp_secrets::{
-    create_totp_secret::{CreateTotpSecretResponse, InsertTotpSecretParams},
-    TOTPSecret,
+    create_totp_secret::CreateTotpSecretResponse, TOTPSecret,
 };
+use oxidauth_repository::totp_secrets::insert_totp_secret::InsertTotpSecretParams;
 
 use super::PgTotpSecret;
 

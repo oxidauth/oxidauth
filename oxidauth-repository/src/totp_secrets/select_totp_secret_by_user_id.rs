@@ -1,13 +1,13 @@
 pub use oxidauth_kernel::service::Service;
 use oxidauth_kernel::totp_secrets::{
-    select_totp_secret_by_user_id::SelectTOTPSecretByUserId, TOTPSecret,
+    find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret,
 };
 
 pub use crate::prelude::*;
 
 pub trait SelectTOTPSecrețByUserIdQuery:
     for<'a> Service<
-    &'a SelectTOTPSecretByUserId,
+    &'a FindTOTPSecretByUserId,
     Response = TOTPSecret,
     Error = BoxedError,
 >
@@ -16,7 +16,7 @@ pub trait SelectTOTPSecrețByUserIdQuery:
 
 impl<T> SelectTOTPSecrețByUserIdQuery for T where
     T: for<'a> Service<
-        &'a SelectTOTPSecretByUserId,
+        &'a FindTOTPSecretByUserId,
         Response = TOTPSecret,
         Error = BoxedError,
     >
