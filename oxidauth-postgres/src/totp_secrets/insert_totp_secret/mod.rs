@@ -23,10 +23,10 @@ impl<'a> Service<&'a InsertTotpSecretParams> for Database {
         let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
             "./insert_totp_secret.sql"
         ))
-        .bind(&params.user_id)
-        .bind(&params.secret_key)
-        .fetch_one(&self.pool)
-        .await?;
+            .bind(&params.user_id)
+            .bind(&params.secret_key)
+            .fetch_one(&self.pool)
+            .await?;
 
         let _: TOTPSecret = result.try_into()?;
 
