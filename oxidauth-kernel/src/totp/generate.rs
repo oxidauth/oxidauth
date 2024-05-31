@@ -16,10 +16,10 @@ pub type GenerateTOTPService = Arc<
 
 pub trait GenerateTOTPTrait:
     for<'a> Service<
-    &'a GenerateTOTP,
-    Response = TOTPGenerationRes,
-    Error = BoxedError,
->
+        &'a GenerateTOTP,
+        Response = TOTPGenerationRes,
+        Error = BoxedError,
+    >
 {
 }
 
