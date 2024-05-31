@@ -37,9 +37,9 @@ pub async fn select_totp_secret_by_user_id_query(
     let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
         "./select_totp_secret_by_user_id.sql"
     ))
-    .bind(user_id)
-    .fetch_one(conn)
-    .await?;
+        .bind(user_id)
+        .fetch_one(conn)
+        .await?;
 
     Ok(result.try_into()?)
 }
