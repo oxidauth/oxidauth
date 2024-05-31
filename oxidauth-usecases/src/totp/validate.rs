@@ -105,7 +105,7 @@ where
             .is_valid(&req.code);
 
         if !valid {
-            return Err("Code was not valid".into());
+            return Err("invalid totp code".into());
         }
 
         // BUILD JWT ----------------------------------------
