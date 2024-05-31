@@ -142,7 +142,7 @@ where
 
         // CHECK FOR 2FA REQUIREMENT AND START 2FA FLOW ---------
         if authority.settings.require_2fa {
-            info!("Login requires 2FA");
+            info!("login requires 2FA");
 
             // start the totp generate process (creates code, sends email)
             let _ = self
