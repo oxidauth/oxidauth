@@ -247,6 +247,8 @@ async fn first_or_create_permissions(
     permission_by_name: &FindPermissionByPartsService,
     create_permission: &CreatePermissionService,
 ) -> Result<Permission, BoxedError> {
+    // TODO(dewey4iv): currently not returning but might want to later
+    
     let permission_name = TOTP_PERMISSION.to_owned();
 
     let permission = permission_by_name
