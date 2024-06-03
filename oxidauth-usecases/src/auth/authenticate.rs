@@ -9,7 +9,7 @@ use oxidauth_kernel::{
         authenticate::{AuthenticateParams, AuthenticateResponse},
         Authenticator,
     },
-    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
+    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, TotpSettings},
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
@@ -141,8 +141,10 @@ where
             .with_not_before_from(Duration::from_secs(0));
 
         // CHECK FOR 2FA REQUIREMENT AND START 2FA FLOW ---------
-        if authority.settings.require_2fa {
-            info!("login requires 2FA");
+        if let TotpSettings::Enabled { totp_ttl: duration } =
+            authority.settings.totp
+        {
+            info!("Login requires 2FA");
 
             // start the totp generate process (creates code, sends email)
             let _ = self
@@ -156,11 +158,7 @@ where
             const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
 
             jwt_builder = jwt_builder
-                .with_expires_in(
-                    authority
-                        .settings
-                        .totp_jwt_ttl,
-                )
+                .with_expires_in(duration)
                 .with_entitlements(vec![
                     TOTP_PERMISSION.to_string()
                 ]);

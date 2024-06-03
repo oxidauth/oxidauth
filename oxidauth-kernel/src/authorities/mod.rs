@@ -31,8 +31,13 @@ pub struct Authority {
 pub struct AuthoritySettings {
     pub jwt_ttl: Duration,
     pub refresh_token_ttl: Duration,
-    pub require_2fa: bool,
-    pub totp_jwt_ttl: Duration,
+    pub totp: TotpSettings,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum TotpSettings {
+    Enabled { totp_ttl: Duration },
+    Disabled,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -9,7 +9,7 @@ use oxidauth_kernel::{
             FindAuthorityByStrategy, FindAuthorityByStrategyService,
         },
         Authority, AuthorityNotFoundError, AuthoritySettings,
-        AuthorityStrategy,
+        AuthorityStrategy, TotpSettings,
     },
     bootstrap::BootstrapParams,
     error::BoxedError,
@@ -355,14 +355,9 @@ async fn add_admin_permission_to_admin_role(
 }
 
 pub const DEFAULT_JWT_TTL: Duration = Duration::from_secs(60 * 2);
-
-pub const DEFAULT_2FA: bool = false;
-
 pub const DEFAULT_TOTP_TOKEN_TTL: Duration = Duration::from_secs(60 * 2);
-
 pub const DEFAULT_REFRESH_TOKEN_TTL: Duration =
     Duration::from_secs(60 * 60 * 24 * 2);
-
 pub const DEFAULT_USERNAMEPASSWORD_NAME: &str =
     "oxidauth default username_password";
 
@@ -393,8 +388,9 @@ async fn first_or_create_authority(
                     let authority_settings = AuthoritySettings {
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
-                        require_2fa: DEFAULT_2FA,
-                        totp_jwt_ttl: DEFAULT_TOTP_TOKEN_TTL,
+                        totp: TotpSettings::Enabled {
+                            totp_ttl: DEFAULT_TOTP_TOKEN_TTL,
+                        },
                     };
 
                     let mut create_authority_params = CreateAuthority {
