@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::AuthorityNotFoundError,
+    authorities::{AuthorityNotFoundError, TotpSettings},
     error::BoxedError,
     totp_secrets::create_totp_secret::{
         CreateTotpSecret, CreateTotpSecretService,
@@ -73,7 +73,10 @@ where
             .await?;
 
         // If user's authority requires 2FA, ensure the user receives a totp secret
-        if authority.settings.require_2fa {
+        if let TotpSettings::Enabled {
+            totp_ttl: _duration,
+        } = authority.settings.totp
+        {
             let totp_secret_params = CreateTotpSecret {
                 user_id: params.user_id,
             };

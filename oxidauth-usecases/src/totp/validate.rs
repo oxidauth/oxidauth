@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
 use std::time::Duration;
 
@@ -97,7 +98,7 @@ where
             .call(&secret_params)
             .await?;
 
-        let valid = boringauth::oath::TOTPBuilder::new()
+        let valid = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
             .period(300)
             .finalize()
@@ -110,13 +111,11 @@ where
 
         // BUILD JWT ----------------------------------------
 
-        let authority_params = FindAuthorityByClientKey {
-            client_key: req.client_key,
-        };
-
         let authority = self
             .authority_by_client_key
-            .call(&authority_params)
+            .call(&FindAuthorityByClientKey {
+                client_key: req.client_key,
+            })
             .await?
             .ok_or_else(|| {
                 AuthorityNotFoundError::client_key(req.client_key)
