@@ -78,48 +78,6 @@ where
             .finalize()
             .expect("Could not generate totp"); // this is probably a cop out
 
-        // EMAIL -------------------------------------------------------
-
-        // Get user email
-        let user = self
-            .users
-            .call(&FindUserById {
-                user_id: req.user_id,
-            })
-            .await?;
-
-        // Template
-        let template = include_str!("./totp_code.tmpl");
-
-        // Content replacements
-        let code: String = totp.generate();
-
-        let text = template.replace("{{code}}", &code);
-
-        let to = match (user.first_name, user.email) {
-            (None, Some(email)) => email,
-            (Some(first_name), Some(email)) => {
-                format!("{} <{}>", first_name, email)
-            },
-            _ => return Err("missing email".into()),
-        };
-
-        let message = Message::builder()
-            .from(&self.oxidauth_from)
-            .to(&to)
-            .subject("MFA Code from Mindly") // TODO(berkeleycole) - what is the best way to get the name mindly dynamically?
-            .text(&text)
-            .build()
-            .map_err(|err| err.to_string())?;
-
-        dbg!(&text);
-        dbg!(&message);
-
-        self.sender_service
-            .send(&message)
-            .await
-            .map_err(|err| err.to_string())?;
-
         Ok(TOTPGenerationRes { success: true })
     }
 }
