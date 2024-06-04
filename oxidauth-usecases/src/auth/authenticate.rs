@@ -140,21 +140,13 @@ where
             .with_issuer("oxidauth".to_owned())
             .with_not_before_from(Duration::from_secs(0));
 
-        // CHECK FOR 2FA REQUIREMENT AND START 2FA FLOW ---------
+        // CHECK FOR 2FA REQUIREMENT TO SEND BACK LIMITED JWT ---------
         if let TotpSettings::Enabled { totp_ttl: duration } =
             authority.settings.totp
         {
             info!("Login requires 2FA");
 
-            // start the totp generate process (creates code, sends email)
-            let _ = self
-                .generate_totp_service
-                .call(&GenerateTOTP {
-                    user_id: user_authority.user_id,
-                })
-                .await;
-
-            // Permission for viewing just the email code form in frontend
+            // Return permission for viewing just the email code form in frontend
             const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
 
             jwt_builder = jwt_builder
