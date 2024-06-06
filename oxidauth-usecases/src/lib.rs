@@ -3,7 +3,6 @@ pub mod authorities;
 pub mod bootstrap;
 pub mod dev_prelude;
 pub mod invitations;
-pub mod mailer;
 pub mod permissions;
 pub mod public_keys;
 pub mod refresh_tokens;

@@ -1,14 +1,8 @@
-use std::fmt;
-use std::{
-    env::{var, VarError},
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use oxidauth_kernel::error::BoxedError;
-use oxidauth_kernel::mailer::service::IntoSenderService;
 pub use oxidauth_kernel::provider::Provider;
 use oxidauth_postgres::Database;
-use oxidauth_usecases::mailer::smtp::Smtp;
 
 pub async fn setup() -> Result<Provider, BoxedError> {
     let mut provider = Provider::new();
@@ -21,11 +15,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 
         db
     };
-
-    // Mailer setup
-    let sender_service = Smtp::from_env()?.into_sender_service();
-
-    let oxidauth_from = oxidauth_from()?;
 
     {
         provider.store::<Database>(db.clone());
@@ -46,22 +35,15 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<RegisterService>(register_service);
     }
 
-    let generate_totp_service = {
+    {
         use oxidauth_kernel::totp::generate::GenerateTOTPService;
         use oxidauth_usecases::totp::generate::GenerateTOTPUseCase;
 
-        let generate_totp_service = GenerateTOTPUseCase::new(
+        let generate_totp_service = Arc::new(GenerateTOTPUseCase::new(
             db.clone(),
-            db.clone(),
-            &sender_service,
-            &oxidauth_from,
-        );
-
-        provider.store::<GenerateTOTPService>(Arc::new(
-            generate_totp_service.clone(),
         ));
 
-        generate_totp_service
+        provider.store::<GenerateTOTPService>(generate_totp_service);
     };
 
     {
@@ -74,7 +56,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             db.clone(),
             db.clone(),
             db.clone(),
-            generate_totp_service,
         ));
 
         provider.store::<AuthenticateService>(authenticate_service);
@@ -709,44 +690,4 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     Ok(provider)
-}
-
-// TODO(dewey4iv): all of these env var helpers/etc .. should be moved to a mindly-config package
-
-const OXIDAUTH_FROM: &str = "OXIDAUTH_FROM";
-
-fn oxidauth_from() -> Result<String, EnvVarError> {
-    var(OXIDAUTH_FROM).map_err(EnvVarError::with_field(
-        OXIDAUTH_FROM,
-    ))
-}
-
-#[derive(Debug)]
-pub struct EnvVarError {
-    field: &'static str,
-    source: VarError,
-}
-
-impl EnvVarError {
-    pub fn with_field(
-        field: &'static str,
-    ) -> Box<dyn FnOnce(VarError) -> Self> {
-        Box::new(move |source| Self { field, source })
-    }
-}
-
-impl fmt::Display for EnvVarError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "missing env var: {}: {:?}",
-            self.field, self.source
-        )
-    }
-}
-
-impl std::error::Error for EnvVarError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.source)
-    }
 }

@@ -4,32 +4,17 @@ use std::{
     fmt::{self},
 };
 
-pub use super::TOTPGenerationRes;
-
 pub type GenerateTOTPService = Arc<
     dyn for<'a> Service<
         &'a GenerateTOTP,
-        Response = TOTPGenerationRes,
+        Response = TOTPCode,
         Error = BoxedError,
     >,
 >;
 
-pub trait GenerateTOTPTrait:
-    for<'a> Service<
-        &'a GenerateTOTP,
-        Response = TOTPGenerationRes,
-        Error = BoxedError,
-    >
-{
-}
-
-impl<T> GenerateTOTPTrait for T where
-    T: for<'a> Service<
-        &'a GenerateTOTP,
-        Response = TOTPGenerationRes,
-        Error = BoxedError,
-    >
-{
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TOTPCode {
+    pub code: String,
 }
 
 #[derive(Debug)]

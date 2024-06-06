@@ -14,7 +14,6 @@ use oxidauth_kernel::{
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     service::Service,
-    totp::generate::{GenerateTOTP, GenerateTOTPTrait},
 };
 use oxidauth_repository::{
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
@@ -32,31 +31,28 @@ use oxidauth_repository::{
 
 use crate::auth::strategies::*;
 
-pub struct AuthenticateUseCase<T, U, P, M, R, S>
+pub struct AuthenticateUseCase<T, U, P, M, R>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
-    S: GenerateTOTPTrait,
 {
     authority_by_client_key: T,
     user_authority: U,
     permission_tree: P,
     private_keys: M,
     refresh_tokens: R,
-    generate_totp_service: S,
 }
 
-impl<T, U, P, M, R, S> AuthenticateUseCase<T, U, P, M, R, S>
+impl<T, U, P, M, R> AuthenticateUseCase<T, U, P, M, R>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
-    S: GenerateTOTPTrait,
 {
     pub fn new(
         authority_by_client_key: T,
@@ -64,7 +60,6 @@ where
         permission_tree: P,
         private_keys: M,
         refresh_tokens: R,
-        generate_totp_service: S,
     ) -> Self {
         Self {
             authority_by_client_key,
@@ -72,21 +67,19 @@ where
             permission_tree,
             private_keys,
             refresh_tokens,
-            generate_totp_service,
         }
     }
 }
 
 #[async_trait]
-impl<'a, T, U, P, M, R, S> Service<&'a AuthenticateParams>
-    for AuthenticateUseCase<T, U, P, M, R, S>
+impl<'a, T, U, P, M, R> Service<&'a AuthenticateParams>
+    for AuthenticateUseCase<T, U, P, M, R>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
-    S: GenerateTOTPTrait,
 {
     type Response = AuthenticateResponse;
     type Error = BoxedError;
