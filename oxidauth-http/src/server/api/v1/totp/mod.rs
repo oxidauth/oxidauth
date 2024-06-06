@@ -9,12 +9,13 @@ pub mod generate;
 pub mod validate;
 
 pub fn router() -> Router<Provider> {
-    Router::new().route(
-        "/generate",
-        get(validate::handle),
-    );
-    Router::new().route(
-        "/validate",
-        post(validate::handle),
-    )
+    Router::new()
+        .route(
+            "/generate",
+            get(generate::handle),
+        )
+        .route(
+            "/validate",
+            post(validate::handle),
+        )
 }

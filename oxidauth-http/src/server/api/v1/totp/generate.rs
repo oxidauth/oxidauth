@@ -1,6 +1,8 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{extract::State, response::IntoResponse};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use oxidauth_kernel::totp::validate::{ValidateTOTP, ValidateTOTPService};
+use oxidauth_kernel::totp::generate::{
+    GenerateTOTP, GenerateTOTPService, TOTPCode,
+};
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
@@ -9,39 +11,30 @@ use crate::middleware::permission_extractor::{
     ExtractEntitlements, ExtractJwt,
 };
 use crate::{provider::Provider, response::Response};
-use uuid::Uuid;
+
+pub type TOTPGenerateRes = TOTPCode;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GenerateTOTPReq {
-    pub code: String,
-    pub client_key: Uuid,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GenerateTOTPRes {
-    pub jwt: String,
-    pub refresh_token: Uuid,
-}
+pub struct TOTPGenerateReq;
 
 #[tracing::instrument(name = "generate_totp_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
     ExtractJwt(jwt): ExtractJwt,
     ExtractEntitlements(permissions): ExtractEntitlements,
-    Json(params): Json<ValidateTOTPReq>,
 ) -> impl IntoResponse {
     match parse_and_validate(
-        "oxidauth:totp_code:validate",
+        "oxidauth:totp_code:generate",
         &permissions,
     ) {
         Ok(true) => info!(
             "{:?} has {}",
-            jwt.sub, "oxidauth:totp_code:validate"
+            jwt.sub, "oxidauth:totp_code:generate"
         ),
         Ok(false) => {
             warn!(
                 "{:?} doesn't have {}",
-                jwt.sub, "oxidauth:totp_code:validate"
+                jwt.sub, "oxidauth:totp_code:generate"
             );
 
             return Response::unauthorized();
@@ -56,22 +49,8 @@ pub async fn handle(
         None => return Response::unauthorized(),
     };
 
-    let validation_params = ValidateTOTP {
-        user_id,
-        code: params.code,
-        client_key: params.client_key,
-    };
-
-    // start the totp generate process (creates code, sends email)
-    let _ = self
-        .generate_totp_service
-        .call(&GenerateTOTP {
-            user_id: user_authority.user_id,
-        })
-        .await;
-
     let result = service
-        .call(&validation_params)
+        .call(&GenerateTOTP { user_id })
         .await;
 
     match result {
@@ -81,9 +60,8 @@ pub async fn handle(
                 response = ?response,
             );
 
-            Response::success().payload(ValidateTOTPRes {
-                jwt: response.jwt,
-                refresh_token: response.refresh_token,
+            Response::success().payload(TOTPGenerateRes {
+                code: response.code,
             })
         },
         Err(err) => {

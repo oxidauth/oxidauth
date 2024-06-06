@@ -32,6 +32,7 @@ pub mod public_keys;
 pub mod refresh_tokens;
 pub mod roles;
 pub mod settings;
+pub mod totp;
 pub mod users;
 
 #[derive(Debug, Clone)]
@@ -569,6 +570,7 @@ pub enum Resource {
     RolePermissionGrant,
     RoleRoleGrant,
     Setting,
+    Totp,
     User,
     UserAuthority,
     UserPermissionGrant,
@@ -589,6 +591,7 @@ impl fmt::Display for Resource {
             RolePermissionGrant => write!(f, "role_permission_grant"),
             RoleRoleGrant => write!(f, "role_role_grant"),
             Setting => write!(f, "setting"),
+            Totp => write!(f, "totp"),
             User => write!(f, "user"),
             UserAuthority => write!(f, "user_authority"),
             UserPermissionGrant => write!(f, "user_permission_grant"),
