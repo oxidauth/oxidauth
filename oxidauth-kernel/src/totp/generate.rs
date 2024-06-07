@@ -17,7 +17,7 @@ pub struct TOTPCode {
     pub code: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateTOTP {
     pub user_id: Uuid,
 }

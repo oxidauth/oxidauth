@@ -16,7 +16,7 @@ impl Client {
         params: T,
     ) -> Result<TOTPGenerateRes, BoxedError>
     where
-        T: Into<TOTPGenerateReq> + fmt::Debug, // don't know how to do this where no req necessary
+        T: Into<TOTPGenerateReq> + fmt::Debug,
     {
         let params = params.into();
 

@@ -4,7 +4,6 @@ use oxidauth_kernel::totp::generate::{
     GenerateTOTP, GenerateTOTPService, TOTPCode,
 };
 use oxidauth_permission::parse_and_validate;
-use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
@@ -12,10 +11,8 @@ use crate::middleware::permission_extractor::{
 };
 use crate::{provider::Provider, response::Response};
 
+pub type TOTPGenerateReq = GenerateTOTP;
 pub type TOTPGenerateRes = TOTPCode;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TOTPGenerateReq;
 
 #[tracing::instrument(name = "generate_totp_handler", skip(provider))]
 pub async fn handle(
