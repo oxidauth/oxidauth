@@ -2,13 +2,13 @@ use crate::dev_prelude::*;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTotpSecretResponse {
-    pub success: bool,
+pub struct CreateTotpSecret {
+    pub user_id: Uuid,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTotpSecret {
-    pub user_id: Uuid,
+pub struct CreateTotpSecretResponse {
+    pub success: bool,
 }
 
 pub type CreateTotpSecretService = Arc<

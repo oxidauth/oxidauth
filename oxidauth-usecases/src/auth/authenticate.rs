@@ -203,7 +203,9 @@ where
                     },
                 };
 
-                let email = user_identifier.clone();
+                let email = user
+                    .email
+                    .ok_or("unable to send totp code - missing email")?;
 
                 let webhook_params = WebhookReq {
                     webhook_key,
