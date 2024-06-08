@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub mod generate;
 pub mod validate;
 
 #[derive(Debug, Serialize, Deserialize)]

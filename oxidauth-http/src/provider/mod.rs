@@ -36,17 +36,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     {
-        use oxidauth_kernel::totp::generate::GenerateTOTPService;
-        use oxidauth_usecases::totp::generate::GenerateTOTPUseCase;
-
-        let generate_totp_service = Arc::new(GenerateTOTPUseCase::new(
-            db.clone(),
-        ));
-
-        provider.store::<GenerateTOTPService>(generate_totp_service);
-    };
-
-    {
         use oxidauth_kernel::auth::authenticate::AuthenticateService;
         use oxidauth_usecases::auth::authenticate::AuthenticateUseCase;
 
