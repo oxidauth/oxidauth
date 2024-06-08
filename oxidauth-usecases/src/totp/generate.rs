@@ -16,6 +16,7 @@ pub struct GenerateTOTPUseCase<T>
 where
     T: SelectTOTPSecrețByUserIdQuery,
 {
+    // TODO(dewey4iv): maybe we need to use something else here
     secret: T,
 }
 
@@ -50,14 +51,18 @@ where
             .await?;
 
         // generate the totp code using secret, 5 min period
-        let totp = TOTPBuilder::new()
+        let code = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
-            .period(300)
+            .period(300) // TODO(berkeleycole): make this come from authority settings
             .finalize()
-            .expect("Could not generate totp"); // this is probably a cop out
+            .map_err(|err| {
+                format!(
+                    "error generating totp: {:?}",
+                    err
+                )
+            })?
+            .generate();
 
-        Ok(TOTPCode {
-            code: totp.generate(),
-        })
+        Ok(TOTPCode { code })
     }
 }

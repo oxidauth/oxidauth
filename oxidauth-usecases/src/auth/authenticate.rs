@@ -1,6 +1,9 @@
 use std::time::Duration;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use boringauth::oath::TOTPBuilder;
+use serde::{Deserialize, Serialize};
+use reqwest::Client;
 use tracing::info;
 use chrono::DateTime;
 use async_trait::async_trait;
@@ -13,46 +16,48 @@ use oxidauth_kernel::{
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
-    service::Service,
+    service::Service, totp_secrets::{find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret}, users::find_user_by_id::FindUserById,
 };
 use oxidauth_repository::{
-    authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
-    user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{
-        SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
-        SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams
-    },
-    auth::tree::{PermissionSearch, PermissionTreeQuery},
-    private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
-    refresh_tokens::insert_refresh_token::{
+    auth::tree::{PermissionSearch, PermissionTreeQuery}, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::{
         CreateRefreshToken,
         InsertRefreshTokenQuery,
-    },
+    }, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery, user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{
+        SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
+        SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams
+    }, users::select_user_by_id_query::SelectUserByIdQuery
 };
 
 use crate::auth::strategies::*;
 
-pub struct AuthenticateUseCase<T, U, P, M, R>
+pub struct AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
+    S: SelectTOTPSecrețByUserIdQuery,
+    UU: SelectUserByIdQuery,
 {
     authority_by_client_key: T,
     user_authority: U,
     permission_tree: P,
     private_keys: M,
     refresh_tokens: R,
+    user_totp_secret: S,
+    user_by_id: UU,
 }
 
-impl<T, U, P, M, R> AuthenticateUseCase<T, U, P, M, R>
+impl<T, U, P, M, R, S, UU> AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
+    S: SelectTOTPSecrețByUserIdQuery,
+    UU: SelectUserByIdQuery,
 {
     pub fn new(
         authority_by_client_key: T,
@@ -60,6 +65,8 @@ where
         permission_tree: P,
         private_keys: M,
         refresh_tokens: R,
+        user_totp_secret: S,
+        user_by_id: UU,
     ) -> Self {
         Self {
             authority_by_client_key,
@@ -67,19 +74,23 @@ where
             permission_tree,
             private_keys,
             refresh_tokens,
+            user_totp_secret,
+            user_by_id,
         }
     }
 }
 
 #[async_trait]
-impl<'a, T, U, P, M, R> Service<&'a AuthenticateParams>
-    for AuthenticateUseCase<T, U, P, M, R>
+impl<'a, T, U, P, M, R, S, UU> Service<&'a AuthenticateParams>
+    for AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     P: PermissionTreeQuery,
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
+    S: SelectTOTPSecrețByUserIdQuery,
+    UU: SelectUserByIdQuery,
 {
     type Response = AuthenticateResponse;
     type Error = BoxedError;
@@ -106,7 +117,7 @@ where
         let user_authority_params =
             SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams {
                 authority_id: authority.id,
-                user_identifier,
+                user_identifier: user_identifier.clone(),
             };
 
         let user_authority = self
@@ -134,31 +145,104 @@ where
             .with_not_before_from(Duration::from_secs(0));
 
         // CHECK FOR 2FA REQUIREMENT TO SEND BACK LIMITED JWT ---------
-        if let TotpSettings::Enabled { totp_ttl: duration } =
-            authority.settings.totp
-        {
-            info!("Login requires 2FA");
+        match authority.settings.totp {
+            TotpSettings::Enabled {
+                totp_ttl,
+                webhook,
+                webhook_key,
+            } => {
+                let user = self
+                    .user_by_id
+                    .call(&FindUserById {
+                        user_id: user_authority.user_id,
+                    })
+                    .await?;
 
-            // Return permission for viewing just the email code form in frontend
-            const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
+                info!("login requires 2FA");
 
-            jwt_builder = jwt_builder
-                .with_expires_in(duration)
-                .with_entitlements(vec![
-                    TOTP_PERMISSION.to_string()
-                ]);
-        } else {
-            let permissions = self
-                .permission_tree
-                .call(&PermissionSearch::User(
-                    user_authority.user_id,
-                ))
-                .await?
-                .permissions;
+                // Return permission for viewing just the email code form in frontend
+                const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
 
-            jwt_builder = jwt_builder
-                .with_expires_in(authority.settings.jwt_ttl)
-                .with_entitlements(permissions);
+                jwt_builder = jwt_builder
+                    .with_expires_in(totp_ttl)
+                    .with_entitlements(vec![
+                        TOTP_PERMISSION.to_string()
+                    ]);
+
+                // TODO(dewey4iv): we may need to secure this endpoint...
+
+                // get the secret key for the user by id
+                let secret_by_user_id: TOTPSecret = self
+                    .user_totp_secret
+                    .call(&FindTOTPSecretByUserId {
+                        user_id: user_authority.user_id,
+                    })
+                    .await?;
+
+                // generate the totp code using secret, 5 min period
+                let code = TOTPBuilder::new()
+                    .ascii_key(&secret_by_user_id.secret)
+                    .period(totp_ttl.as_secs() as u32)
+                    .finalize()
+                    .map_err(|err| {
+                        format!(
+                            "error generating totp: {:?}",
+                            err
+                        )
+                    })?
+                    .generate();
+
+                let name = match (
+                    user.first_name,
+                    user.last_name,
+                ) {
+                    (None, None) => None,
+                    (None, Some(last)) => Some(last),
+                    (Some(first), None) => Some(first),
+                    (Some(first), Some(last)) => {
+                        Some(format!("{} {}", first, last))
+                    },
+                };
+
+                let email = user_identifier.clone();
+
+                let webhook_params = WebhookReq {
+                    webhook_key,
+                    name,
+                    email,
+                    code,
+                };
+
+                let client = Client::new();
+                let webhook_res: WebhookRes = client
+                    .post(webhook)
+                    .json(&webhook_params)
+                    .send()
+                    .await?
+                    .json()
+                    .await?;
+
+                if !webhook_res.success {
+                    return Err(format!(
+                        "unable to send totp code to: {}",
+                        user_identifier,
+                    )
+                    .into());
+                }
+            },
+            TotpSettings::Disabled => {
+                let permissions = self
+                    .permission_tree
+                    .call(&PermissionSearch::User(
+                        user_authority.user_id,
+                    ))
+                    .await?
+                    .permissions;
+
+                jwt_builder = jwt_builder
+                    .with_expires_in(authority.settings.jwt_ttl)
+                    .with_entitlements(permissions);
+            },
         }
 
         let refresh_token_exp_at = epoch_from_now(
@@ -225,4 +309,17 @@ pub async fn build_authenticator(
         },
         SingleUseToken => unimplemented!(),
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebhookReq {
+    webhook_key: String,
+    name: Option<String>,
+    email: String,
+    code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebhookRes {
+    success: bool,
 }
