@@ -22,6 +22,12 @@ pub struct GenerateTOTP {
     pub user_id: Uuid,
 }
 
+impl Into<GenerateTOTP> for Uuid {
+    fn into(self) -> GenerateTOTP {
+        GenerateTOTP { user_id: self }
+    }
+}
+
 #[derive(Debug)]
 pub struct GenerateTOTPError;
 

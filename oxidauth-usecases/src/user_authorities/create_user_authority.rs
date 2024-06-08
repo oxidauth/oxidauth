@@ -73,10 +73,7 @@ where
             .await?;
 
         // If user's authority requires 2FA, ensure the user receives a totp secret
-        if let TotpSettings::Enabled {
-            totp_ttl: _duration,
-        } = authority.settings.totp
-        {
+        if let TotpSettings::Enabled { .. } = authority.settings.totp {
             let totp_secret_params = CreateTotpSecret {
                 user_id: params.user_id,
             };

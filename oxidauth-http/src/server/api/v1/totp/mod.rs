@@ -1,7 +1,4 @@
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::{routing::post, Router};
 
 use crate::provider::Provider;
 
@@ -12,7 +9,7 @@ pub fn router() -> Router<Provider> {
     Router::new()
         .route(
             "/generate",
-            get(generate::handle),
+            post(generate::handle),
         )
         .route(
             "/validate",

@@ -11,7 +11,7 @@ const METHOD: &str = "generate_code";
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn generate_code<T>(
+    pub async fn generate_totp_code<T>(
         &self,
         params: T,
     ) -> Result<TOTPGenerateRes, BoxedError>
@@ -21,7 +21,7 @@ impl Client {
         let params = params.into();
 
         let resp: Response<TOTPGenerateRes> = self
-            .get("/totp/generate", params)
+            .post("/totp/generate", params)
             .await?;
 
         let totp_res = handle_response(RESOURCE, METHOD, resp)?;

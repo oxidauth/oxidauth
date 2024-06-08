@@ -1,3 +1,4 @@
+use axum::Json;
 use axum::{extract::State, response::IntoResponse};
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_kernel::totp::generate::{
@@ -19,6 +20,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     ExtractJwt(jwt): ExtractJwt,
     ExtractEntitlements(permissions): ExtractEntitlements,
+    Json(params): Json<TOTPGenerateReq>,
 ) -> impl IntoResponse {
     match parse_and_validate(
         "oxidauth:totp_code:generate",
@@ -41,14 +43,7 @@ pub async fn handle(
 
     let service = provider.fetch::<GenerateTOTPService>();
 
-    let user_id = match jwt.sub {
-        Some(user_id) => user_id,
-        None => return Response::unauthorized(),
-    };
-
-    let result = service
-        .call(&GenerateTOTP { user_id })
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(response) => {

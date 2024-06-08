@@ -1,6 +1,7 @@
 use std::{error::Error, fmt, str::FromStr, time::Duration};
 
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 pub mod create_authority;
 pub mod delete_authority;
@@ -36,7 +37,11 @@ pub struct AuthoritySettings {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum TotpSettings {
-    Enabled { totp_ttl: Duration },
+    Enabled {
+        totp_ttl: Duration,
+        webhook: Url,
+        webhook_key: String,
+    },
     Disabled,
 }
 

@@ -248,7 +248,7 @@ async fn first_or_create_permissions(
     create_permission: &CreatePermissionService,
 ) -> Result<Permission, BoxedError> {
     // TODO(dewey4iv): currently not returning but might want to later
-    
+
     let permission_name = TOTP_PERMISSION.to_owned();
 
     let permission = permission_by_name
@@ -375,7 +375,7 @@ async fn first_or_create_authority(
     match authority {
         Ok(authority) => Ok(authority),
         Err(err) => {
-            info!("authority not found");
+            info!("authority not found -- creating authority");
 
             match err.downcast_ref::<Box<AuthorityNotFoundError>>() {
                 Some(_) => {
@@ -388,9 +388,7 @@ async fn first_or_create_authority(
                     let authority_settings = AuthoritySettings {
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
-                        totp: TotpSettings::Enabled {
-                            totp_ttl: DEFAULT_TOTP_TOKEN_TTL,
-                        },
+                        totp: TotpSettings::Disabled,
                     };
 
                     let mut create_authority_params = CreateAuthority {
