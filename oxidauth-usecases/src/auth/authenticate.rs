@@ -2,14 +2,13 @@ use std::time::Duration;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use boringauth::oath::TOTPBuilder;
-use serde::{Deserialize, Serialize};
 use reqwest::Client;
 use tracing::info;
 use chrono::DateTime;
 use async_trait::async_trait;
-use oxidauth_kernel::{
+pub use oxidauth_kernel::{
     auth::{
-        authenticate::{AuthenticateParams, AuthenticateResponse},
+        authenticate::{AuthenticateParams, AuthenticateResponse, WebhookReq, WebhookRes},
         Authenticator,
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, TotpSettings},
@@ -309,17 +308,4 @@ pub async fn build_authenticator(
         },
         SingleUseToken => unimplemented!(),
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WebhookReq {
-    webhook_key: String,
-    name: Option<String>,
-    email: String,
-    code: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WebhookRes {
-    success: bool,
 }

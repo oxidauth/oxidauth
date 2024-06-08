@@ -55,3 +55,16 @@ impl From<&AuthenticateParams> for FindAuthorityByClientKey {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebhookReq {
+    pub webhook_key: String,
+    pub name: Option<String>,
+    pub email: String,
+    pub code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebhookRes {
+    pub success: bool,
+}
