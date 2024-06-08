@@ -18,13 +18,9 @@ impl<'a> Service<&'a InsertTotpSecretParams> for Database {
         &self,
         params: &'a InsertTotpSecretParams,
     ) -> Result<Self::Response, Self::Error> {
-        let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
-            "./insert_totp_secret.sql"
-        ))
-            .bind(&params.user_id)
-            .bind(&params.secret_key)
-            .fetch_one(&self.pool)
-            .await?;
+        let mut conn = self.pool.acquire().await?;
+
+        let result = insert_totp_secret_query(&mut conn, params).await?;
 
         let _: TOTPSecretRow = result.try_into()?;
 
@@ -32,4 +28,20 @@ impl<'a> Service<&'a InsertTotpSecretParams> for Database {
 
         Ok(response)
     }
+}
+
+pub async fn insert_totp_secret_query(
+    conn: &mut PgConnection,
+    params: &InsertTotpSecretParams,
+) -> Result<PgTotpSecret, BoxedError> {
+    let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
+        "./insert_totp_secret.sql"
+    ))
+    .bind(&params.user_id)
+    .bind(&params.secret_key)
+    .fetch_one(conn)
+    .await
+    .map_err(|err| Box::new(err))?;
+
+    Ok(result)
 }

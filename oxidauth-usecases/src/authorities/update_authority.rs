@@ -1,4 +1,8 @@
 use async_trait::async_trait;
+use oxidauth_kernel::authorities::TotpSettings;
+use oxidauth_kernel::totp_secrets;
+use oxidauth_kernel::totp_secrets::create_totp_secrets_by_authority_id::{CreateTotpSecrets, CreateTotpSecretsService};
+use oxidauth_repository::totp_secrets::select_where_no_totp_secret_by_authority_id::SelectWhereNoTotpSecretByAuthorityIdQuery;
 use uuid::Uuid;
 
 use oxidauth_kernel::{authorities::update_authority::*, error::BoxedError};
@@ -12,6 +16,7 @@ where
 {
     update_authority: T,
     authority_by_id: I,
+    totp_secrets: CreateTotpSecretsService,
 }
 
 impl<T, I> UpdateAuthorityUseCase<T, I>
@@ -19,10 +24,15 @@ where
     T: UpdateAuthorityQuery,
     I: SelectAuthorityByIdQuery,
 {
-    pub fn new(update_authority: T, authority_by_id: I) -> Self {
+    pub fn new(
+        update_authority: T,
+        authority_by_id: I,
+        totp_secrets: CreateTotpSecretsService,
+    ) -> Self {
         Self {
             update_authority,
             authority_by_id,
+            totp_secrets,
         }
     }
 }
@@ -41,8 +51,6 @@ where
         &self,
         req: &'a mut UpdateAuthority,
     ) -> Result<Self::Response, Self::Error> {
-        // NOTE(kazenix): the id is getting set in the http handler from the url param, this is
-        // just for anything else that might use this service.
         let authority_id = req
             .id
             .ok_or("UpdateAuthority must have authority_id")?;
@@ -60,6 +68,15 @@ where
         if req.status.is_none() {
             req.status
                 .replace(current.status);
+        }
+
+        if let (TotpSettings::Disabled, TotpSettings::Enabled { .. }) = (
+            &current.settings.totp,
+            &req.settings.totp,
+        ) {
+            self.totp_secrets
+                .create_totp_secrets(&CreateTotpSecrets { authority_id })
+                .await?;
         }
 
         self.update_authority
