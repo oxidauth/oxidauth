@@ -168,8 +168,6 @@ where
                         TOTP_PERMISSION.to_string()
                     ]);
 
-                // TODO(dewey4iv): we may need to secure this endpoint...
-
                 // get the secret key for the user by id
                 let secret_by_user_id: TOTPSecret = self
                     .user_totp_secret

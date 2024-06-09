@@ -7,11 +7,15 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::totp_secrets::{
     insert_totp_secrets::{InsertTotpSecretsParams, InsertTotpSecretsQuery},
-    select_where_no_totp_secret_by_authority_id::SelectWhereNoTotpSecretByAuthorityIdQuery,
+    select_where_no_totp_secret_by_authority_id::{
+        SelectWhereNoTotpSecretByAuthorityIdParams,
+        SelectWhereNoTotpSecretByAuthorityIdQuery,
+    },
 };
 
 use crate::random_string;
 
+#[derive(Debug, Clone)]
 pub struct CreateTotpSecretsByAuthorityIdUseCase<S, I>
 where
     S: SelectWhereNoTotpSecretByAuthorityIdQuery,
@@ -52,7 +56,11 @@ where
         // get the user ids via the authority
         let user_ids = self
             .select_user_ids
-            .select_where_no_totp_secret_by_authority_id(req.authority_id)
+            .select_where_no_totp_secret_by_authority_id(
+                &SelectWhereNoTotpSecretByAuthorityIdParams {
+                    authority_id: req.authority_id,
+                },
+            )
             .await?;
 
         let user_id_and_secrets: Vec<_> = user_ids
