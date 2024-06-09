@@ -1,6 +1,4 @@
-use oxidauth_kernel::totp_secrets::{
-    find_totp_secret_by_user_id::*, TOTPSecret,
-};
+use oxidauth_repository::totp_secrets::select_where_no_totp_secret_by_authority_id::{SelectWhereNoTotpSecretByAuthorityIdParams, SelectWhereNoTotpSecretByAuthorityIdQuery};
 use sqlx::PgConnection;
 
 use crate::prelude::*;
@@ -8,17 +6,14 @@ use crate::prelude::*;
 use super::*;
 
 #[async_trait]
-impl<'a> Service<&'a SelectWhereNoTotpSecretByAuthorityIdParams> for Database {
-    type Response = Vec<Uuid>;
-    type Error = BoxedError;
-
+impl SelectWhereNoTotpSecretByAuthorityIdQuery for Database {
     #[tracing::instrument(
         name = "select_where_no_totp_secret_by_authority_id",
         skip(self)
     )]
-    async fn call(
+    async fn select_where_no_totp_secret_by_authority_id(
         &self,
-        params: &'a SelectWhereNoTotpSecretByAuthorityIdParams,
+        params: &SelectWhereNoTotpSecretByAuthorityIdParams,
     ) -> Result<Vec<Uuid>, BoxedError> {
         let mut conn = self.pool.acquire().await?;
 
@@ -34,12 +29,17 @@ pub async fn select_where_no_totp_secret_by_authority_id(
     conn: &mut PgConnection,
     authority_id: Uuid,
 ) -> Result<Vec<Uuid>, BoxedError> {
-    let result = sqlx::query_as::<_, Vec<Uuid>>(include_str!(
+    let result = sqlx::query_as::<_, (Uuid,)>(include_str!(
         "./select_where_no_totp_secret_by_authority_id.sql"
     ))
     .bind(authority_id)
-    .fetch_one(conn)
+    .fetch_all(conn)
     .await?;
+
+    let result = result
+        .into_iter()
+        .map(|row| row.0)
+        .collect();
 
     Ok(result)
 }

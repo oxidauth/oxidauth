@@ -2,6 +2,7 @@ pub use oxidauth_kernel::service::Service;
 
 pub use crate::prelude::*;
 
+#[derive(Debug)]
 pub struct SelectWhereNoTotpSecretByAuthorityIdParams {
     pub authority_id: Uuid,
 }
@@ -12,6 +13,6 @@ pub trait SelectWhereNoTotpSecretByAuthorityIdQuery:
 {
     async fn select_where_no_totp_secret_by_authority_id(
         &self,
-        authority_id: Uuid,
+        params: &SelectWhereNoTotpSecretByAuthorityIdParams,
     ) -> Result<Vec<Uuid>, BoxedError>;
 }

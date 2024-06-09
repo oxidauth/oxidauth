@@ -555,6 +555,21 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             .store::<ListAllPublicKeysService>(list_all_public_keys_service);
     }
 
+    let create_totp_secrets_service = {
+        use oxidauth_kernel::totp_secrets::create_totp_secrets_by_authority_id::CreateTotpSecretsService;
+        use oxidauth_usecases::totp_secrets::create_totp_secrets_by_authority_id::CreateTotpSecretsByAuthorityIdUseCase;
+
+        let create_totp_secrets_service = Arc::new(
+            CreateTotpSecretsByAuthorityIdUseCase::new(db.clone(), db.clone()),
+        );
+
+        provider.store::<CreateTotpSecretsService>(
+            create_totp_secrets_service.clone(),
+        );
+
+        create_totp_secrets_service
+    };
+
     {
         use oxidauth_kernel::authorities::update_authority::UpdateAuthorityService;
         use oxidauth_usecases::authorities::update_authority::UpdateAuthorityUseCase;
@@ -562,6 +577,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         let update_authority_service = Arc::new(UpdateAuthorityUseCase::new(
             db.clone(),
             db.clone(),
+            create_totp_secrets_service,
         ));
         provider.store::<UpdateAuthorityService>(update_authority_service);
     }

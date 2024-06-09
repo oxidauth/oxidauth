@@ -12,7 +12,7 @@ use server::Server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    info!("engaging oxidauth http server...");
+    println!("engaging oxidauth http server...");
 
     let subscriber = oxidauth_telemetry::get_subscriber(
         "oxidauth-http-api".into(),
