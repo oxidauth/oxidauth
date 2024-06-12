@@ -366,6 +366,8 @@ async fn first_or_create_authority(
     authority_by_strategy: &FindAuthorityByStrategyService,
     create_authority: &CreateAuthorityService,
 ) -> Result<Authority, BoxedError> {
+    // TODO(dewey4iv): we should swap this for something
+    // that can pull the authority by the name
     let authority = authority_by_strategy
         .call(&FindAuthorityByStrategy {
             strategy: AuthorityStrategy::UsernamePassword,

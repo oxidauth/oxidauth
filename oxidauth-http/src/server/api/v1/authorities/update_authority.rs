@@ -3,6 +3,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+pub use oxidauth_kernel::authorities::update_authority::UpdateAuthority;
 use oxidauth_kernel::authorities::update_authority::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_permission::parse_and_validate;
