@@ -1,6 +1,7 @@
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::update_authority::{
-    UpdateAuthorityReq, UpdateAuthorityRes,
+    UpdateAuthority, UpdateAuthorityPathReq, UpdateAuthorityReq,
+    UpdateAuthorityRes,
 };
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
@@ -18,8 +19,8 @@ impl Client {
         params: T,
     ) -> Result<UpdateAuthorityRes, BoxedError>
     where
-        T: Into<UpdateAuthorityReq> + fmt::Debug,
         U: Into<Uuid> + fmt::Debug,
+        T: Into<UpdateAuthorityReq> + fmt::Debug,
     {
         let authority_id = authority_id.into();
         let params = params.into();

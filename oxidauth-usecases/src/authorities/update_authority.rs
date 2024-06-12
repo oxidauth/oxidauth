@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_kernel::authorities::TotpSettings;
-use oxidauth_kernel::totp_secrets;
-use oxidauth_kernel::totp_secrets::create_totp_secrets_by_authority_id::{CreateTotpSecrets, CreateTotpSecretsService};
-use oxidauth_repository::totp_secrets::select_where_no_totp_secret_by_authority_id::SelectWhereNoTotpSecretByAuthorityIdQuery;
+use oxidauth_kernel::totp_secrets::create_totp_secrets_by_authority_id::{
+    CreateTotpSecrets, CreateTotpSecretsService,
+};
 use uuid::Uuid;
 
 use oxidauth_kernel::{authorities::update_authority::*, error::BoxedError};
