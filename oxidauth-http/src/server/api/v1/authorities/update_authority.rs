@@ -71,16 +71,16 @@ pub async fn handle(
     match result {
         Ok(authority) => {
             info!(
-            message = "successfully updated authority",
-            authority = ?authority,
+                message = "successfully updated authority",
+                authority = ?authority,
             );
 
             Response::success().payload(UpdateAuthorityRes { authority })
         },
         Err(err) => {
             info!(
-            message = "failed to update authority",
-            err = ?err,
+                message = "failed to update authority",
+                err = ?err,
             );
 
             Response::fail().error(err.into_error())

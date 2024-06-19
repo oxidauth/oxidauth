@@ -26,7 +26,7 @@ impl Client {
         let params = params.into();
 
         let resp: Response<UpdateAuthorityRes> = self
-            .post(
+            .put(
                 &format!(
                     "/authorities/{}",
                     authority_id
