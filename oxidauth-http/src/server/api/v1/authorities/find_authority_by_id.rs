@@ -30,7 +30,6 @@ pub async fn handle(
     ExtractEntitlements(permissions): ExtractEntitlements,
     Path(params): Path<FindAuthorityByIdReq>,
 ) -> impl IntoResponse {
-    dbg!(&permissions);
     match parse_and_validate(PERMISSION, &permissions) {
         Ok(true) => info!(
             "{:?} has {}",

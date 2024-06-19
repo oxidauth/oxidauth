@@ -25,7 +25,7 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum UserKind {
     #[default]

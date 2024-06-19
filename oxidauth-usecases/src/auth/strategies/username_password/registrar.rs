@@ -98,6 +98,7 @@ pub struct UsernamePasswordRegisterParams {
     pub email: Option<String>,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
+    pub kind: Option<UserKind>,
 }
 
 impl UsernamePasswordRegisterParams {
@@ -123,11 +124,12 @@ impl From<UsernamePasswordRegisterParams> for CreateUser {
             email,
             first_name,
             last_name,
+            kind,
             ..
         } = params.clone();
         let user_id = Uuid::new_v4();
         let status = Some(UserStatus::Enabled);
-        let kind = Some(UserKind::Human);
+        let kind = Some(kind.unwrap_or(UserKind::Human));
 
         Self {
             id: Some(user_id),

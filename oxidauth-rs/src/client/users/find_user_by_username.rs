@@ -20,8 +20,11 @@ impl Client {
 
         let resp: Response<FindUserByUsernameRes> = self
             .get(
-                "/users/by_username/{}",
-                username,
+                &format!(
+                    "/users/by_username/{}",
+                    username,
+                ),
+                None::<()>,
             )
             .await?;
 

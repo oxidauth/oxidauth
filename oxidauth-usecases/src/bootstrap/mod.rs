@@ -60,7 +60,7 @@ use oxidauth_kernel::{
         find_user_by_username::{
             FindUserByUsername, FindUserByUsernameService,
         },
-        User, UserNotFoundError,
+        User, UserKind, UserNotFoundError,
     },
     JsonValue, Password,
 };
@@ -452,6 +452,7 @@ async fn first_or_register_user(
                     email: None,
                     first_name: None,
                     last_name: None,
+                    kind: Some(UserKind::Human),
                 }
                 .to_value()?;
 

@@ -1,6 +1,6 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use oxidauth_kernel::error::IntoOxidAuthError;
-use oxidauth_kernel::users::create_user::*;
+pub use oxidauth_kernel::users::create_user::*;
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
