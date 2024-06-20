@@ -3,13 +3,13 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use oxidauth_kernel::{
     auth::tree::PermissionSearch,
     authorities::{
         find_authority_by_client_key::FindAuthorityByClientKey,
-        AuthorityNotFoundError,
+        AuthorityNotFoundError, TotpSettings,
     },
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
@@ -89,28 +89,6 @@ where
     ) -> Result<Self::Response, Self::Error> {
         let user_id = req.user_id;
 
-        // prepare TOTP secret params
-        let secret_params = FindTOTPSecretByUserId { user_id };
-
-        // get the secret key for the user by id
-        let secret_by_user_id: TOTPSecret = self
-            .secret
-            .call(&secret_params)
-            .await?;
-
-        let valid = TOTPBuilder::new()
-            .ascii_key(&secret_by_user_id.secret)
-            .period(300)
-            .finalize()
-            .unwrap()
-            .is_valid(&req.code);
-
-        if !valid {
-            return Err("invalid totp code".into());
-        }
-
-        // BUILD JWT ----------------------------------------
-
         let authority = self
             .authority_by_client_key
             .call(&FindAuthorityByClientKey {
@@ -120,6 +98,43 @@ where
             .ok_or_else(|| {
                 AuthorityNotFoundError::client_key(req.client_key)
             })?;
+
+        let totp_ttl = match authority.settings.totp {
+            TotpSettings::Enabled { totp_ttl, .. } => totp_ttl,
+            TotpSettings::Disabled => {
+                return Err("totp_ttl missing because totp is disabled".into());
+            },
+        };
+
+        // prepare TOTP secret params
+        let secret_params = FindTOTPSecretByUserId { user_id };
+
+        // get the secret key for the user by id
+        let secret_by_user_id: TOTPSecret = self
+            .secret
+            .call(&secret_params)
+            .await?;
+
+        let now = match SystemTime::now().duration_since(UNIX_EPOCH) {
+            Ok(n) => n,
+            Err(_) => {
+                return Err("Time is before 1970".into());
+            },
+        };
+
+        let valid = TOTPBuilder::new()
+            .ascii_key(&secret_by_user_id.secret)
+            .period(totp_ttl.as_secs() as u32)
+            .initial_time(now.as_secs())
+            .finalize()
+            .unwrap()
+            .is_valid(&req.code);
+
+        if !valid {
+            return Err("invalid totp code".into());
+        }
+
+        // BUILD JWT ----------------------------------------
 
         let private_key = self
             .private_keys

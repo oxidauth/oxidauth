@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use boringauth::oath::TOTPBuilder;
@@ -176,10 +176,18 @@ where
                     })
                     .await?;
 
+                let now = match SystemTime::now().duration_since(UNIX_EPOCH) {
+                    Ok(n) => n,
+                    Err(_) => {
+                        return Err("Time is before 1970".into());
+                    },
+                };
+
                 // generate the totp code using secret, 5 min period
                 let code = TOTPBuilder::new()
                     .ascii_key(&secret_by_user_id.secret)
                     .period(totp_ttl.as_secs() as u32)
+                    .initial_time(now.as_secs())
                     .finalize()
                     .map_err(|err| {
                         format!(
