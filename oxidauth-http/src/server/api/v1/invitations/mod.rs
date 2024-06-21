@@ -1,5 +1,5 @@
 pub mod accept_invitation;
-pub mod create_invitaions;
+pub mod create_invitation;
 pub mod delete_invitation;
 pub mod find_invitation;
 
@@ -13,7 +13,7 @@ pub fn router() -> Router<Provider> {
     Router::new()
         .route(
             "/",
-            post(create_invitaions::handle),
+            post(create_invitation::handle),
         )
         .route(
             "/:invitation_id",
