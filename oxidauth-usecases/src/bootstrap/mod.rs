@@ -240,7 +240,7 @@ async fn first_or_create_public_key(
 }
 
 pub const ADMIN_PERMISSION: &str = "oxidauth:**:**";
-pub const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
+pub const TOTP_VALIDATE_PERMISSION: &str = "oxidauth:totp_code:validate";
 
 #[tracing::instrument(skip_all)]
 async fn first_or_create_permissions(
@@ -249,7 +249,7 @@ async fn first_or_create_permissions(
 ) -> Result<Permission, BoxedError> {
     // TODO(dewey4iv): currently not returning but might want to later
 
-    let permission_name = TOTP_PERMISSION.to_owned();
+    let permission_name = TOTP_VALIDATE_PERMISSION.to_owned();
 
     let permission = permission_by_name
         .call(&FindPermissionByParts {
@@ -452,7 +452,7 @@ async fn first_or_register_user(
                     email: None,
                     first_name: None,
                     last_name: None,
-                    kind: Some(UserKind::Human),
+                    kind: Some(UserKind::Api),
                 }
                 .to_value()?;
 

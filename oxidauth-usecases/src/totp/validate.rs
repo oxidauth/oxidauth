@@ -115,12 +115,9 @@ where
             .call(&secret_params)
             .await?;
 
-        let now = match SystemTime::now().duration_since(UNIX_EPOCH) {
-            Ok(n) => n,
-            Err(_) => {
-                return Err("Time is before 1970".into());
-            },
-        };
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|_| "time is before 1970")?;
 
         let valid = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
