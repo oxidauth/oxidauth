@@ -1,5 +1,5 @@
 use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::invitations::create_invitaions::{
+pub use oxidauth_http::server::api::v1::invitations::create_invitation::{
     CreateInvitationParams, CreateInvitationReq, CreateInvitationRes,
 };
 use oxidauth_kernel::error::BoxedError;
