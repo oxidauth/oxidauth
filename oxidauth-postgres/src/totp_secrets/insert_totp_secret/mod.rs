@@ -3,7 +3,7 @@ use crate::prelude::*;
 use oxidauth_kernel::totp_secrets::create_totp_secret::CreateTotpSecretResponse;
 use oxidauth_repository::totp_secrets::insert_totp_secret::InsertTotpSecretParams;
 
-use super::{PgTotpSecret, TOTPSecretRow};
+use super::PgTotpSecret;
 
 #[async_trait]
 impl<'a> Service<&'a InsertTotpSecretParams> for Database {
@@ -20,9 +20,7 @@ impl<'a> Service<&'a InsertTotpSecretParams> for Database {
     ) -> Result<Self::Response, Self::Error> {
         let mut conn = self.pool.acquire().await?;
 
-        let result = insert_totp_secret_query(&mut conn, params).await?;
-
-        let _: TOTPSecretRow = result.try_into()?;
+        insert_totp_secret_query(&mut conn, params).await?;
 
         let response = CreateTotpSecretResponse { success: true };
 
