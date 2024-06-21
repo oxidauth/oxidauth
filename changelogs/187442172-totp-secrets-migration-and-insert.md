@@ -2,3 +2,4 @@
     - totp secrets table migration
     - totp secrets generate random key
     - totp secrets insert into DB on user creation
+
