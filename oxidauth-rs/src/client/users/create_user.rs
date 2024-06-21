@@ -1,6 +1,6 @@
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::create_user::{
-    CreateUserReq, CreateUserRes,
+    CreateUserReq, CreateUserRes, UserKind,
 };
 use oxidauth_kernel::error::BoxedError;
 
