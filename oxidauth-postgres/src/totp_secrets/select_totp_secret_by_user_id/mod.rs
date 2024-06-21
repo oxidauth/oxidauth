@@ -37,7 +37,7 @@ impl<'a> Service<&'a FindTOTPSecretByUserId> for Database {
 pub async fn select_totp_secret_by_user_id_query(
     conn: &mut PgConnection,
     user_id: Uuid,
-) -> Result<TOTPSecretRow, BoxedError> {
+) -> Result<PgTotpSecret, BoxedError> {
     let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
         "./select_totp_secret_by_user_id.sql"
     ))
