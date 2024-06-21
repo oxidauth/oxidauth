@@ -128,8 +128,7 @@ impl From<UsernamePasswordRegisterParams> for CreateUser {
             ..
         } = params.clone();
         let user_id = Uuid::new_v4();
-        let status = Some(UserStatus::Enabled);
-        let kind = Some(kind.unwrap_or(UserKind::Human));
+        let kind = Some(kind.unwrap_or_default());
 
         Self {
             id: Some(user_id),
@@ -137,7 +136,7 @@ impl From<UsernamePasswordRegisterParams> for CreateUser {
             email,
             first_name,
             last_name,
-            status,
+            status: Some(UserStatus::default()),
             kind,
             profile: Some(Value::default()),
         }

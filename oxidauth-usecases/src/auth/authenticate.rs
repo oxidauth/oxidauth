@@ -27,7 +27,7 @@ use oxidauth_repository::{
     }, users::select_user_by_id_query::SelectUserByIdQuery
 };
 
-use crate::auth::strategies::*;
+use crate::{auth::strategies::*, bootstrap::TOTP_VALIDATE_PERMISSION};
 
 pub struct AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
@@ -143,7 +143,6 @@ where
             .with_issuer("oxidauth".to_owned())
             .with_not_before_from(Duration::from_secs(0));
 
-        // CHECK FOR 2FA REQUIREMENT TO SEND BACK LIMITED JWT ---------
         match authority.settings.totp {
             TotpSettings::Enabled {
                 totp_ttl,
@@ -159,13 +158,10 @@ where
 
                 info!("login requires 2FA");
 
-                // Return permission for viewing just the email code form in frontend
-                const TOTP_PERMISSION: &str = "oxidauth:totp_code:validate";
-
                 jwt_builder = jwt_builder
                     .with_expires_in(totp_ttl)
                     .with_entitlements(vec![
-                        TOTP_PERMISSION.to_string()
+                        TOTP_VALIDATE_PERMISSION.to_string()
                     ]);
 
                 // get the secret key for the user by id
@@ -176,14 +172,10 @@ where
                     })
                     .await?;
 
-                let now = match SystemTime::now().duration_since(UNIX_EPOCH) {
-                    Ok(n) => n,
-                    Err(_) => {
-                        return Err("Time is before 1970".into());
-                    },
-                };
+                let now = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .map_err(|_| "time is before 1970")?;
 
-                // generate the totp code using secret, 5 min period
                 let code = TOTPBuilder::new()
                     .ascii_key(&secret_by_user_id.secret)
                     .period(totp_ttl.as_secs() as u32)
