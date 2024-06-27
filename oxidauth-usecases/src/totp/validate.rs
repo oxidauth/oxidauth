@@ -122,7 +122,7 @@ where
         let valid = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
             .period(totp_ttl.as_secs() as u32)
-            .initial_time(now.as_secs())
+            .timestamp(now.as_secs() as i64)
             .finalize()
             .unwrap()
             .is_valid(&req.code);
