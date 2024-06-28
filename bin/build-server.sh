@@ -24,4 +24,5 @@ docker buildx build \
   -t $IMAGE:$SEMVER_VERSION \
   -t $IMAGE:$GIT_VERSION \
   --push \
+  --no-cache \
   -f oxidauth-http/Dockerfile .
