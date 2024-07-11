@@ -21,11 +21,14 @@ impl Client {
         T: Into<Uuid> + fmt::Debug,
         U: Into<UpdateUserBodyReq> + fmt::Debug,
     {
-        let _user_id = user_id.into();
+        let user_id = user_id.into();
         let user = user.into();
 
         let resp: Response<UpdateUserRes> = self
-            .post("/users/{}", user)
+            .post(
+                &format!("/users/{}", user_id),
+                user,
+            )
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;

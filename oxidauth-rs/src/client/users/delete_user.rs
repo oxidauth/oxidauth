@@ -20,7 +20,10 @@ impl Client {
         let user_id = user_id.into();
 
         let resp: Response<DeleteUserByIdRes> = self
-            .delete("/users/{}", user_id)
+            .delete(
+                &format!("/users/{}", user_id),
+                None::<()>,
+            )
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
