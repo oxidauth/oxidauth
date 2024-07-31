@@ -14,16 +14,15 @@ readme = "README.md"
 oxidauth-repository = { path = "../oxidauth-repository" }
 oxidauth-kernel = { path = "../oxidauth-kernel" }
 
-async-recursion = "1.0.5"
-async-trait = "0.1.69"
-chrono = { version = "0.4.26", features = ["serde"] }
-serde = "1.0.165"
-serde_json = "1.0.99"
-sqlx = { version = "0.7.4", features = ["runtime-tokio", "tls-rustls", "chrono", "json", "time", "macros", "migrate", "postgres", "uuid"] }
-# sqlx = { version = "0.7.4", features = ["runtime-tokio", "tls-native-tls", "chrono", "json", "time", "macros", "migrate", "postgres", "uuid"] }
-tokio = { version = "1.29.1", features = ["full"] }
+async-recursion = "1.1.1"
+async-trait = "0.1.81"
+chrono = { version = "0.4.38", features = ["serde"] }
+serde = "1.0.204"
+serde_json = "1.0.121"
+sqlx = { version = "0.8.0", features = ["runtime-tokio", "tls-rustls", "chrono", "json", "time", "macros", "migrate", "postgres", "uuid"] }
+tokio = { version = "1.39.2", features = ["full"] }
 tracing = "0.1.40"
 tracing-bunyan-formatter = "0.3.9"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.18", features = ["registry", "env-filter"] }
-uuid = { version = "1.4.0", features = ["v4", "serde"] }
+uuid = { version = "1.10.0", features = ["v4", "serde"] }
