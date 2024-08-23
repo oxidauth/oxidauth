@@ -20,7 +20,7 @@ impl Client {
 
         let resp: Response<FindRoleByNameRes> = self
             .get(
-                &format!("/roles/{}", role),
+                &format!("/roles/by_name/{}", role),
                 None::<()>,
             )
             .await?;
