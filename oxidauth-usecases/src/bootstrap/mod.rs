@@ -356,6 +356,7 @@ async fn add_admin_permission_to_admin_role(
 
 pub const DEFAULT_JWT_TTL: Duration = Duration::from_secs(60 * 2);
 pub const DEFAULT_TOTP_TOKEN_TTL: Duration = Duration::from_secs(60 * 2);
+pub const DEFAULT_CLIENT_KEY: &str = "OXIDAUTH_DEFAULT_CLIENT_KEY";
 pub const DEFAULT_REFRESH_TOKEN_TTL: Duration =
     Duration::from_secs(60 * 60 * 24 * 2);
 pub const DEFAULT_USERNAMEPASSWORD_NAME: &str =
@@ -383,6 +384,13 @@ async fn first_or_create_authority(
                 Some(_) => {
                     info!("attempting to create authority");
 
+                    let client_key = env::var(DEFAULT_CLIENT_KEY)
+                        .ok()
+                        .map(|key| key.parse())
+                        .transpose()
+                        .ok()
+                        .flatten();
+
                     let authority_params_value =
                         AuthorityParams::new(random_string())
                             .as_json_value()?;
@@ -395,7 +403,7 @@ async fn first_or_create_authority(
 
                     let mut create_authority_params = CreateAuthority {
                         name: DEFAULT_USERNAMEPASSWORD_NAME.to_string(),
-                        client_key: None,
+                        client_key,
                         status: None,
                         strategy: AuthorityStrategy::UsernamePassword,
                         settings: authority_settings,
