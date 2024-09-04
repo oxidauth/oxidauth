@@ -1,6 +1,6 @@
 [package]
 name = "oxidauth-seed"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "GPL-3.0"
 description = "crate for seeding an oxidauth env -- usually for testing or demo"
