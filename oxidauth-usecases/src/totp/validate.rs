@@ -150,7 +150,12 @@ where
 
         let jwt_builder = Jwt::builder()
             .with_expires_in(authority.settings.jwt_ttl)
-            .with_entitlements(permissions)
+            .with_entitlements(
+                authority
+                    .settings
+                    .entitlements_encoding,
+                &permissions,
+            )
             .with_subject(user_id)
             .with_issuer("oxidauth".to_owned())
             .with_not_before_from(Duration::from_secs(0));

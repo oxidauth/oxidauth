@@ -15,7 +15,7 @@ impl<'a> Service<&'a UpdateRole> for Database {
         let result = sqlx::query_as::<_, PgRole>(include_str!(
             "./update_role.sql"
         ))
-        .bind(&params.role_id)
+        .bind(params.role_id)
         .bind(&params.name)
         .fetch_one(&self.pool)
         .await?;

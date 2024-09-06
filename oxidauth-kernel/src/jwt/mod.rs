@@ -1,10 +1,17 @@
+use std::fmt;
+use std::io::prelude::*;
 use std::ops::Add;
+use std::str::FromStr;
 use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
 
+use flate2::read::GzDecoder;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use jsonwebtoken::{
     decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData,
     Validation,
 };
+use serde::de::{self, Visitor};
 
 use crate::dev_prelude::*;
 use crate::public_keys::PublicKey;
@@ -27,7 +34,7 @@ pub struct Jwt {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ctx: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub entitlements: Option<String>,
+    pub entitlements: Option<Entitlements>,
 }
 
 impl Jwt {
@@ -81,6 +88,12 @@ impl Jwt {
 #[derive(Debug)]
 pub struct JwtError {}
 
+impl fmt::Display for JwtError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "JwtError")
+    }
+}
+
 #[derive(Default)]
 pub struct JwtBuilder {
     sub: Option<Uuid>,
@@ -91,7 +104,7 @@ pub struct JwtBuilder {
     ttl: Option<Duration>,
     exp: Option<usize>,
     ctx: Option<Value>,
-    entitlements: Option<String>,
+    entitlements: Option<Result<Entitlements, JwtError>>,
 }
 
 impl JwtBuilder {
@@ -120,6 +133,8 @@ impl JwtBuilder {
         };
 
         let exp = exp.unwrap_or(exp_from_ttl);
+
+        let entitlements = entitlements.transpose()?;
 
         Ok(Jwt {
             sub,
@@ -179,10 +194,161 @@ impl JwtBuilder {
         self
     }
 
-    pub fn with_entitlements(mut self, entitlements: Vec<String>) -> Self {
-        self.entitlements = Some(entitlements.join(" "));
+    pub fn with_entitlements(
+        mut self,
+        encoding: EntitlementsEncoding,
+        entitlements: &[String],
+    ) -> Self {
+        self.entitlements = Some(Entitlements::encode(
+            encoding,
+            entitlements,
+        ));
 
         self
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename = "snake_case")]
+pub enum EntitlementsEncoding {
+    Txt,
+    Gz,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum Entitlements {
+    Txt(String),
+    Gz(String),
+}
+
+pub const TXT_PREFIX: &str = "txt";
+pub const GZ_PREFIX: &str = "gz";
+
+impl Entitlements {
+    pub fn encode(
+        encoding: EntitlementsEncoding,
+        entitlements: &[String],
+    ) -> Result<Self, JwtError> {
+        let entitlements = entitlements.join(" ");
+
+        let result = match encoding {
+            EntitlementsEncoding::Txt => Entitlements::Txt(entitlements),
+            EntitlementsEncoding::Gz => {
+                let mut encoder = GzEncoder::new(
+                    Vec::new(),
+                    Compression::best(),
+                );
+
+                encoder
+                    .write_all(entitlements.as_bytes())
+                    .map_err(|_| JwtError {})?;
+
+                let encoded = encoder
+                    .finish()
+                    .map_err(|_| JwtError {})?;
+
+                let encoded_string =
+                    String::from_utf8(encoded).map_err(|_| JwtError {})?;
+
+                Entitlements::Gz(encoded_string)
+            },
+        };
+
+        Ok(result)
+    }
+
+    pub fn decode(encoded: &str) -> Result<Self, JwtError> {
+        let Some((prefix, entitlemments)) = encoded.split_once(' ') else {
+            return Err(JwtError {});
+        };
+
+        match prefix {
+            TXT_PREFIX => Ok(Self::Txt(
+                entitlemments.to_string(),
+            )),
+            GZ_PREFIX => {
+                let data = entitlemments
+                    .to_string()
+                    .as_bytes()
+                    .to_vec();
+
+                let mut decoder = GzDecoder::new(&*data);
+                let mut decoded = String::new();
+
+                decoder
+                    .read_to_string(&mut decoded)
+                    .map_err(|_| JwtError {})?;
+
+                Ok(Self::Gz(decoded))
+            },
+            _ => Err(JwtError {}),
+        }
+    }
+
+    pub fn as_vec(&self) -> Option<Vec<String>> {
+        let joined = match self {
+            Entitlements::Txt(ref s) => s,
+            Entitlements::Gz(ref s) => s,
+        };
+
+        Some(
+            joined
+                .split(' ')
+                .map(ToString::to_string)
+                .collect(),
+        )
+    }
+}
+
+impl FromStr for Entitlements {
+    type Err = JwtError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::decode(s)
+    }
+}
+
+impl Serialize for Entitlements {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let text = match self {
+            Entitlements::Txt(s) => format!("{} {}", TXT_PREFIX, s),
+            Entitlements::Gz(s) => format!("{} {}", GZ_PREFIX, s),
+        };
+
+        serializer.serialize_str(text.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Entitlements {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct EntitlementsVisitor;
+
+        impl<'de> Visitor<'de> for EntitlementsVisitor {
+            type Value = Entitlements;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(
+                    formatter,
+                    "a string starting with \"{}\" or \"{}\"",
+                    TXT_PREFIX, GZ_PREFIX,
+                )
+            }
+
+            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Entitlements::from_str(s).map_err(de::Error::custom)
+            }
+        }
+
+        deserializer.deserialize_str(EntitlementsVisitor)
     }
 }
 

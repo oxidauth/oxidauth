@@ -45,7 +45,7 @@ pub async fn select_totp_secret_by_user_id_query(
     .fetch_one(conn)
     .await?;
 
-    Ok(result.try_into()?)
+    Ok(result)
 }
 
 #[cfg(test)]

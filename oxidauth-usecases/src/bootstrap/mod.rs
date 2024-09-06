@@ -13,6 +13,7 @@ use oxidauth_kernel::{
     },
     bootstrap::BootstrapParams,
     error::BoxedError,
+    jwt::EntitlementsEncoding,
     permissions::{
         create_permission::{CreatePermission, CreatePermissionService},
         find_permission_by_parts::{
@@ -399,6 +400,7 @@ async fn first_or_create_authority(
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
                         totp: TotpSettings::Disabled,
+                        entitlements_encoding: EntitlementsEncoding::Txt,
                     };
 
                     let mut create_authority_params = CreateAuthority {

@@ -15,7 +15,7 @@ impl<'a> Service<&'a DeleteRole> for Database {
         let result = sqlx::query_as::<_, PgRole>(include_str!(
             "./delete_role.sql"
         ))
-        .bind(&params.role_id)
+        .bind(params.role_id)
         .fetch_one(&self.pool)
         .await?;
 

@@ -17,16 +17,16 @@ impl<'a> Service<&'a UpdateAuthority> for Database {
         let result = sqlx::query_as::<_, PgAuthority>(include_str!(
             "./update_authority.sql"
         ))
-        .bind(&params.id)
+        .bind(params.id)
         .bind(&params.name)
-        .bind(&params.client_key)
+        .bind(params.client_key)
         .bind(
             params
                 .status
                 .as_ref()
                 .map(|s| s.to_string()),
         )
-        .bind(&params.strategy.to_string())
+        .bind(params.strategy.to_string())
         .bind(serde_json::to_value(
             &params.settings,
         )?)

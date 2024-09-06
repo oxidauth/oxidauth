@@ -17,7 +17,7 @@ impl<'a> Service<&'a DeleteAuthority> for Database {
         let result = sqlx::query_as::<_, PgAuthority>(include_str!(
             "./delete_authority.sql"
         ))
-        .bind(&params.authority_id)
+        .bind(params.authority_id)
         .fetch_one(&self.pool)
         .await?;
 

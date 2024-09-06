@@ -18,13 +18,13 @@ pub struct PgRoleRoleGrant {
     pub updated_at: DateTime<Utc>,
 }
 
-impl Into<RoleRoleGrant> for PgRoleRoleGrant {
-    fn into(self) -> RoleRoleGrant {
+impl From<PgRoleRoleGrant> for RoleRoleGrant {
+    fn from(val: PgRoleRoleGrant) -> Self {
         RoleRoleGrant {
-            parent_id: self.parent_id,
-            child_id: self.child_id,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
+            parent_id: val.parent_id,
+            child_id: val.child_id,
+            created_at: val.created_at,
+            updated_at: val.updated_at,
         }
     }
 }

@@ -63,8 +63,7 @@ impl UserNode {
         let permissions = self
             .roles
             .iter()
-            .map(|rr| rr.permissions())
-            .flatten()
+            .flat_map(|rr| rr.permissions())
             .collect::<Vec<String>>();
 
         [permissions, direct_permissions]
@@ -92,8 +91,7 @@ impl RoleNode {
         let permissions = self
             .roles
             .iter()
-            .map(|rr| rr.permissions())
-            .flatten()
+            .flat_map(|rr| rr.permissions())
             .collect::<Vec<String>>();
 
         [permissions, direct_permissions]

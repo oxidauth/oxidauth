@@ -26,12 +26,12 @@ impl<'a> Service<&'a CreateAuthority> for Database {
                 .as_ref()
                 .map(|s| s.to_string()),
         )
-        .bind(&params.strategy.to_string())
+        .bind(params.strategy.to_string())
         .bind(serde_json::to_value(
             &params.settings,
         )?)
         .bind(
-            &params
+            params
                 .params
                 .clone()
                 .inner_value(),

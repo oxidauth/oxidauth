@@ -17,7 +17,7 @@ impl<'a> Service<&'a FindAuthorityById> for Database {
         let result = sqlx::query_as::<_, PgAuthority>(include_str!(
             "./query_authority_by_id.sql"
         ))
-        .bind(&params.authority_id)
+        .bind(params.authority_id)
         .fetch_one(&self.pool)
         .await?;
 

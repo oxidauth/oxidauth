@@ -160,9 +160,12 @@ where
 
                 jwt_builder = jwt_builder
                     .with_expires_in(totp_ttl)
-                    .with_entitlements(vec![
-                        TOTP_VALIDATE_PERMISSION.to_string()
-                    ]);
+                    .with_entitlements(
+                        authority
+                            .settings
+                            .entitlements_encoding,
+                        &[TOTP_VALIDATE_PERMISSION.to_string()],
+                    );
 
                 // get the secret key for the user by id
                 let secret_by_user_id: TOTPSecret = self
@@ -240,7 +243,12 @@ where
 
                 jwt_builder = jwt_builder
                     .with_expires_in(authority.settings.jwt_ttl)
-                    .with_entitlements(permissions);
+                    .with_entitlements(
+                        authority
+                            .settings
+                            .entitlements_encoding,
+                        &permissions,
+                    );
             },
         }
 

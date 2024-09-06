@@ -18,8 +18,8 @@ impl<'a> Service<&'a CreateRoleRoleGrant> for Database {
         let result = sqlx::query_as::<_, PgRoleRoleGrant>(include_str!(
             "./insert_role_role_grant.sql"
         ))
-        .bind(&params.parent_id)
-        .bind(&params.child_id)
+        .bind(params.parent_id)
+        .bind(params.child_id)
         .fetch_one(&self.pool)
         .await?;
 
