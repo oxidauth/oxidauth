@@ -267,9 +267,6 @@ impl Entitlements {
 
                 let based64_encoded = BASE64_STANDARD.encode(encoded);
 
-                //let encoded_string =
-                //    String::from_utf8(encoded).map_err(JwtError::new)?;
-
                 Entitlements::Gz(based64_encoded)
             },
         };
