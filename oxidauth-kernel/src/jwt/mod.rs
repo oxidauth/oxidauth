@@ -4,6 +4,8 @@ use std::ops::Add;
 use std::str::FromStr;
 use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
 
+use crate::base64::BASE64_STANDARD;
+use base64::Engine;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
@@ -13,8 +15,8 @@ use jsonwebtoken::{
 };
 use serde::de::{self, Visitor};
 
-use crate::dev_prelude::*;
 use crate::public_keys::PublicKey;
+use crate::{base64, dev_prelude::*};
 
 pub const DEFAULT_EXP_IN_SEC: u64 = 60 * 300;
 
@@ -43,27 +45,27 @@ impl Jwt {
     }
 
     pub fn encode(&self, key: &[u8]) -> Result<String, JwtError> {
-        let key = EncodingKey::from_rsa_pem(key).map_err(|_| JwtError {})?;
+        let key = EncodingKey::from_rsa_pem(key).map_err(JwtError::new)?;
 
         let result = encode(
             &Header::new(Algorithm::RS256),
             self,
             &key,
         )
-        .map_err(|_| JwtError {})?;
+        .map_err(JwtError::new)?;
 
         Ok(result)
     }
 
     pub fn decode(token: &str, key: &[u8]) -> Result<Jwt, JwtError> {
-        let key = DecodingKey::from_rsa_pem(key).map_err(|_| JwtError {})?;
+        let key = DecodingKey::from_rsa_pem(key).map_err(JwtError::new)?;
 
         let result: TokenData<Jwt> = decode(
             token,
             &key,
             &Validation::new(Algorithm::RS256),
         )
-        .map_err(|_| JwtError {})?;
+        .map_err(JwtError::new)?;
 
         Ok(result.claims)
     }
@@ -81,16 +83,32 @@ impl Jwt {
             }
         }
 
-        Err(JwtError {})
+        Err(JwtError {
+            message: "no valid public key found".to_string(),
+        })
     }
 }
 
 #[derive(Debug)]
-pub struct JwtError {}
+pub struct JwtError {
+    message: String,
+}
+
+impl JwtError {
+    pub fn new(err: impl std::error::Error) -> Self {
+        Self {
+            message: err.to_string(),
+        }
+    }
+}
 
 impl fmt::Display for JwtError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "JwtError")
+        write!(
+            f,
+            "JwtError: {}",
+            self.message
+        )
     }
 }
 
@@ -209,7 +227,7 @@ impl JwtBuilder {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum EntitlementsEncoding {
     Txt,
     Gz,
@@ -241,16 +259,18 @@ impl Entitlements {
 
                 encoder
                     .write_all(entitlements.as_bytes())
-                    .map_err(|_| JwtError {})?;
+                    .map_err(JwtError::new)?;
 
                 let encoded = encoder
                     .finish()
-                    .map_err(|_| JwtError {})?;
+                    .map_err(JwtError::new)?;
 
-                let encoded_string =
-                    String::from_utf8(encoded).map_err(|_| JwtError {})?;
+                let based64_encoded = BASE64_STANDARD.encode(encoded);
 
-                Entitlements::Gz(encoded_string)
+                //let encoded_string =
+                //    String::from_utf8(encoded).map_err(JwtError::new)?;
+
+                Entitlements::Gz(based64_encoded)
             },
         };
 
@@ -259,7 +279,12 @@ impl Entitlements {
 
     pub fn decode(encoded: &str) -> Result<Self, JwtError> {
         let Some((prefix, entitlemments)) = encoded.split_once(' ') else {
-            return Err(JwtError {});
+            return Err(JwtError {
+                message: format!(
+                    "malformed encoded: {}",
+                    encoded
+                ),
+            });
         };
 
         match prefix {
@@ -267,21 +292,25 @@ impl Entitlements {
                 entitlemments.to_string(),
             )),
             GZ_PREFIX => {
-                let data = entitlemments
-                    .to_string()
-                    .as_bytes()
-                    .to_vec();
+                let data = BASE64_STANDARD
+                    .decode(entitlemments)
+                    .map_err(JwtError::new)?;
 
                 let mut decoder = GzDecoder::new(&*data);
                 let mut decoded = String::new();
 
                 decoder
                     .read_to_string(&mut decoded)
-                    .map_err(|_| JwtError {})?;
+                    .map_err(JwtError::new)?;
 
                 Ok(Self::Gz(decoded))
             },
-            _ => Err(JwtError {}),
+            _ => Err(JwtError {
+                message: format!(
+                    "unknown entitlements prefix: {}",
+                    prefix
+                ),
+            }),
         }
     }
 
@@ -355,7 +384,7 @@ impl<'de> Deserialize<'de> for Entitlements {
 pub fn epoch_from_now(duration: Duration) -> Result<usize, JwtError> {
     let expiration = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map_err(|_| JwtError {})?
+        .map_err(JwtError::new)?
         .add(duration)
         .as_secs() as usize;
 
@@ -365,7 +394,7 @@ pub fn epoch_from_now(duration: Duration) -> Result<usize, JwtError> {
 pub fn epoch_from_time(t: time::SystemTime) -> Result<usize, JwtError> {
     let epoch = t
         .duration_since(UNIX_EPOCH)
-        .map_err(|_| JwtError {})?
+        .map_err(JwtError::new)?
         .as_secs() as usize;
 
     Ok(epoch)

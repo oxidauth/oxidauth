@@ -12,7 +12,7 @@ use axum_extra::{
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::jwt::Jwt;
-use tracing::error;
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::OxidAuthClient;
@@ -94,6 +94,8 @@ where
     ) -> Result<Self, Self::Rejection> {
         let ExtractJwt(jwt) =
             ExtractJwt::from_request_parts(parts, state).await?;
+
+        info!(message = "entitlements here", entitlements = ?jwt.entitlements);
 
         let permissions = jwt
             .entitlements
