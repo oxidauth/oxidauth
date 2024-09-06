@@ -13,7 +13,7 @@ pub mod update_authority;
 
 pub use crate::user_authorities::UserAuthority;
 
-use crate::{dev_prelude::*, JsonValue};
+use crate::{dev_prelude::*, jwt::EntitlementsEncoding, JsonValue};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Authority {
@@ -33,6 +33,7 @@ pub struct AuthoritySettings {
     pub jwt_ttl: Duration,
     pub refresh_token_ttl: Duration,
     pub totp: TotpSettings,
+    pub entitlements_encoding: EntitlementsEncoding,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

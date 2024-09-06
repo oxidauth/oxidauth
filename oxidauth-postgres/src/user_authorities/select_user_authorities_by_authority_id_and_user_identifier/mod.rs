@@ -24,12 +24,12 @@ impl<'a>
         let result = sqlx::query_as::<_, PgUserAuthority>(include_str!(
             "./select_user_authorities_by_authority_id_and_user_identifier.sql"
         ))
-        .bind(&params.authority_id)
+        .bind(params.authority_id)
         .bind(&params.user_identifier)
         .fetch_one(&self.pool)
         .await?;
 
-        let user_authority = result.try_into()?;
+        let user_authority = result.into();
 
         Ok(user_authority)
     }

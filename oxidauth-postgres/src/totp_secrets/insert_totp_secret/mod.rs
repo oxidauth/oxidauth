@@ -35,11 +35,10 @@ pub async fn insert_totp_secret_query(
     let result = sqlx::query_as::<_, PgTotpSecret>(include_str!(
         "./insert_totp_secret.sql"
     ))
-    .bind(&params.user_id)
+    .bind(params.user_id)
     .bind(&params.secret_key)
     .fetch_one(conn)
-    .await
-    .map_err(|err| Box::new(err))?;
+    .await?;
 
     Ok(result)
 }

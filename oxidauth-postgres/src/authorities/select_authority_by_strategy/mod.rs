@@ -20,7 +20,7 @@ impl<'a> Service<&'a FindAuthorityByStrategy> for Database {
         let result = sqlx::query_as::<_, PgAuthority>(include_str!(
             "./select_authority_by_strategy.sql"
         ))
-        .bind(&params.strategy.to_string())
+        .bind(params.strategy.to_string())
         .fetch_optional(&self.pool)
         .await?;
 

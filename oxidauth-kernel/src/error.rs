@@ -27,11 +27,11 @@ where
     C: Debug + Serialize,
     E: Debug + Serialize,
 {
-    fn into_error(&self) -> OxidAuthError<C, E>;
+    fn into_error(self) -> OxidAuthError<C, E>;
 }
 
 impl IntoOxidAuthError<(), String> for Box<dyn Error + Send + Sync + 'static> {
-    fn into_error(&self) -> OxidAuthError<(), String> {
+    fn into_error(self) -> OxidAuthError<(), String> {
         OxidAuthError {
             name: "BoxedError".to_owned(),
             display: format!("{}", self),

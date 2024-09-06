@@ -82,15 +82,10 @@ impl FromRequestParts<Provider> for ExtractEntitlements {
         let ExtractJwt(jwt) =
             ExtractJwt::from_request_parts(parts, state).await?;
 
-        let entitlements = match jwt.entitlements {
-            Some(entitlements) => entitlements,
-            None => return Ok(ExtractEntitlements(Vec::new())),
-        };
-
-        let permissions: Vec<_> = entitlements
-            .split(' ')
-            .map(|s| s.to_owned())
-            .collect();
+        let permissions = jwt
+            .entitlements
+            .and_then(|entitlements| entitlements.as_vec())
+            .unwrap_or_default();
 
         Ok(ExtractEntitlements(
             permissions,

@@ -131,7 +131,12 @@ where
             .with_subject(user.id)
             .with_issuer("oxidauth".to_owned())
             .with_expires_in(authority.settings.jwt_ttl)
-            .with_entitlements(permissions)
+            .with_entitlements(
+                authority
+                    .settings
+                    .entitlements_encoding,
+                &permissions,
+            )
             .with_not_before_from(Duration::from_secs(0))
             .build()
             .map_err(|err| {
