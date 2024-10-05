@@ -1,10 +1,12 @@
-version: '3.8'
-
 services:
-  oxidauth-http:
-    working_dir: '/home/rust/src/oxidauth'
-    command: /bin/bash -c 'cargo watch -c -- cargo run --bin oxidauth-http'
-    image: registry.vizerapp.cloud/lib/rust-dev:$RUST_DEV_IMAGE_VERSION
+  oxidauth-api:
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+      args:
+        TARGETVERSION: $RUST_DEV_IMAGE_VERSION
+        TARGETPLATFORM: $DOCKER_PLATFORM
+    command: /bin/bash -c 'watchexec -c -e rs -r cargo run --bin oxidauth-http'
     platform: $DOCKER_PLATFORM
     stdin_open: true
     tty: true
