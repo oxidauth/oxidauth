@@ -195,5 +195,6 @@ pub async fn build_registrar(
             strategies::username_password::registrar::new(authority).await
         },
         SingleUseToken => unimplemented!(),
+        Oauth => unimplemented!(),
     }
 }

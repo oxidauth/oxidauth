@@ -33,6 +33,7 @@ pub struct AuthoritySettings {
     pub jwt_ttl: Duration,
     pub refresh_token_ttl: Duration,
     pub totp: TotpSettings,
+    pub oauth: OauthSettings,
     pub entitlements_encoding: EntitlementsEncoding,
 }
 
@@ -42,6 +43,17 @@ pub enum TotpSettings {
         totp_ttl: Duration,
         webhook: Url,
         webhook_key: String,
+    },
+    Disabled,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum OauthSettings {
+    Enabled {
+        client_id: String,
+        response_url: Url,
+        scope: String,
+        redirect_url_base: Url,
     },
     Disabled,
 }
@@ -88,12 +100,14 @@ impl FromStr for AuthorityStatus {
 pub enum AuthorityStrategy {
     UsernamePassword,
     SingleUseToken,
+    Oauth,
 }
 
 impl AuthorityStrategy {}
 
 const USERNAME_PASSWORD: &str = "username_password";
 const SINGLE_USE_TOKEN: &str = "single_use_token";
+const OAUTH: &str = "oauth";
 
 impl fmt::Display for AuthorityStrategy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -102,6 +116,7 @@ impl fmt::Display for AuthorityStrategy {
         match self {
             UsernamePassword => write!(f, "{}", USERNAME_PASSWORD),
             SingleUseToken => write!(f, "{}", SINGLE_USE_TOKEN),
+            Oauth => write!(f, "{}", OAUTH),
         }
     }
 }
@@ -113,6 +128,7 @@ impl FromStr for AuthorityStrategy {
         let res = match s {
             USERNAME_PASSWORD => AuthorityStrategy::UsernamePassword,
             SINGLE_USE_TOKEN => AuthorityStrategy::SingleUseToken,
+            OAUTH => AuthorityStrategy::Oauth,
             strategy => {
                 return Err(
                     ParseAuthorityStrategyError::Unknown(strategy.to_owned()),
