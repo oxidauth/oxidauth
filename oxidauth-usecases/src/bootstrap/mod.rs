@@ -9,7 +9,7 @@ use oxidauth_kernel::{
             FindAuthorityByStrategy, FindAuthorityByStrategyService,
         },
         Authority, AuthorityNotFoundError, AuthoritySettings,
-        AuthorityStrategy, TotpSettings,
+        AuthorityStrategy, OauthSettings, TotpSettings,
     },
     bootstrap::BootstrapParams,
     error::BoxedError,
@@ -400,6 +400,7 @@ async fn first_or_create_authority(
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
                         totp: TotpSettings::Disabled,
+                        oauth: OauthSettings::Disabled,
                         entitlements_encoding: EntitlementsEncoding::Txt,
                     };
 

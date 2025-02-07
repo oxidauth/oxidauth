@@ -2,6 +2,7 @@ use serde::Serialize;
 
 use crate::dev_prelude::*;
 
+pub mod oauth;
 pub mod username_password;
 
 pub trait RegisterStrategy<P>: Send + Sync + 'static {

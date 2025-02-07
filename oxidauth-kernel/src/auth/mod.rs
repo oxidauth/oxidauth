@@ -3,6 +3,8 @@ pub mod register;
 pub mod tree;
 
 use async_trait::async_trait;
+use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::{
     authorities::UserAuthority, dev_prelude::BoxedError,
@@ -50,3 +52,11 @@ pub trait UserIdentifierFromRequest: Send + Sync + 'static {
         request: &JsonValue,
     ) -> Result<String, BoxedError>;
 }
+
+#[derive(Debug, Deserialize)]
+pub struct FindRedirectUrlByAuthorityClientKey {
+    pub authority_client_key: Uuid,
+}
+
+#[derive(Debug)]
+pub struct FindRedirectUrlByAuthorityClientKeyError {}
