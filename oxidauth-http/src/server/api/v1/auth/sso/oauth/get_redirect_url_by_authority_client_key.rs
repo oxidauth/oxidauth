@@ -11,8 +11,6 @@ use crate::middleware::permission_extractor::{
 use crate::provider::Provider;
 use crate::response::Response;
 
-use super::PERMISSION;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateAuthorityReq {
     pub authority: CreateAuthority,
@@ -22,6 +20,8 @@ pub struct CreateAuthorityReq {
 pub struct CreateAuthorityRes {
     pub authority: Authority,
 }
+
+pub const PERMISSION: &str = "oxidauth:authorities:read";
 
 #[tracing::instrument(name = "create_authority_handler", skip(provider))]
 pub async fn handle(
