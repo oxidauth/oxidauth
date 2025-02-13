@@ -1,4 +1,4 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{Json, extract::State, response::IntoResponse};
 pub use oxidauth_kernel::authorities::create_authority::*;
 use oxidauth_kernel::error::IntoOxidAuthError;
 use oxidauth_permission::parse_and_validate;
@@ -47,8 +47,6 @@ pub async fn handle(
     }
 
     let service = provider.fetch::<CreateAuthorityService>();
-
-    info!("provided CreateAuthorityService");
 
     let result = service
         .call(&mut params.authority)
