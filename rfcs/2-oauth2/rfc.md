@@ -7,31 +7,32 @@ Add Oauth2 as an authentication strategy supported by Oxidauth.
 Oauth2 is a popular authentication standard that Oxidauth should support.
 
 ### Entities Involved
-Oxidauth - The Oxidauth instance used by a
-Client - The code base using Oxidauth for authentication
-End User - The client's user base, individuals
-Identity Provider - The entity providing the oauth (gsuite organization, azure organization, often a company)
-Identify Platform - The overarching platform the Identity Provider uses (Google, Microsoft, etc..)
+- **Oxidauth**: The Oxidauth instance used by a
+- **Client**: The code base using Oxidauth for authentication
+- **End User**: The client's user base, individuals
+- **Identity Provider**: The entity providing the oauth (gsuite organization, azure organization, often a company)
+- **Identify Platform**: The overarching platform the Identity Provider uses (Google, Microsoft, etc..)
 ** Sometimes the Identity Provider is the Platform, like if Facebook is used directly
 
 ### Technical Flow
 The following steps outline the oauth flow. Each step is addressed individually in greater detail below.
-- 0. an end user initiates the oauth process from the client website
-- 1. Client will reach out to oxidauth at `/auth/sso/oauth/build_redirect` to receive a redirect url to the identity platform
-- 2. Oxidauth constructs the redirect url from a combination of values provided by Client and stored in Oxidauth
-- 3. Oxidauth returns the redirect url to the Client
-- 4. Client sends the end user to redirect url
-- 5. End user authenticates (or fails to authenticate) with the identity provider
-- 6. (If authentication failure) user is sent back to the login page
-- 7. (If authentication success) identity platform sends end user to the redirect uri (a client server side address) and provides a token
-- 8. Client calls oxidauth at `/auth/sso/oauth/exchange_token` and provides the token
-- 9. Oxidauth uses the token and other values to post a request to identity platform to exchange the token for an access code
-- 10. Oxidauth uses the resulting access_code and other values to post a request to identity platform for the end user's information
-- 11. Oxidauth checks end user profile for scope consent and authenetication status
-- 12. Oxidauth sends user profile information back to client
-- 13. Client uses the profile information to sign in, sign up, or otherwise handle the user account next steps
+0. an end user initiates the oauth process from the client website
+1. Client will reach out to oxidauth at `/auth/sso/oauth/build_redirect` to receive a redirect url to the identity platform
+2. Oxidauth constructs the redirect url from a combination of values provided by Client and stored in Oxidauth
+3. Oxidauth returns the redirect url to the Client
+4. Client sends the end user to redirect url
+5. End user authenticates (or fails to authenticate) with the identity provider
+6. (If authentication failure) user is sent back to the login page
+7. (If authentication success) identity platform sends end user to the redirect uri (a client server side address) and provides a token
+8. Client calls oxidauth at `/auth/sso/oauth/exchange_token` and provides the token
+9. Oxidauth uses the token and other values to post a request to identity platform to exchange the token for an access code
+10. Oxidauth uses the resulting access_code and other values to post a request to identity platform for the end user's information
+11. Oxidauth checks end user profile for scope consent and authenetication status
+12. Oxidauth sends user profile information back to client
+13. Client uses the profile information to sign in, sign up, or otherwise handle the user account next steps
 
 #### 0. Initiation
+Example client oauth initiation screen:
 <img width="743" alt="Screenshot 2024-04-12-login" src="./images/oauth-initiation.png">
 
 #### 1. Redirect Url
