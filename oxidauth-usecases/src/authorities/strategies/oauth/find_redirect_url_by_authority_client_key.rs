@@ -9,8 +9,9 @@ use oxidauth_kernel::{
         FindRedirectUrlByAuthorityClientKeyError,
     },
     authorities::{
+        OauthSettings::*,
         find_authority_by_client_key::FindAuthorityByClientKey,
-        find_authority_by_id::*, OauthSettings::*,
+        find_authority_by_id::*,
     },
 };
 use oxidauth_repository::authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery;
@@ -63,8 +64,12 @@ where
                 scope,
                 redirect_url_base,
             } => {
-                let redirect_url = format!("{}?client_id={}&redirect_uri={}&scope={}&response_type=code", redirect_url_base, client_id, response_url, scope);
+                let redirect_url = format!(
+                    "{}?client_id={}&redirect_uri={}&scope={}&response_type=code",
+                    redirect_url_base, client_id, response_url, scope
+                );
 
+                // "https://accounts.google.com/o/oauth2/v2/auth?client_id=127751927363-4l0710vnomm37imtagelivu0sn8rui3b.apps.googleusercontent.com&redirect_uri=http://localhost:8000/auth_response/626bc0f6-a729-4246-8e15-2d2b0b20a97e&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile"
                 return Ok(redirect_url);
             },
             Disabled => {

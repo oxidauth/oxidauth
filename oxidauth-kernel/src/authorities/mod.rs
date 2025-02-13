@@ -13,7 +13,7 @@ pub mod update_authority;
 
 pub use crate::user_authorities::UserAuthority;
 
-use crate::{dev_prelude::*, jwt::EntitlementsEncoding, JsonValue};
+use crate::{JsonValue, dev_prelude::*, jwt::EntitlementsEncoding};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Authority {
