@@ -7,7 +7,7 @@ Add Oauth2 as an authentication strategy supported by Oxidauth.
 Oauth2 is a popular authentication standard that Oxidauth should support.
 
 ### Entities Involved
-- **Oxidauth**: The Oxidauth instance used by a
+- **Oxidauth**: The Oxidauth instance
 - **Client**: The code base using Oxidauth for authentication
 - **End User**: The client's user base, individuals
 - **Identity Provider**: The entity providing the oauth (gsuite organization, azure organization, often a company)
