@@ -33,6 +33,7 @@ The following steps outline the oauth flow. Each step is addressed individually 
 
 #### 0. Initiation
 Example client oauth initiation screen:
+
 <img width="743" alt="Screenshot 2024-04-12-login" src="./images/oauth-initiation.png">
 
 #### 1. Redirect Url
@@ -71,16 +72,37 @@ Exchange token request (if successful) returns an access_token, which is passed 
 
 Returns the user information contained in the scopes requested.
 
+### Implementation
+This setup means that every identity platform (but not every identity provider) has their own authority.
+
+An example of this would be the following scenario:
+
+Mindly Authorities:
+- Mindly Web Google Oauth - auth strategy: oauth
+- Mindly Web Microsoft Oauth - auth strategy: oath
+
+Both Google and Microsoft use the oauth strategy, but require different settings.
+
+Where two organizations, CaresFoundation and SteppedSolutions, are both using google as the identity platform for authenticating their employees' work emails.
+
+Both CaresFoundation and SteppedSolutions will use the Mindly Web Google Oauth client key and settings
+
 ### New Endpoints
 - [POST] /auth/sso/oauth/build_redirect - takes in parameters from the client, constructs a redirect url from provided and stored values, and returns a url
 - [POST] /auth/sso/oauth/exchange_token - takes in oauth result from the client, exchanges provided token for user information from the identity platform, and returns the user information
 
-### Other changes
-- OxidAuth Authority will now have an added property of `require-2fa`, which, if true, will create a 2fa code for each new user and impact the sign in flow.
-- The authenticate logic will now have two paths. If the username password authority does not require 2FA, the flow remains unchanged and upon username password validation, returns the full JWT. We are adding a branch in this logic to detect if 2FA is required, and instead trigger the email send and return a limited JWT with only the permissions to see the email code page.
-
-### Libraries
-Code generation library: [Boring Auth](https://docs.rs/boringauth) This package is a library designed to provide out-of-box HOTP and TOTP clients to generate one-time passwords.
+### Code changes
+- Addition of new auth strategy: oauth
+- Addition of new authority settings type:
+```
+Enabled {
+        scopes: String,
+        scope_endpoint: String,
+        oauth_base_url: Url,
+        exchange_token_base_url: Url,
+    },
+Disabled
+```
 
 ### Database Migrations
 Table: oauth_secrets
@@ -90,8 +112,7 @@ Columns: id, client_id, oauth_id, oauth_secret, created_at
 - Google Oauth2 implementation guide: https://developers.google.com/identity/protocols/oauth2/web-server#handlingresponse
 
 THOUGHTS
-- if we store scopes and scope_url here... oauth secrets DB table name kind of sucks because it holds more than the secrets...
-** Sometimes the Identity Provider is the Platform, like if Facebook is used directly... would this even work?
-- should /auth/sso/oauth/exchange_token return the user profile? .. it can't create a user, so it has to only return the user info for the client to decide what to do with
 - worth it to throw static values in the config or oauth secrets in case they later become... not static?
-- because the profile information request goes to the endpoint specific to the scope being requested.. it might make sense for the client to supply both of these together?
+- because the profile information request goes to the endpoint specific to the scope being requested.. it might make sense for the client to supply both of these together? Or to put them both in settings?
+- if we store scopes and scope_url in oauth secrets, it means they could be adjusted per identity provider use instead of across the whole identity platform, but not sure if that's adding too much complexity. Plus, oauth_secrets table name kind of sucks if it holds more than the secrets...can they live in settings?
+** Sometimes the Identity Provider is the Platform, like if Facebook is used directly... would this even work?
