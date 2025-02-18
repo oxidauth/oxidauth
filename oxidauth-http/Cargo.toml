@@ -15,7 +15,15 @@ oxidauth-postgres = { path = "../oxidauth-postgres" }
 oxidauth-permission = { path = "../oxidauth-permission" }
 oxidauth-telemetry = { path = "../oxidauth-telemetry" }
 
-axum = { version = "0.7.5", features = ["http1", "json", "macros", "matched-path", "original-uri", "tower-log", "query"] }
+axum = { version = "0.7.5", features = [
+    "http1",
+    "json",
+    "macros",
+    "matched-path",
+    "original-uri",
+    "tower-log",
+    "query",
+] }
 axum-extra = { version = "0.9.3", features = ["typed-header"] }
 axum-macros = "0.4.1"
 chrono = { version = "0.4.38", features = ["serde"] }
@@ -27,5 +35,9 @@ tower-http = { version = "0.5.2", features = ["fs", "cors"] }
 tracing = "0.1.40"
 tracing-bunyan-formatter = "0.3.9"
 tracing-log = "0.2.0"
-tracing-subscriber = { version = "0.3.18", features = ["registry", "env-filter"] }
+tracing-subscriber = { version = "0.3.18", features = [
+    "registry",
+    "env-filter",
+] }
+url = { version = "2.5.2", features = ["serde"] }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }

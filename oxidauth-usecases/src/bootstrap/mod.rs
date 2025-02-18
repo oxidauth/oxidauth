@@ -2,30 +2,31 @@ use std::{env, time::Duration};
 
 use async_trait::async_trait;
 use oxidauth_kernel::{
+    JsonValue, Password,
     auth::register::{RegisterParams, RegisterService},
     authorities::{
+        Authority, AuthorityNotFoundError, AuthoritySettings,
+        AuthorityStrategy, TotpSettings,
         create_authority::{CreateAuthority, CreateAuthorityService},
         find_authority_by_strategy::{
             FindAuthorityByStrategy, FindAuthorityByStrategyService,
         },
-        Authority, AuthorityNotFoundError, AuthoritySettings,
-        AuthorityStrategy, OauthSettings, TotpSettings,
     },
     bootstrap::BootstrapParams,
     error::BoxedError,
     jwt::EntitlementsEncoding,
     permissions::{
+        Permission, PermissionNotFoundError,
         create_permission::{CreatePermission, CreatePermissionService},
         find_permission_by_parts::{
             FindPermissionByParts, FindPermissionByPartsService,
         },
-        Permission, PermissionNotFoundError,
     },
     provider::Provider,
     public_keys::{
+        PublicKey,
         create_public_key::{CreatePublicKey, CreatePublicKeyService},
         list_all_public_keys::{ListAllPublicKeys, ListAllPublicKeysService},
-        PublicKey,
     },
     role_permission_grants::{
         create_role_permission_grant::{
@@ -37,17 +38,17 @@ use oxidauth_kernel::{
         },
     },
     roles::{
+        Role,
         create_role::{CreateRole, CreateRoleService},
         list_all_roles::{ListAllRoles, ListAllRolesService},
-        Role,
     },
     service::Service,
     settings::{
+        Setting,
         fetch_setting::{
             FetchSettingParams, FetchSettingService, SettingNotFoundError,
         },
         save_setting::{SaveSettingParams, SaveSettingService},
-        Setting,
     },
     user_role_grants::{
         create_user_role_grant::{
@@ -58,18 +59,17 @@ use oxidauth_kernel::{
         },
     },
     users::{
+        User, UserKind, UserNotFoundError,
         find_user_by_username::{
             FindUserByUsername, FindUserByUsernameService,
         },
-        User, UserKind, UserNotFoundError,
     },
-    JsonValue, Password,
 };
 use tracing::{error, info};
 
 use crate::{
     auth::strategies::username_password::{
-        registrar::UsernamePasswordRegisterParams, AuthorityParams,
+        AuthorityParams, registrar::UsernamePasswordRegisterParams,
     },
     random_string,
 };
@@ -400,7 +400,6 @@ async fn first_or_create_authority(
                         jwt_ttl: DEFAULT_JWT_TTL,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
                         totp: TotpSettings::Disabled,
-                        oauth: OauthSettings::Disabled,
                         entitlements_encoding: EntitlementsEncoding::Txt,
                     };
 

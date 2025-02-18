@@ -1,13 +1,13 @@
-use axum::{extract::State, response::IntoResponse, Json};
-use oxidauth_kernel::auth::authenticate::{
-    AuthenticateParams, AuthenticateService,
-};
-use oxidauth_kernel::error::IntoOxidAuthError;
+use axum::{Json, extract::State, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use uuid::Uuid;
 
 use crate::{provider::Provider, response::Response};
+use oxidauth_kernel::auth::authenticate::{
+    AuthenticateParams, AuthenticateService,
+};
+use oxidauth_kernel::error::IntoOxidAuthError;
 
 pub type AuthenticateReq = AuthenticateParams;
 
