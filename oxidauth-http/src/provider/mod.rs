@@ -52,6 +52,17 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<AuthenticateService>(authenticate_service);
     }
 
+    {
+        use oxidauth_kernel::auth::oauth2::redirect::Oauth2RedirectService;
+        use oxidauth_usecases::auth::strategies::oauth2::redirect::Oauth2RedirectUseCase;
+
+        let oauth2_redirect_service = Arc::new(Oauth2RedirectUseCase::new(
+            db.clone(),
+        ));
+
+        provider.store::<Oauth2RedirectService>(oauth2_redirect_service);
+    }
+
     let create_totp_secret_service = {
         use oxidauth_kernel::totp_secrets::create_totp_secret::CreateTotpSecretService;
         use oxidauth_usecases::totp_secrets::create_totp_secret::CreateTotpSecretUseCase;
@@ -590,6 +601,17 @@ pub async fn setup() -> Result<Provider, BoxedError> {
             Arc::new(FindAuthorityByStrategyUseCase::new(db.clone()));
         provider.store::<FindAuthorityByStrategyService>(
             find_authority_by_strategy_service,
+        );
+    }
+
+    {
+        use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKeyService;
+        use oxidauth_usecases::authorities::find_authority_by_client_key::FindAuthorityByClientKeyUseCase;
+
+        let find_authority_by_client_key_service =
+            Arc::new(FindAuthorityByClientKeyUseCase::new(db.clone()));
+        provider.store::<FindAuthorityByClientKeyService>(
+            find_authority_by_client_key_service,
         );
     }
 

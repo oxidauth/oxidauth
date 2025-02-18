@@ -7,7 +7,7 @@ pub mod user_identifier_from_request;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use oxidauth_kernel::{error::BoxedError, JsonValue};
+use oxidauth_kernel::{JsonValue, error::BoxedError};
 
 #[derive(Debug)]
 pub struct UsernamePassword {

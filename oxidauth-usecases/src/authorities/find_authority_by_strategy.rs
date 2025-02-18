@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::{find_authority_by_strategy::*, AuthorityNotFoundError},
+    authorities::{AuthorityNotFoundError, find_authority_by_strategy::*},
     error::BoxedError,
 };
 use oxidauth_repository::authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery;

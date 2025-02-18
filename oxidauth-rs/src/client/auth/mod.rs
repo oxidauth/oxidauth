@@ -1,4 +1,5 @@
 pub mod authenticate;
+pub mod oauth2;
 pub mod register;
 
-use super::{fmt, handle_response, Client, Resource};
+use super::{Client, Resource, fmt, handle_response};

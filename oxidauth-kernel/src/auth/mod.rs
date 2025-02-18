@@ -1,4 +1,5 @@
 pub mod authenticate;
+pub mod oauth2;
 pub mod register;
 pub mod tree;
 
@@ -7,9 +8,9 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
-    authorities::UserAuthority, dev_prelude::BoxedError,
+    JsonValue, authorities::UserAuthority, dev_prelude::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority,
-    users::create_user::CreateUser, JsonValue,
+    users::create_user::CreateUser,
 };
 
 #[async_trait]

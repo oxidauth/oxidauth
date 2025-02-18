@@ -6,7 +6,7 @@ use super::{
 };
 
 pub mod authenticate;
-pub mod find_redirect_url_by_authority_client_key;
+pub mod redirect_url;
 pub mod register;
 
-pub struct OauthStrategy {}
+pub struct Oauth2Strategy {}
