@@ -1,80 +1,164 @@
-// Not sure if I need this?
+use async_trait::async_trait;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
+use serde::{Deserialize, Serialize};
 
-// use async_trait::async_trait;
-// use oxidauth_kernel::{
-//     auth::Authenticator, authorities::Authority, error::BoxedError,
-//     user_authorities::UserAuthority, JsonValue, Password,
-// };
-// use serde::Deserialize;
+use oxidauth_kernel::{
+    auth::oauth2::authenticate::{
+        Oauth2Authenticate, Oauth2AuthenticateResponse,
+    },
+    authorities::{
+        AuthorityNotFoundError,
+        find_authority_by_client_key::FindAuthorityByClientKey,
+    },
+    error::BoxedError,
+    service::Service,
+};
+use oxidauth_repository::authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery;
 
-// use super::{
-//     AuthorityParams, UserAuthorityParams,
-// };
+use super::AuthorityParams;
 
-// #[derive(Clone, Deserialize)]
-// pub struct AuthenticateParams {
-// }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct GoogleExchangeTokenReq {
+    code: String,
+    client_id: String,
+    client_secret: String,
+    redirect_uri: String,
+    grant_type: String,
+}
 
-// impl TryFrom<JsonValue> for AuthenticateParams {
-//     type Error = BoxedError;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct GoogleExchangeTokenRes {
+    access_token: String,
+    expires_in: u32,
+    scope: String,
+    token_type: String,
+    id_token: String,
+}
 
-//     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-//         let s: Self = serde_json::from_value(value.inner_value())?;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct GoogleProfile {
+    name: String,
+    given_name: String,
+    family_name: String,
+    picture: String,
+    id: String,
+    email: String,
+    verified_email: bool,
+}
 
-//         Ok(s)
-//     }
-// }
+pub struct Oauth2AuthenticateUseCase<A>
+where
+    A: SelectAuthorityByClientKeyQuery,
+{
+    authority_by_client_key: A,
+}
 
-// #[async_trait]
-// impl Authenticator for UsernamePassword {
-//     #[tracing::instrument(name = "username_password authenticate", skip(self))]
-//     async fn authenticate(
-//         &self,
-//         authenticate_params: JsonValue,
-//         user_authority: &UserAuthority,
-//     ) -> Result<(), BoxedError> {
-//         let authenticate_params: AuthenticateParams =
-//             authenticate_params.try_into()?;
+impl<A> Oauth2AuthenticateUseCase<A>
+where
+    A: SelectAuthorityByClientKeyQuery,
+{
+    pub fn new(authority_by_client_key: A) -> Self {
+        Self {
+            authority_by_client_key,
+        }
+    }
+}
 
-//         let password = raw_password_hash(
-//             &authenticate_params
-//                 .password
-//                 .inner_value(),
-//             &self.params.password_salt,
-//             &self.password_pepper,
-//         );
+#[async_trait]
+impl<'a, A> Service<&'a Oauth2Authenticate> for Oauth2AuthenticateUseCase<A>
+where
+    A: SelectAuthorityByClientKeyQuery,
+{
+    type Response = Oauth2AuthenticateResponse;
+    type Error = BoxedError;
 
-//         let user_authority_params: UserAuthorityParams = user_authority
-//             .params
-//             .clone()
-//             .try_into()?;
+    #[tracing::instrument(name = "oauth2 authenticate ", skip(self))]
+    async fn call(
+        &self,
+        params: &'a Oauth2Authenticate,
+    ) -> Result<Self::Response, Self::Error> {
+        let authority = self
+            .authority_by_client_key
+            .call(&FindAuthorityByClientKey {
+                client_key: params.client_key,
+            })
+            .await?
+            .ok_or_else(|| {
+                AuthorityNotFoundError::client_key(params.client_key)
+            })?;
 
-//         verify_password(
-//             password,
-//             user_authority_params.password_hash,
-//         )
-//         .map_err(|err| err.to_string())?;
+        let authority_params: AuthorityParams = authority.params.try_into()?;
 
-//         Ok(())
-//     }
-// }
+        let json = GoogleExchangeTokenReq {
+            code: params.code.to_owned(),
+            client_id: authority_params.oauth2_id,
+            client_secret: authority_params.oauth2_secret,
+            redirect_uri: authority_params
+                .redirect_url
+                .to_string(),
+            grant_type: String::from("authorization_code"),
+        };
 
-// #[tracing::instrument(name = "new authenticator")]
-// pub async fn new(
-//     authority: &Authority,
-// ) -> Result<Box<dyn Authenticator>, BoxedError> {
-//     let params: AuthorityParams = authority
-//         .params
-//         .clone()
-//         .try_into()?;
+        println!("JSON :: {:?}", json);
 
-//     let password_pepper = std::env::var("OXIDAUTH_USERNAME_PASSWORD_PEPPER")?;
+        let exchange: GoogleExchangeTokenRes = reqwest::Client::new()
+            .post("https://oauth2.googleapis.com/token")
+            .header(
+                CONTENT_TYPE,
+                "application/x-www-form-urlencoded",
+            )
+            .form(&json)
+            .send()
+            .await
+            .map_err(|err| {
+                println!(
+                    "ERROR WITH REQWEST CALL :: {:?}",
+                    err.to_string()
+                );
+                err.to_string()
+            })?
+            .json()
+            .await
+            .map_err(|err| {
+                println!(
+                    "ERROR PARSING JSON {:?}",
+                    err.to_string(),
+                );
+                err.to_string()
+            })?;
 
-//     let authority_id = authority.id;
+        println!(
+            "ACCESS TOKEN RECEIVED:: {:?}",
+            exchange
+        );
 
-//     Ok(Box::new(UsernamePassword {
-//         authority_id,
-//         params,
-//         password_pepper,
-//     }))
-// }
+        let mut bearer_token = String::from("Bearer ");
+        bearer_token.push_str(&exchange.access_token);
+        println!(
+            "MADE THE BEARER TOKEN {:?}",
+            bearer_token.clone()
+        );
+
+        let profile: GoogleProfile = reqwest::Client::new()
+            .get("https://www.googleapis.com/userinfo/v2/me")
+            .header(AUTHORIZATION, bearer_token)
+            .send()
+            .await
+            .map_err(|err| {
+                println!(
+                    "GOOGLE RESPONSE ERROR 1 :: {:?}",
+                    err
+                );
+                err.to_string()
+            })?
+            .json()
+            .await
+            .map_err(|err| err.to_string())?;
+
+        println!("PROFILE INFO:: {:?}", profile);
+
+        let profile = serde_json::to_value(profile)?.into();
+
+        Ok(Oauth2AuthenticateResponse { profile })
+    }
+}

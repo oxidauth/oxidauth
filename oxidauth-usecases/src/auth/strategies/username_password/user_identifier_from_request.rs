@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
-    auth::UserIdentifierFromRequest, error::BoxedError, JsonValue,
+    JsonValue, auth::UserIdentifierFromRequest, error::BoxedError,
 };
 
-use super::{authenticator::AuthenticateParams, UsernamePassword};
+use super::{UsernamePassword, authenticator::AuthenticateParams};
 
 #[async_trait]
 impl UserIdentifierFromRequest for UsernamePassword {
