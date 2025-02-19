@@ -1,6 +1,5 @@
 pub mod authenticator;
 pub mod redirect;
-pub mod registrar;
 
 use serde::{Deserialize, Serialize};
 use url::Url;
