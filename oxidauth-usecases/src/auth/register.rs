@@ -3,12 +3,12 @@ use base64::prelude::*;
 use chrono::DateTime;
 use oxidauth_kernel::{
     auth::{
-        register::{RegisterParams, RegisterResponse},
         Registrar,
+        register::{RegisterParams, RegisterResponse},
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
     error::BoxedError,
-    jwt::{epoch_from_now, Jwt},
+    jwt::{Jwt, epoch_from_now},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     service::Service,
 };
@@ -195,6 +195,6 @@ pub async fn build_registrar(
             strategies::username_password::registrar::new(authority).await
         },
         SingleUseToken => unimplemented!(),
-        Oauth => unimplemented!(),
+        Oauth2 => unimplemented!(),
     }
 }

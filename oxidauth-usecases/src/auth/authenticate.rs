@@ -315,6 +315,6 @@ pub async fn build_authenticator(
             username_password::authenticator::new(authority).await
         },
         SingleUseToken => unimplemented!(),
-        Oauth => todo!(),
+        Oauth2 => unimplemented!(), // implemented with separate routes, logic in strategies/oauth2/authenticator
     }
 }

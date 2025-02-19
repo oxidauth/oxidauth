@@ -6,8 +6,6 @@ pub use oxidauth_http::{
 };
 use oxidauth_kernel::error::BoxedError;
 
-pub use oxidauth_usecases::auth::strategies::*;
-
 use super::*;
 
 const RESOURCE: Resource = Resource::Auth;

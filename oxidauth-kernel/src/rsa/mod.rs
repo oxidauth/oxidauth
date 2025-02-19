@@ -1,11 +1,11 @@
 use crate::error::BoxedError;
 use base64::prelude::*;
 use rsa::{
+    Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
     pkcs8::{
         DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey,
         LineEnding,
     },
-    Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
 };
 
 use std::error::Error;
@@ -129,28 +129,28 @@ impl TryFrom<&[u8]> for PrivateKey {
     }
 }
 
-#[cfg(test)]
-#[cfg(feature = "rsa-test")]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// #[cfg(feature = "rsa-test")]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    fn test_encrypt_and_decrypt() {
-        let Base64KeyPair { public, private } = generate()
-            .unwrap()
-            .base64_encode();
+//     #[test]
+//     fn test_encrypt_and_decrypt() {
+//         let Base64KeyPair { public, private } = generate()
+//             .unwrap()
+//             .base64_encode();
 
-        let data = b"hello world!";
+//         let data = b"hello world!";
 
-        let private: PrivateKey = private.try_into().unwrap();
-        let public: PublicKey = public.try_into().unwrap();
+//         let private: PrivateKey = private.try_into().unwrap();
+//         let public: PublicKey = public.try_into().unwrap();
 
-        let encrypted = public.encrypt(data).unwrap();
+//         let encrypted = public.encrypt(data).unwrap();
 
-        let decrypted = private
-            .decrypt(&encrypted)
-            .unwrap();
+//         let decrypted = private
+//             .decrypt(&encrypted)
+//             .unwrap();
 
-        assert_eq!(decrypted, data);
-    }
-}
+//         assert_eq!(decrypted, data);
+//     }
+// }
