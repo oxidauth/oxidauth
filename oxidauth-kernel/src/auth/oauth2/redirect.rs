@@ -17,6 +17,7 @@ pub type Oauth2RedirectService = Arc<
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Oauth2RedirectParams {
     pub client_key: Uuid,
+    pub email: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

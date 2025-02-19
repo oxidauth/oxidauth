@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use url::Url;
 
 use oxidauth_kernel::{
     auth::oauth2::redirect::{Oauth2RedirectParams, Oauth2RedirectResponse},
@@ -57,14 +58,21 @@ where
 
         // construct the redirect url based on the oauth flavor
         let redirect_url = match oauth_params.flavor {
-            OauthProviders::Google => oauth_params.redirect_url,
+            OauthProviders::Google => {
+                let redirect_string = format!(
+                    "{}&login_hint={}&response_type=code&include_granted_scopes=true",
+                    oauth_params.redirect_url, params.email
+                );
+                Url::parse(&redirect_string)?
+            },
         };
 
-        // Example Redirect: "https://accounts.google.com/o/oauth2/v2/auth?{}{}{}{}&response_type=code&include_granted_scopes=true",
+        // Example Redirect: "https://accounts.google.com/o/oauth2/v2/auth?{}{}{}{}{}&response_type=code&include_granted_scopes=true",
         // let client_id = "client_id=127751927363-4l0710vnomm37imtagelivu0sn8rui3b.apps.googleusercontent.com&";
         // let response_url = "redirect_uri=http://localhost:8000/api/v1/auth/sso/oauth/auth_response&";
         // let scope = "scope=https://www.googleapis.com/auth/userinfo.profile&";
         // let hd = "";
+        // login_hint = "usersemail@myschool.com"
 
         Ok(Oauth2RedirectResponse { redirect_url })
     }
