@@ -2,8 +2,7 @@ use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::create_authority::{
     CreateAuthority, CreateAuthorityReq, CreateAuthorityRes,
 };
-pub use oxidauth_kernel::authorities::TotpSettings;
-use oxidauth_kernel::error::BoxedError;
+pub use oxidauth_kernel::{authorities::TotpSettings, error::BoxedError};
 
 use super::*;
 

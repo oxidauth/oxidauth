@@ -1,12 +1,10 @@
-use axum::{extract::State, response::IntoResponse, Json};
-use oxidauth_kernel::auth::register::RegisterService;
-use oxidauth_kernel::auth::register::*;
-use oxidauth_kernel::error::IntoOxidAuthError;
-pub use oxidauth_kernel::{authorities::AuthorityStrategy, JsonValue};
+use axum::{Json, extract::State, response::IntoResponse};
 use serde::{Deserialize, Serialize};
-
-use tracing::info;
 use uuid::Uuid;
+
+pub use oxidauth_kernel::authorities::AuthorityStrategy; // for oxidauth rs
+use oxidauth_kernel::{auth::register::*, error::IntoOxidAuthError};
+use tracing::info;
 
 use crate::provider::Provider;
 use crate::response::Response;

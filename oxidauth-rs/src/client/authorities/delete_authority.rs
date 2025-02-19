@@ -1,7 +1,8 @@
+use uuid::Uuid;
+
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::delete_authority::DeleteAuthorityRes;
 use oxidauth_kernel::error::BoxedError;
-use uuid::Uuid;
 
 use super::*;
 

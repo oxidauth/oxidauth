@@ -2,10 +2,12 @@ use axum::{
     extract::{Path, State},
     response::IntoResponse,
 };
-use oxidauth_kernel::authorities::list_all_authorities::*;
-use oxidauth_kernel::error::IntoOxidAuthError;
-use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
+
+use oxidauth_kernel::{
+    authorities::list_all_authorities::*, error::IntoOxidAuthError,
+};
+use oxidauth_permission::parse_and_validate;
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
