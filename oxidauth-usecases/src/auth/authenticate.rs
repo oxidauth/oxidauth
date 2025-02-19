@@ -1,11 +1,12 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use base64::prelude::BASE64_STANDARD;
-use base64::Engine;
-use boringauth::oath::TOTPBuilder;
-use reqwest::Client;
-use tracing::info;
-use chrono::DateTime;
 use async_trait::async_trait;
+use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
+use boringauth::oath::TOTPBuilder;
+use chrono::DateTime;
+use reqwest::Client;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use tracing::info;
+
 pub use oxidauth_kernel::{
     auth::{
         authenticate::{AuthenticateParams, AuthenticateResponse, WebhookReq, WebhookRes},

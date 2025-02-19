@@ -1,10 +1,11 @@
+use uuid::Uuid;
+
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::update_authority::{
     UpdateAuthority, UpdateAuthorityPathReq, UpdateAuthorityReq,
     UpdateAuthorityRes,
 };
 use oxidauth_kernel::error::BoxedError;
-use uuid::Uuid;
 
 use super::*;
 

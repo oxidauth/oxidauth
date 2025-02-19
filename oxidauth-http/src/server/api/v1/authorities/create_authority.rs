@@ -1,8 +1,10 @@
-use axum::{extract::State, response::IntoResponse, Json};
-pub use oxidauth_kernel::authorities::create_authority::*;
-use oxidauth_kernel::error::IntoOxidAuthError;
-use oxidauth_permission::parse_and_validate;
+use axum::{Json, extract::State, response::IntoResponse};
 use serde::{Deserialize, Serialize};
+
+pub use oxidauth_kernel::{
+    authorities::create_authority::*, error::IntoOxidAuthError,
+};
+use oxidauth_permission::parse_and_validate;
 use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{

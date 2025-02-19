@@ -1,28 +1,28 @@
-pub use oxidauth_http::server::api::v1::authorities::find_authority_by_client_key::FindAuthorityByClientKeyRes;
+pub use oxidauth_http::server::api::v1::authorities::find_authority_by_strategy::FindAuthorityByStrategyRes;
 use oxidauth_http::response::Response;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
 
 const RESOURCE: Resource = Resource::Authority;
-const METHOD: &str = "find_authority_by_client_key";
+const METHOD: &str = "find_authority_by_strategy";
 
 impl Client {
     #[tracing::instrument(skip(self))]
-    pub async fn find_authority_by_client_key<T>(
+    pub async fn find_authority_by_strategy<T>(
         &self,
-        authority_client_key: T,
-    ) -> Result<FindAuthorityByClientKeyRes, BoxedError>
+        authority_strategy: T,
+    ) -> Result<FindAuthorityByStrategyRes, BoxedError>
     where
         T: Into<String> + fmt::Debug,
     {
-        let authority_client_key = authority_client_key.into();
+        let authority_strategy = authority_strategy.into();
 
-        let resp: Response<FindAuthorityByClientKeyRes> = self
+        let resp: Response<FindAuthorityByStrategyRes> = self
             .get(
                 &format!(
-                    "/authorities/by_client_key/{}",
-                    authority_client_key
+                    "/authorities/by_strategy/{}",
+                    authority_strategy
                 ),
                 None::<()>,
             )

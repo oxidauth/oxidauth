@@ -3,15 +3,15 @@ use axum::{
     extract::{Path, State},
     response::IntoResponse,
 };
-use oxidauth_kernel::auth::oauth2::authenticate::Oauth2Authenticate;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use uuid::Uuid;
 
-use crate::{provider::Provider, response::Response};
 use oxidauth_kernel::{
     auth::oauth2::authenticate::*, error::IntoOxidAuthError,
 };
+
+use crate::{provider::Provider, response::Response};
 
 pub type Oauth2AuthenticateReq = Oauth2AuthenticateParams;
 pub type Oauth2AuthenticateRes = Oauth2AuthenticateResponse;
@@ -21,7 +21,7 @@ pub struct Oauth2AuthenticatePathParams {
     pub client_key: Uuid,
 }
 
-#[tracing::instrument(name = "oauth2 authenticate", skip(provider))]
+#[tracing::instrument(name = "oauth2_authenticate_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
     Path(path_params): Path<Oauth2AuthenticatePathParams>,

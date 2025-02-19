@@ -1,15 +1,17 @@
 use axum::{
+    Json,
     extract::{Path, State},
     response::IntoResponse,
-    Json,
 };
-pub use oxidauth_kernel::authorities::update_authority::UpdateAuthority;
-use oxidauth_kernel::authorities::update_authority::*;
-use oxidauth_kernel::error::IntoOxidAuthError;
-use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
-use tracing::{info, warn};
 use uuid::Uuid;
+
+pub use oxidauth_kernel::authorities::update_authority::UpdateAuthority; // for oxidauth rs
+use oxidauth_kernel::{
+    authorities::update_authority::*, error::IntoOxidAuthError,
+};
+use oxidauth_permission::parse_and_validate;
+use tracing::{info, warn};
 
 use crate::middleware::permission_extractor::{
     ExtractEntitlements, ExtractJwt,
