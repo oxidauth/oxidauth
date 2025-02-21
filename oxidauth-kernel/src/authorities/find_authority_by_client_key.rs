@@ -10,13 +10,18 @@ pub use super::Authority;
 
 pub type FindAuthorityByClientKeyService = Arc<
     dyn for<'a> Service<
-        &'a FindAuthorityByClientKey,
-        Response = Authority,
-        Error = BoxedError,
-    >,
+            &'a FindAuthorityByClientKey,
+            Response = Authority,
+            Error = BoxedError,
+        >,
 >;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindAuthorityByClientKey {
     pub client_key: Uuid,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FindAuthorityByClientKeyResult {
+    pub authority: Authority,
 }

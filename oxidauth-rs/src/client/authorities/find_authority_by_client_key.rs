@@ -1,6 +1,7 @@
 pub use oxidauth_http::server::api::v1::authorities::find_authority_by_client_key::FindAuthorityByClientKeyRes;
-use oxidauth_http::response::Response;
+pub use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKey;
 use oxidauth_kernel::error::BoxedError;
+use oxidauth_http::response::Response;
 
 use super::*;
 
