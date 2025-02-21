@@ -2,7 +2,6 @@ use axum::{
     extract::{Path, State},
     response::IntoResponse,
 };
-use serde::{Deserialize, Serialize};
 
 use oxidauth_kernel::{
     authorities::find_authority_by_client_key::*, error::IntoOxidAuthError,

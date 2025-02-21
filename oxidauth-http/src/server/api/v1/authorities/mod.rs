@@ -30,6 +30,10 @@ pub fn router() -> Router<Provider> {
             get(find_authority_by_strategy::handle),
         )
         .route(
+            "/by_client_key/:client_key",
+            get(find_authority_by_client_key::handle),
+        )
+        .route(
             "/:authority_id",
             get(find_authority_by_id::handle),
         )

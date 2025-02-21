@@ -13,13 +13,13 @@ pub enum OauthProviders {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthorityParams {
-    exchange_url: Url, // Url where a token can be exchanged for an access code
-    flavor: OauthProviders, // oauth2 platform
-    oauth2_id: String, // client's sso id
-    oauth2_secret: String, // client's sso secret
-    profile_url: Url, // Url where an access code can be used to receive information from requested scopes
-    scopes: String, // space separated list of scopes of user info requested from platform (might be a google only thing)
-    redirect_url: Url, // Google Url where user goes through oauth flow
+    pub exchange_url: Url, // Url where a token can be exchanged for an access code
+    pub flavor: OauthProviders, // oauth2 platform
+    pub oauth2_id: String, // client's sso id
+    pub oauth2_secret: String, // client's sso secret
+    pub profile_url: Url, // Url where an access code can be used to receive information from requested scopes
+    pub scopes: String, // space separated list of scopes of user info requested from platform (might be a google only thing)
+    pub redirect_url: Url, // Google Url where user goes through oauth flow
 }
 
 impl AuthorityParams {
