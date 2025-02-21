@@ -20,10 +20,7 @@ use super::PERMISSION;
 
 pub type FindAuthorityByClientKeyReq = FindAuthorityByClientKey;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FindAuthorityByClientKeyRes {
-    pub authority: Authority,
-}
+pub type FindAuthorityByClientKeyRes = FindAuthorityByClientKeyResult;
 
 #[tracing::instrument(
     name = "find_authority_by_client_key_handler",
