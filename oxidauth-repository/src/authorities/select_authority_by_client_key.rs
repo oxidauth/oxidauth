@@ -5,18 +5,18 @@ pub use crate::prelude::*;
 
 pub trait SelectAuthorityByClientKeyQuery:
     for<'a> Service<
-    &'a FindAuthorityByClientKey,
-    Response = Option<Authority>,
-    Error = BoxedError,
->
+        &'a FindAuthorityByClientKey,
+        Response = Option<Authority>,
+        Error = BoxedError,
+    >
 {
 }
 
 impl<T> SelectAuthorityByClientKeyQuery for T where
     T: for<'a> Service<
-        &'a FindAuthorityByClientKey,
-        Response = Option<Authority>,
-        Error = BoxedError,
-    >
+            &'a FindAuthorityByClientKey,
+            Response = Option<Authority>,
+            Error = BoxedError,
+        >
 {
 }

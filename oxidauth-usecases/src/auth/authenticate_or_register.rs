@@ -1,12 +1,8 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    JsonValue,
     auth::{
-        authenticate::{AuthenticateParams, AuthenticateResponse},
-        register::RegisterParams,
+        authenticate::AuthenticateResponse, authenticate_or_register::AuthenticateOrRegisterParams,
     },
     error::BoxedError,
     service::Service,
@@ -23,19 +19,8 @@ use oxidauth_repository::{
     },
     users::{insert_user::InsertUserQuery, select_user_by_id_query::SelectUserByIdQuery},
 };
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use super::{authenticate::AuthenticateUseCase, register::RegisterUseCase};
-
-// TODO(dewey4iv): move to kernel
-pub type AuthenticateOrRegisterService = Arc<
-    dyn for<'a> Service<
-            &'a AuthenticateOrRegisterParams,
-            Response = AuthenticateResponse,
-            Error = BoxedError,
-        >,
->;
 
 pub struct AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
 where
@@ -51,6 +36,29 @@ where
 {
     authenticate: AuthenticateUseCase<T, U, P, M, R, S, UU>,
     register: RegisterUseCase<T, UI, A, P, M, R>,
+}
+
+impl<A, M, P, R, S, T, UI, U, UU> AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+where
+    A: InsertUserAuthorityQuery,
+    M: SelectMostRecentPrivateKeyQuery,
+    P: PermissionTreeQuery,
+    R: InsertRefreshTokenQuery,
+    S: SelectTOTPSecrețByUserIdQuery,
+    T: SelectAuthorityByClientKeyQuery,
+    UI: InsertUserQuery,
+    U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
+    UU: SelectUserByIdQuery,
+{
+    pub fn new(
+        authenticate: AuthenticateUseCase<T, U, P, M, R, S, UU>,
+        register: RegisterUseCase<T, UI, A, P, M, R>,
+    ) -> Self {
+        Self {
+            authenticate,
+            register,
+        }
+    }
 }
 
 #[async_trait]
@@ -97,33 +105,3 @@ where
         }
     }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuthenticateOrRegisterParams {
-    pub client_key: Uuid,
-    pub params: JsonValue,
-}
-
-impl From<&AuthenticateOrRegisterParams> for AuthenticateParams {
-    fn from(value: &AuthenticateOrRegisterParams) -> Self {
-        Self {
-            client_key: value.client_key,
-            params: value.params.clone(),
-        }
-    }
-}
-
-impl From<&AuthenticateOrRegisterParams> for RegisterParams {
-    fn from(value: &AuthenticateOrRegisterParams) -> Self {
-        Self {
-            client_key: value.client_key,
-            params: value.params.clone(),
-        }
-    }
-}
-
-//impl AuthenticateOrRegisterUsecase {
-//    pub fn new() -> Self {
-//        Self {}
-//    }
-//}

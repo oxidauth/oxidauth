@@ -16,9 +16,7 @@ use oxidauth_repository::{
     auth::tree::{PermissionSearch, PermissionTreeQuery},
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
     private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
-    refresh_tokens::insert_refresh_token::{
-        CreateRefreshToken, InsertRefreshTokenQuery,
-    },
+    refresh_tokens::insert_refresh_token::{CreateRefreshToken, InsertRefreshTokenQuery},
     user_authorities::insert_user_authority::InsertUserAuthorityQuery,
     users::insert_user::InsertUserQuery,
 };
@@ -72,8 +70,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T, U, A, P, M, R> Service<&'a RegisterParams>
-    for RegisterUseCase<T, U, A, P, M, R>
+impl<'a, T, U, A, P, M, R> Service<&'a RegisterParams> for RegisterUseCase<T, U, A, P, M, R>
 where
     T: SelectAuthorityByClientKeyQuery,
     U: InsertUserQuery,
@@ -86,17 +83,12 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "register_usecase", skip(self))]
-    async fn call(
-        &self,
-        params: &'a RegisterParams,
-    ) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, params: &'a RegisterParams) -> Result<Self::Response, Self::Error> {
         let authority = self
             .authority_by_client_key
             .call(&params.into())
             .await?
-            .ok_or_else(|| {
-                AuthorityNotFoundError::client_key(params.client_key)
-            })?;
+            .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
 
         let registrar = build_registrar(&authority).await?;
 
@@ -114,9 +106,7 @@ where
 
         let permissions = self
             .permission_tree
-            .call(&PermissionSearch::User(
-                user.id,
-            ))
+            .call(&PermissionSearch::User(user.id))
             .await?
             .permissions;
 
@@ -139,35 +129,19 @@ where
             )
             .with_not_before_from(Duration::from_secs(0))
             .build()
-            .map_err(|err| {
-                format!(
-                    "unable to build jwt: {:?}",
-                    err
-                )
-            })?
+            .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)
-            .map_err(|err| {
-                format!(
-                    "unable to encode jwt: {:?}",
-                    err
-                )
-            })?;
+            .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
 
         let refresh_token_exp_at = epoch_from_now(
             authority
                 .settings
                 .refresh_token_ttl,
         )
-        .map_err(|err| {
-            format!(
-                "unable to calculate refresh_token_exp_at: {:?}",
-                err
-            )
-        })?;
+        .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
 
-        let refresh_token_exp_at =
-            DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
-                .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
+        let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
+            .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
 
         let refresh_token = self
             .refresh_tokens
@@ -185,16 +159,12 @@ where
     }
 }
 
-pub async fn build_registrar(
-    authority: &Authority,
-) -> Result<Box<dyn Registrar>, BoxedError> {
+pub async fn build_registrar(authority: &Authority) -> Result<Box<dyn Registrar>, BoxedError> {
     use AuthorityStrategy::*;
 
     match authority.strategy {
-        UsernamePassword => {
-            strategies::username_password::registrar::new(authority).await
-        },
+        UsernamePassword => strategies::username_password::registrar::new(authority).await,
+        Oauth2 => strategies::oauth2::registrar::new(authority).await,
         SingleUseToken => unimplemented!(),
-        Oauth2 => unimplemented!(),
     }
 }

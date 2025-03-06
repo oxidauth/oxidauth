@@ -1,4 +1,7 @@
-use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKey;
+use oxidauth_kernel::authorities::{
+    AuthorityNotFoundError,
+    find_authority_by_client_key::FindAuthorityByClientKey,
+};
 use oxidauth_repository::authorities::select_authority_by_client_key::*;
 
 use crate::prelude::*;
@@ -25,11 +28,13 @@ impl<'a> Service<&'a FindAuthorityByClientKey> for Database {
         .fetch_optional(&self.pool)
         .await?;
 
-        let authority = result
-            .map(TryInto::try_into)
-            .transpose()?;
+        let Some(res) = result else {
+            return Err(AuthorityNotFoundError::client_key(params.client_key));
+        };
 
-        Ok(authority)
+        let authority: Authority = res.try_into()?;
+
+        Ok(Some(authority))
     }
 }
 

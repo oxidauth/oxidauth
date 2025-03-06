@@ -41,12 +41,14 @@ where
     ) -> Result<Self::Response, Self::Error> {
         let authority = self
             .authorities
-            .call(params)
-            .await?
-            .ok_or_else(|| {
-                AuthorityNotFoundError::client_key(params.client_key)
-            })?;
+            .call(&FindAuthorityByClientKey {
+                client_key: params.client_key,
+            })
+            .await?;
 
-        Ok(authority)
+        match authority {
+            Some(a) => Ok(a),
+            None => Err(AuthorityNotFoundError::client_key(params.client_key)),
+        }
     }
 }

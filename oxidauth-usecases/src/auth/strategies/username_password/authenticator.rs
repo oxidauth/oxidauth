@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
-    auth::Authenticator, authorities::Authority, error::BoxedError,
-    user_authorities::UserAuthority, JsonValue, Password,
+    JsonValue, Password, auth::Authenticator, authorities::Authority, error::BoxedError,
+    user_authorities::UserAuthority,
 };
 use serde::Deserialize;
 
 use super::{
-    helpers::{raw_password_hash, verify_password},
     AuthorityParams, UserAuthorityParams, UsernamePassword,
+    helpers::{raw_password_hash, verify_password},
 };
 
 #[derive(Clone, Deserialize)]
@@ -32,10 +32,10 @@ impl Authenticator for UsernamePassword {
     async fn authenticate(
         &self,
         authenticate_params: JsonValue,
+        authority: &Authority,
         user_authority: &UserAuthority,
     ) -> Result<(), BoxedError> {
-        let authenticate_params: AuthenticateParams =
-            authenticate_params.try_into()?;
+        let authenticate_params: AuthenticateParams = authenticate_params.try_into()?;
 
         let password = raw_password_hash(
             &authenticate_params
@@ -50,20 +50,15 @@ impl Authenticator for UsernamePassword {
             .clone()
             .try_into()?;
 
-        verify_password(
-            password,
-            user_authority_params.password_hash,
-        )
-        .map_err(|err| err.to_string())?;
+        verify_password(password, user_authority_params.password_hash)
+            .map_err(|err| err.to_string())?;
 
         Ok(())
     }
 }
 
 #[tracing::instrument(name = "new authenticator")]
-pub async fn new(
-    authority: &Authority,
-) -> Result<Box<dyn Authenticator>, BoxedError> {
+pub async fn new(authority: &Authority) -> Result<Box<dyn Authenticator>, BoxedError> {
     let params: AuthorityParams = authority
         .params
         .clone()

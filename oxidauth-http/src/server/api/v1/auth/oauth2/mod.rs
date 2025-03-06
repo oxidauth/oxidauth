@@ -1,4 +1,4 @@
-pub mod authenticate;
+pub mod callback;
 pub mod redirect;
 
 use axum::{
@@ -10,12 +10,6 @@ use crate::provider::Provider;
 
 pub fn router() -> Router<Provider> {
     Router::new()
-        .route(
-            "/redirect",
-            post(redirect::handle),
-        )
-        .route(
-            "/authenticate/:client_key",
-            get(authenticate::handle),
-        )
+        .route("/redirect", post(redirect::handle))
+        .route("/callback/:client_key", get(callback::handle))
 }

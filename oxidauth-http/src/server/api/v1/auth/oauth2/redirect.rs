@@ -1,7 +1,6 @@
 use axum::{Json, extract::State, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 use tracing::info;
-use url::Url;
 
 use oxidauth_kernel::{auth::oauth2::redirect::*, error::IntoOxidAuthError};
 
@@ -11,7 +10,7 @@ pub type Oauth2RedirectReq = Oauth2RedirectParams;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Oauth2RedirectRes {
-    pub redirect_url: Url,
+    pub redirect_url: String,
 }
 
 #[tracing::instrument(name = "oauth2_redirect_handler", skip(provider))]
@@ -30,8 +29,13 @@ pub async fn handle(
                 response = ?res,
             );
 
-            Response::success().payload(Oauth2RedirectResponse {
-                redirect_url: res.redirect_url,
+            println!(
+                "SENDING BACK REDIRECT URL - {}",
+                res.redirect_url.to_string()
+            );
+
+            Response::success().payload(Oauth2RedirectRes {
+                redirect_url: res.redirect_url.to_string(),
             })
         },
         Err(err) => {

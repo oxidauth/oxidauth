@@ -1,4 +1,5 @@
 pub mod authenticate;
+pub mod authenticate_or_register;
 pub mod oauth2;
 pub mod register;
 pub mod tree;
@@ -8,7 +9,9 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
-    JsonValue, authorities::UserAuthority, dev_prelude::BoxedError,
+    JsonValue,
+    authorities::{Authority, UserAuthority},
+    dev_prelude::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority,
     users::create_user::CreateUser,
 };
@@ -18,13 +21,7 @@ pub trait Registrar: UserAuthorityFromRequest + Send + Sync + 'static {
     async fn register(
         &self,
         params: JsonValue,
-    ) -> Result<
-        (
-            CreateUser,
-            CreateUserAuthority,
-        ),
-        BoxedError,
-    >;
+    ) -> Result<(CreateUser, CreateUserAuthority), BoxedError>;
 }
 
 #[async_trait]
@@ -36,22 +33,19 @@ pub trait UserAuthorityFromRequest: Send + Sync + 'static {
 }
 
 #[async_trait]
-pub trait Authenticator:
-    UserIdentifierFromRequest + Send + Sync + 'static
-{
+pub trait Authenticator: UserIdentifierFromRequest + Send + Sync + 'static {
     async fn authenticate(
         &self,
         params: JsonValue,
+        authority: &Authority,
         user_authority: &UserAuthority,
     ) -> Result<(), BoxedError>;
 }
 
 #[async_trait]
 pub trait UserIdentifierFromRequest: Send + Sync + 'static {
-    async fn user_identifier_from_request(
-        &self,
-        request: &JsonValue,
-    ) -> Result<String, BoxedError>;
+    async fn user_identifier_from_request(&self, request: &JsonValue)
+    -> Result<String, BoxedError>;
 }
 
 #[derive(Debug, Deserialize)]
