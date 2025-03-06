@@ -52,9 +52,7 @@ pub async fn handle(
     }
 
     let service = provider.fetch::<FindAuthorityByStrategyService>();
-
     info!("provided FindAuthorityByStrategyService");
-
     let result = service.call(&params).await;
 
     match result {

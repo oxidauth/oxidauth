@@ -1,38 +1,35 @@
 use axum::{
-    Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use uuid::Uuid;
 
-use oxidauth_kernel::{
-    auth::oauth2::authenticate::*, error::IntoOxidAuthError,
-};
+use oxidauth_kernel::{auth::oauth2::authenticate::*, error::IntoOxidAuthError};
 
 use crate::{provider::Provider, response::Response};
 
-pub type Oauth2AuthenticateReq = Oauth2AuthenticateParams;
-pub type Oauth2AuthenticateRes = Oauth2AuthenticateResponse;
+pub type OAuth2CallbackReq = OAuth2AuthenticateParams;
+pub type OAuth2CallbackRes = OAuth2AuthenticateResponse;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Oauth2AuthenticatePathParams {
+pub struct OAuth2AuthenticatePathParams {
     pub client_key: Uuid,
 }
 
 #[tracing::instrument(name = "oauth2_authenticate_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
-    Path(path_params): Path<Oauth2AuthenticatePathParams>,
-    Json(params): Json<Oauth2AuthenticateReq>,
+    Path(path_params): Path<OAuth2AuthenticatePathParams>,
+    auth_response: Query<OAuth2CallbackReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<Oauth2AuthenticateService>();
+    let service = provider.fetch::<OAuth2AuthenticateService>();
 
     let result = service
-        .call(&Oauth2Authenticate {
-            code: params.code,
-            scope: params.scope,
+        .call(&OAuth2AuthenticateParams {
+            code: auth_response.code.clone(),
+            scope: auth_response.scope.clone(),
             client_key: path_params.client_key,
         })
         .await;
@@ -46,7 +43,7 @@ pub async fn handle(
                 response = ?res,
             );
 
-            Response::success().payload(Oauth2AuthenticateRes {
+            Response::success().payload(OAuth2CallbackRes {
                 profile: res.profile,
             })
         },

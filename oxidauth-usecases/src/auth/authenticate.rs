@@ -9,23 +9,28 @@ use tracing::info;
 
 pub use oxidauth_kernel::{
     auth::{
-        authenticate::{AuthenticateParams, AuthenticateResponse, WebhookReq, WebhookRes},
         Authenticator,
+        authenticate::{AuthenticateParams, AuthenticateResponse, WebhookReq, WebhookRes},
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, TotpSettings},
     error::BoxedError,
-    jwt::{epoch_from_now, Jwt},
+    jwt::{Jwt, epoch_from_now},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
-    service::Service, totp_secrets::{find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret}, users::find_user_by_id::FindUserById,
+    service::Service,
+    totp_secrets::{TOTPSecret, find_totp_secret_by_user_id::FindTOTPSecretByUserId},
+    users::find_user_by_id::FindUserById,
 };
 use oxidauth_repository::{
-    auth::tree::{PermissionSearch, PermissionTreeQuery}, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::{
-        CreateRefreshToken,
-        InsertRefreshTokenQuery,
-    }, totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery, user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{
+    auth::tree::{PermissionSearch, PermissionTreeQuery},
+    authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
+    private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
+    refresh_tokens::insert_refresh_token::{CreateRefreshToken, InsertRefreshTokenQuery},
+    totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery,
+    user_authorities::select_user_authorities_by_authority_id_and_user_identifier::{
         SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
-        SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams
-    }, users::select_user_by_id_query::SelectUserByIdQuery
+        SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams,
+    },
+    users::select_user_by_id_query::SelectUserByIdQuery,
 };
 
 use crate::{auth::strategies::*, bootstrap::TOTP_VALIDATE_PERMISSION};
@@ -96,17 +101,12 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "authenticate_usecase", skip(self))]
-    async fn call(
-        &self,
-        params: &'a AuthenticateParams,
-    ) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, params: &'a AuthenticateParams) -> Result<Self::Response, Self::Error> {
         let authority = self
             .authority_by_client_key
             .call(&params.into())
             .await?
-            .ok_or_else(|| {
-                AuthorityNotFoundError::client_key(params.client_key)
-            })?;
+            .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
 
         let authenticator = build_authenticator(&authority).await?;
 
@@ -126,10 +126,7 @@ where
             .await?;
 
         let _ = authenticator
-            .authenticate(
-                params.params.clone(),
-                &user_authority,
-            )
+            .authenticate(params.params.clone(), &authority, &user_authority)
             .await?;
 
         let private_key = self
@@ -185,24 +182,14 @@ where
                     .period(totp_ttl.as_secs() as u32)
                     .timestamp(now.as_secs() as i64)
                     .finalize()
-                    .map_err(|err| {
-                        format!(
-                            "error generating totp: {:?}",
-                            err
-                        )
-                    })?
+                    .map_err(|err| format!("error generating totp: {:?}", err))?
                     .generate();
 
-                let name = match (
-                    user.first_name,
-                    user.last_name,
-                ) {
+                let name = match (user.first_name, user.last_name) {
                     (None, None) => None,
                     (None, Some(last)) => Some(last),
                     (Some(first), None) => Some(first),
-                    (Some(first), Some(last)) => {
-                        Some(format!("{} {}", first, last))
-                    },
+                    (Some(first), Some(last)) => Some(format!("{} {}", first, last)),
                 };
 
                 let email = user
@@ -226,19 +213,13 @@ where
                     .await?;
 
                 if !webhook_res.success {
-                    return Err(format!(
-                        "unable to send totp code to: {}",
-                        user_identifier,
-                    )
-                    .into());
+                    return Err(format!("unable to send totp code to: {}", user_identifier,).into());
                 }
             },
             TotpSettings::Disabled => {
                 let permissions = self
                     .permission_tree
-                    .call(&PermissionSearch::User(
-                        user_authority.user_id,
-                    ))
+                    .call(&PermissionSearch::User(user_authority.user_id))
                     .await?
                     .permissions;
 
@@ -258,16 +239,10 @@ where
                 .settings
                 .refresh_token_ttl,
         )
-        .map_err(|err| {
-            format!(
-                "unable to calculate refresh_token_exp_at: {:?}",
-                err
-            )
-        })?;
+        .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
 
-        let refresh_token_exp_at =
-            DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
-                .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
+        let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
+            .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
 
         let refresh_token = self
             .refresh_tokens
@@ -280,19 +255,9 @@ where
 
         let jwt = jwt_builder
             .build()
-            .map_err(|err| {
-                format!(
-                    "unable to build jwt: {:?}",
-                    err
-                )
-            })?
+            .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)
-            .map_err(|err| {
-                format!(
-                    "unable to encode jwt: {:?}",
-                    err
-                )
-            })?;
+            .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
 
         let response = AuthenticateResponse {
             jwt,
@@ -312,9 +277,7 @@ pub async fn build_authenticator(
     use AuthorityStrategy::*;
 
     match authority.strategy {
-        UsernamePassword => {
-            username_password::authenticator::new(authority).await
-        },
+        UsernamePassword => username_password::authenticator::new(authority).await,
         SingleUseToken => unimplemented!(),
         Oauth2 => unimplemented!(), // implemented with separate routes, logic in strategies/oauth2/authenticator
     }

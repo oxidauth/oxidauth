@@ -18,7 +18,6 @@ use crate::response::Response;
 use super::PERMISSION;
 
 pub type FindAuthorityByClientKeyReq = FindAuthorityByClientKey;
-
 pub type FindAuthorityByClientKeyRes = FindAuthorityByClientKeyResult;
 
 #[tracing::instrument(
@@ -41,16 +40,13 @@ pub async fn handle(
                 "{:?} doesn't have {}",
                 jwt.sub, PERMISSION
             );
-
             return Response::unauthorized();
         },
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
     let service = provider.fetch::<FindAuthorityByClientKeyService>();
-
     info!("provided FindAuthorityByClientKeyService");
-
     let result = service.call(&params).await;
 
     match result {

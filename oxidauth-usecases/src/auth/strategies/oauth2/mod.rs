@@ -1,10 +1,20 @@
 pub mod authenticator;
 pub mod redirect;
+pub mod registrar;
+pub mod user_authority_from_request;
+pub mod user_identifier_from_request;
 
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use oxidauth_kernel::{JsonValue, error::BoxedError};
+use uuid::Uuid;
+
+#[derive(Debug)]
+pub struct OAuth2 {
+    authority_id: Uuid,
+    params: AuthorityParams,
+}
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum OauthProviders {
@@ -44,9 +54,7 @@ impl AuthorityParams {
     }
 
     pub fn as_json_value(&self) -> Result<JsonValue, BoxedError> {
-        Ok(JsonValue::new(
-            serde_json::to_value(self)?,
-        ))
+        Ok(JsonValue::new(serde_json::to_value(self)?))
     }
 }
 
@@ -58,4 +66,9 @@ impl TryFrom<JsonValue> for AuthorityParams {
 
         Ok(s)
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OAuth2AuthorityParams {
+    pub access_token: String,
 }

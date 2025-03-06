@@ -1,12 +1,12 @@
 pub use oxidauth_http::{
     response::Response,
-    server::api::v1::auth::register::{
-        AuthorityStrategy, RegisterReq, RegisterRes,
+    server::api::v1::auth::{
+        oauth2::redirect::Oauth2RedirectRes,
+        register::{AuthorityStrategy, RegisterReq, RegisterRes},
     },
 };
 use oxidauth_kernel::{
-    auth::oauth2::redirect::{Oauth2RedirectParams, Oauth2RedirectResponse},
-    error::BoxedError,
+    auth::oauth2::redirect::Oauth2RedirectParams, error::BoxedError,
 };
 
 pub use oxidauth_usecases::auth::strategies::*;
@@ -18,18 +18,23 @@ impl Client {
     pub async fn oauth2_redirect<T>(
         &self,
         params: T,
-    ) -> Result<Response<Oauth2RedirectResponse>, BoxedError>
+    ) -> Result<Response<Oauth2RedirectRes>, BoxedError>
     where
         T: Into<Oauth2RedirectParams> + fmt::Debug,
     {
         let params = params.into();
 
-        let result: Response<Oauth2RedirectResponse> = self
+        let result: Response<Oauth2RedirectRes> = self
             .post(
                 "/auth/oauth2/redirect",
                 params,
             )
             .await?;
+
+        println!(
+            "THE CLIENT RS RESULT ::: {:?}",
+            result
+        );
 
         Ok(result)
     }

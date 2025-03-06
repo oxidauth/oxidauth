@@ -9,8 +9,8 @@ pub mod select_authority_by_strategy;
 pub mod update_authority;
 
 use oxidauth_kernel::{
-    authorities::{Authority, AuthorityStatus, AuthorityStrategy},
     JsonValue,
+    authorities::{Authority, AuthorityStatus, AuthorityStrategy},
 };
 use oxidauth_repository::authorities::AuthorityRow as RepoAuthorityRow;
 
