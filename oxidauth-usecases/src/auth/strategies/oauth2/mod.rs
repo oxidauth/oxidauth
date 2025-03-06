@@ -13,7 +13,7 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub struct OAuth2 {
     authority_id: Uuid,
-    params: AuthorityParams,
+    pub params: AuthorityParams,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
