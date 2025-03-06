@@ -4,16 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use oxidauth_kernel::{
     JsonValue,
-    auth::{
-        Authenticator,
-        oauth2::authenticate::{OAuth2AuthenticateParams, OAuth2AuthenticateResponse},
-    },
-    authorities::{
-        Authority, AuthorityNotFoundError, UserAuthority,
-        find_authority_by_client_key::FindAuthorityByClientKey,
-    },
+    auth::{Authenticator, oauth2::authenticate::OAuth2AuthenticateParams},
+    authorities::{Authority, UserAuthority},
     error::BoxedError,
-    service::Service,
 };
 
 use super::{AuthorityParams, OAuth2};
