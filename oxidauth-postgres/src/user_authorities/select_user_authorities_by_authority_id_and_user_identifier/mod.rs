@@ -6,10 +6,7 @@ use crate::prelude::*;
 use super::*;
 
 #[async_trait]
-impl<'a>
-    Service<&'a SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams>
-    for Database
-{
+impl<'a> Service<&'a SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryParams> for Database {
     type Response = UserAuthority;
     type Error = BoxedError;
 
@@ -27,7 +24,11 @@ impl<'a>
         .bind(params.authority_id)
         .bind(&params.user_identifier)
         .fetch_one(&self.pool)
-        .await?;
+        .await
+        .map_err(|err| match err {
+            sqlx::Error::RowNotFound => format!("user authority not found: {:?}", err),
+            _ => err.to_string(),
+        })?;
 
         let user_authority = result.into();
 
