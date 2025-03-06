@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
@@ -34,8 +36,8 @@ where
     U: SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQuery,
     UU: SelectUserByIdQuery,
 {
-    authenticate: AuthenticateUseCase<T, U, P, M, R, S, UU>,
-    register: RegisterUseCase<T, UI, A, P, M, R>,
+    authenticate: Arc<AuthenticateUseCase<T, U, P, M, R, S, UU>>,
+    register: Arc<RegisterUseCase<T, UI, A, P, M, R>>,
 }
 
 impl<A, M, P, R, S, T, UI, U, UU> AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
@@ -51,8 +53,8 @@ where
     UU: SelectUserByIdQuery,
 {
     pub fn new(
-        authenticate: AuthenticateUseCase<T, U, P, M, R, S, UU>,
-        register: RegisterUseCase<T, UI, A, P, M, R>,
+        authenticate: Arc<AuthenticateUseCase<T, U, P, M, R, S, UU>>,
+        register: Arc<RegisterUseCase<T, UI, A, P, M, R>>,
     ) -> Self {
         Self {
             authenticate,
