@@ -1,9 +1,10 @@
 use async_trait::async_trait;
+use serde::Deserialize;
+
 use oxidauth_kernel::{
     JsonValue, Password, auth::Authenticator, authorities::Authority, error::BoxedError,
     user_authorities::UserAuthority,
 };
-use serde::Deserialize;
 
 use super::{
     AuthorityParams, UserAuthorityParams, UsernamePassword,
@@ -57,7 +58,7 @@ impl Authenticator for UsernamePassword {
     }
 }
 
-#[tracing::instrument(name = "new authenticator")]
+#[tracing::instrument(name = "new username_password authenticator")]
 pub async fn new(authority: &Authority) -> Result<Box<dyn Authenticator>, BoxedError> {
     let params: AuthorityParams = authority
         .params

@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime};
 
-use base64::prelude::{Engine, BASE64_STANDARD};
+use base64::prelude::{BASE64_STANDARD, Engine};
 
 use async_trait::async_trait;
 
@@ -8,20 +8,20 @@ use chrono::DateTime;
 use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::auth::tree::PermissionSearch;
 use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
-use oxidauth_kernel::jwt::{epoch_from_time, Jwt, epoch_from_now};
+use oxidauth_kernel::jwt::{Jwt, epoch_from_now, epoch_from_time};
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
 use oxidauth_kernel::refresh_tokens::delete_refresh_token::DeleteRefreshToken;
 use oxidauth_kernel::refresh_tokens::find_refresh_token_by_id::FindRefreshTokenById;
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityId;
-use oxidauth_kernel::{refresh_tokens::exchange_refresh_token::*, error::BoxedError};
+use oxidauth_kernel::{error::BoxedError, refresh_tokens::exchange_refresh_token::*};
 use oxidauth_repository::auth::tree::PermissionTreeQuery;
+use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
 use oxidauth_repository::private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery;
 use oxidauth_repository::refresh_tokens::delete_refresh_token::DeleteRefreshTokenQuery;
 use oxidauth_repository::refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery;
 use oxidauth_repository::refresh_tokens::select_refresh_token_by_id::SelectRefreshTokenByIdQuery;
 use oxidauth_repository::user_authorities::select_user_authority_by_user_id_and_authority_id::SelectUserAuthorityByUserIdAndAuthorityIdQuery;
-use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
 
 pub struct ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D>
 where
@@ -89,10 +89,7 @@ where
     type Error = BoxedError;
 
     #[tracing::instrument(name = "exchange_refresh_token_usecase", skip(self))]
-    async fn call(
-        &self,
-        req: &'a ExchangeRefreshToken,
-    ) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, req: &'a ExchangeRefreshToken) -> Result<Self::Response, Self::Error> {
         let RefreshToken {
             user_id,
             authority_id,
@@ -105,12 +102,8 @@ where
             })
             .await?;
 
-        let now = epoch_from_time(SystemTime::now()).map_err(|err| {
-            format!(
-                "error getting epoch time from system time: {:?}",
-                err
-            )
-        })?;
+        let now = epoch_from_time(SystemTime::now())
+            .map_err(|err| format!("error getting epoch time from system time: {:?}", err))?;
 
         if expires_at.timestamp() < now as i64 {
             self.delete_refresh_tokens
@@ -123,12 +116,10 @@ where
 
         let authority_id = self
             .user_authorities
-            .call(
-                &FindUserAuthorityByUserIdAndAuthorityId {
-                    user_id,
-                    authority_id,
-                },
-            )
+            .call(&FindUserAuthorityByUserIdAndAuthorityId {
+                user_id,
+                authority_id,
+            })
             .await?
             .authority
             .id;
@@ -140,9 +131,7 @@ where
 
         let permissions = self
             .permission_tree
-            .call(&PermissionSearch::User(
-                user_id,
-            ))
+            .call(&PermissionSearch::User(user_id))
             .await?
             .permissions;
 
@@ -165,35 +154,19 @@ where
             )
             .with_not_before_from(Duration::from_secs(0))
             .build()
-            .map_err(|err| {
-                format!(
-                    "unable to build jwt: {:?}",
-                    err
-                )
-            })?
+            .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)
-            .map_err(|err| {
-                format!(
-                    "unable to encode jwt: {:?}",
-                    err
-                )
-            })?;
+            .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
 
         let refresh_token_exp_at = epoch_from_now(
             authority
                 .settings
                 .refresh_token_ttl,
         )
-        .map_err(|err| {
-            format!(
-                "unable to calculate refresh_token_exp_at: {:?}",
-                err
-            )
-        })?;
+        .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
 
-        let refresh_token_exp_at =
-            DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
-                .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
+        let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
+            .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
 
         let refresh_token = self
             .insert_refresh_tokens
@@ -213,6 +186,7 @@ where
         Ok(AuthenticateResponse {
             jwt,
             refresh_token: refresh_token.id,
+            user_id,
         })
     }
 }

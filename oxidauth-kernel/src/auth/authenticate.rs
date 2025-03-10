@@ -4,17 +4,13 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
+    JsonValue,
     authorities::find_authority_by_client_key::FindAuthorityByClientKey,
     dev_prelude::{BoxedError, Service},
-    JsonValue,
 };
 
 pub type AuthenticateService = Arc<
-    dyn for<'a> Service<
-        &'a AuthenticateParams,
-        Response = AuthenticateResponse,
-        Error = BoxedError,
-    >,
+    dyn for<'a> Service<&'a AuthenticateParams, Response = AuthenticateResponse, Error = BoxedError>,
 >;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +23,7 @@ pub struct AuthenticateParams {
 pub struct AuthenticateResponse {
     pub jwt: String,
     pub refresh_token: Uuid,
+    pub user_id: Uuid,
 }
 
 #[derive(Debug)]
@@ -39,11 +36,7 @@ impl fmt::Display for ParseAuthorityStrategyError {
         use ParseAuthorityStrategyError::*;
 
         match self {
-            Unknown(value) => write!(
-                f,
-                "unknown authority strategy: {}",
-                value
-            ),
+            Unknown(value) => write!(f, "unknown authority strategy: {}", value),
         }
     }
 }
