@@ -65,8 +65,6 @@ pub async fn handle(
                 res.user_id,
             );
 
-            println!("REDIRECT LOCATION SUCCESS :: {}", location);
-
             Redirect::to(&location.as_str())
         },
         Err(err) => {

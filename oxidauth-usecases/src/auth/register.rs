@@ -84,7 +84,6 @@ where
 
     #[tracing::instrument(name = "register_usecase", skip(self))]
     async fn call(&self, params: &'a RegisterParams) -> Result<Self::Response, Self::Error> {
-        println!("IN REGISTER :: STARTING REGISTER");
         let authority = self
             .authority_by_client_key
             .call(&params.into())
@@ -97,14 +96,8 @@ where
             .register(params.params.clone())
             .await?;
 
-        println!("IN REGISTER :: CREATING USER");
         let user = self.users.call(&user).await?;
-        println!("IN REGISTER :: CREATED USER {:?}", user);
 
-        println!(
-            "IN REGISTER :: CREATING USER AUTHORITY {} : {:?}",
-            user.id, user_authority
-        );
         self.user_authorities
             .call((user.id, &user_authority))
             .await?;
@@ -116,7 +109,6 @@ where
             .await?
             .permissions;
 
-        println!("IN REGISTER :: CREATING PRIVATE KEY");
         let private_key = self
             .private_keys
             .call(&FindMostRecentPrivateKey {})
@@ -124,7 +116,6 @@ where
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
 
-        println!("IN REGISTER :: CREATING JWT");
         let jwt = Jwt::builder()
             .with_subject(user.id)
             .with_issuer("oxidauth".to_owned())
@@ -151,7 +142,6 @@ where
         let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
             .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
 
-        println!("IN REGISTER :: CREATING REFRESH TOKEN");
         let refresh_token = self
             .refresh_tokens
             .call(&CreateRefreshToken {

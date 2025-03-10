@@ -29,11 +29,6 @@ pub async fn handle(
                 response = ?res,
             );
 
-            println!(
-                "SENDING BACK REDIRECT URL - {}",
-                res.redirect_url.to_string()
-            );
-
             Response::success().payload(Oauth2RedirectRes {
                 redirect_url: res.redirect_url.to_string(),
             })
