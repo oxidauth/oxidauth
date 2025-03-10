@@ -1,10 +1,10 @@
 # Authorities
-Oxidauth Authorities are an instance or implementation of an authorization strategy, and a central building block of the Oxidauth system.
+Oxidauth Authorities are an instance of an authorization strategy and a central building block of the Oxidauth system.
 
 ## How it works
 // todo
 
-## Type of Authorites
+## Types of Authorites
 // todo
 
 ## Relationships

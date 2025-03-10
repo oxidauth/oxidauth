@@ -102,7 +102,6 @@ where
 
     #[tracing::instrument(name = "authenticate_usecase", skip(self))]
     async fn call(&self, params: &'a AuthenticateParams) -> Result<Self::Response, Self::Error> {
-        println!("IN AUTHENTICATE :: STARTING AUTHENTICATE");
         let authority = self
             .authority_by_client_key
             .call(&params.into())
@@ -110,7 +109,6 @@ where
             .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
 
         let authenticator = build_authenticator(&authority).await?;
-        println!("IN AUTHENTICATE :: BUILT AUTHENTICATOR");
 
         let user_identifier = authenticator
             .user_identifier_from_request(&params.params)
@@ -126,7 +124,6 @@ where
             .user_authority
             .call(&user_authority_params)
             .await?;
-        println!("IN AUTHENTICATE :: FOUND USER AUTHORITY");
 
         let _ = authenticator
             .authenticate(params.params.clone(), &authority, &user_authority)
@@ -143,7 +140,6 @@ where
             .with_subject(user_authority.user_id)
             .with_issuer("oxidauth".to_owned())
             .with_not_before_from(Duration::from_secs(0));
-        println!("IN AUTHENTICATE :: CREATED JWT");
 
         match authority.settings.totp {
             TotpSettings::Enabled {
@@ -151,7 +147,6 @@ where
                 webhook,
                 webhook_key,
             } => {
-                println!("IN AUTHENTICATE :: TOTP ENABLED");
                 let user = self
                     .user_by_id
                     .call(&FindUserById {
@@ -222,7 +217,6 @@ where
                 }
             },
             TotpSettings::Disabled => {
-                println!("IN AUTHENTICATE :: TOTP DISABLED");
                 let permissions = self
                     .permission_tree
                     .call(&PermissionSearch::User(user_authority.user_id))
@@ -264,11 +258,6 @@ where
             .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)
             .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
-
-        println!(
-            "IN AUTHENTICATE :: JWT & REFRESH TOKEN BUILT -- {}",
-            refresh_token.id
-        );
 
         let response = AuthenticateResponse {
             jwt,

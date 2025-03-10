@@ -127,45 +127,29 @@ where
             grant_type: String::from("authorization_code"),
         };
 
-        println!("JSON :: {:?}", json);
-
         let exchange: GoogleExchangeTokenRes = reqwest::Client::new()
             .post("https://oauth2.googleapis.com/token")
             .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
             .form(&json)
             .send()
             .await
-            .map_err(|err| {
-                println!("ERROR WITH REQWEST CALL :: {:?}", err.to_string());
-                err.to_string()
-            })?
+            .map_err(|err| err.to_string())?
             .json()
             .await
-            .map_err(|err| {
-                println!("ERROR PARSING JSON {:?}", err.to_string(),);
-                err.to_string()
-            })?;
-
-        println!("ACCESS TOKEN RECEIVED:: {:?}", exchange);
+            .map_err(|err| err.to_string())?;
 
         let mut bearer_token = String::from("Bearer ");
         bearer_token.push_str(&exchange.access_token);
-        println!("MADE THE BEARER TOKEN {:?}", bearer_token.clone());
 
         let profile: GoogleProfile = reqwest::Client::new()
             .get("https://www.googleapis.com/userinfo/v2/me")
             .header(AUTHORIZATION, bearer_token)
             .send()
             .await
-            .map_err(|err| {
-                println!("GOOGLE RESPONSE ERROR 1 :: {:?}", err);
-                err.to_string()
-            })?
+            .map_err(|err| err.to_string())?
             .json()
             .await
             .map_err(|err| err.to_string())?;
-
-        println!("PROFILE INFO:: {:?}", profile);
 
         #[derive(Debug, Serialize)]
         struct AuthParams {
@@ -189,7 +173,6 @@ where
 
         match authenticated {
             Ok(auth) => {
-                println!("IN AUTHENTICATE OR REGISTER USECASE :: AUTH SUCCEEDED");
                 return Ok(AuthenticateOrRegisterResponse {
                     jwt: auth.jwt,
                     refresh_token: auth.refresh_token,
@@ -201,16 +184,10 @@ where
                 });
             },
             Err(err) => {
-                println!(
-                    "IN AUTHENTICATE OR REGISTER USECASE :: AUTH FAILED -- {:?}",
-                    err
-                );
                 if err
                     .to_string()
                     .contains("user authority not found:")
                 {
-                    println!("IN AUTHENTICATE OR REGISTER USECASE :: STARTING REGISTER");
-
                     let reg_params = Oauth2RegisterParams {
                         email: Some(profile.email.clone()),
                         first_name: Some(profile.given_name.clone()),
@@ -239,8 +216,6 @@ where
                         family_name: profile.family_name,
                         user_id: result.user_id,
                     };
-
-                    println!("AUTHENTICATE OR REGISTER RESPONSE :: {:?}", res);
 
                     return Ok(res);
                 }

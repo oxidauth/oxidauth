@@ -10,19 +10,19 @@
 
 ### Technical Flow
 The following steps outline the oauth flow. Each step is addressed individually in greater detail below.
-1. An end user initiates the oauth process from the client website (clicks oauth sign up button)
+1. An end user initiates the oauth process from the client website (Ex: clicks oauth sign up button)
 2. Client will reach out to oxidauth at `/auth/oauth2/redirect` to receive a redirect url to the identity platform
-3. Oxidauth constructs the redirect url from values stored in Oxidauth
+3. Oxidauth constructs the redirect url from values stored the authority params
 4. Oxidauth returns the redirect url to the Client
 5. Client sends the end user to redirect url
 6. End user authenticates (or fails to authenticate) with the identity provider
 7. (If authentication failure) user is sent back to the login page
-8. (If authentication success) identity platform sends end user to the redirect uri (`/auth/oauth2/authenticate/:organization_id`) and provides a token
+8. (If authentication success) identity platform sends end user to the redirect uri, an oxidauth endpoint (`/auth/oauth2/authenticate/:authority_client_key`) and provides a token
 9. Oxidauth uses the token and other values to post a request to identity platform to exchange the token for an access code
 10. Oxidauth uses the resulting access_code and other values to post a request to identity platform for the end user's information
-11. Oxidauth checks end user profile for scope consent and authenetication status
-12. Oxidauth sends user profile information back to client
-13. Client uses the profile information to sign in, sign up, or otherwise handle the user account next steps
+11. Oxidauth authenticates the user if they exist, and creates the user if they do not (Note: there is no difference between sign up and sign in with oauth)
+12. Oxidauth redirects to the client (client address is an authority param) with a jwt and refresh token
+13. Client uses the jwt and refresh token information to sign in, sign up, or otherwise handle the user account next steps
 
 ### Steps Breakdown
 
@@ -66,6 +66,17 @@ Exchange token request (if successful) returns an access_token, which is passed 
 - profile information request endpoint - identity platform url (source: authority params)
 
 Returns the user information contained in the scopes requested.
+
+### Oauth2 Authority Setup
+Example values for an authority set up to use oauth2 strategy:
+
+- id (normal uuid)
+- name (Ex: ExampleCo Google Oauth) ** it is best to put the platform in the name, so that you can add another platform later (Ex: ExampleCo Microsoft Oauth)
+- client key (normal uuid)
+- status: enabled
+- strategy: oauth2
+- settings: ```{"totp": "Disabled", "jwt_ttl": {"secs": 300, "nanos": 0}, "refresh_token_ttl": {"secs": 259200, "nanos": 0}, "entitlements_encoding": "txt"}```
+- params: ```{"flavor": "Google", "scopes": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email", "oauth2_id": "127751927363-4l0710vnomm37imtagelivu0sn8rui3b.apps.googleusercontent.com", "profile_url": "https://www.googleapis.com/userinfo/v2/me", "exchange_url": "https://oauth2.googleapis.com/token", "redirect_uri": "http://localhost:8001/api/v1/auth/oauth2/callback/156562bc-dad7-4a8a-81f3-2c1ef80e9b29", "redirect_url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=127751927363-4l0710vnomm37imtagelivu0sn8rui3b.apps.googleusercontent.com&redirect_uri=http://localhost:8001/api/v1/auth/oauth2/callback/156562bc-dad7-4a8a-81f3-2c1ef80e9b29&scope=https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email", "oauth2_secret": "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", "client_base_url": "http://app.mindly.localhost"}	2025-03-08 05:16:28.686503+00	2025-03-08 05:16:28.686503+00```
 
 ### Implementation Examples
 #### Scenario #1
