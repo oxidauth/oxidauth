@@ -22,9 +22,7 @@ impl UserAuthorityFromRequest for OAuth2 {
 
         let params = serde_json::to_value(params)?;
 
-        let user_identifier = authority_params
-            .username
-            .clone();
+        let user_identifier = authority_params.email.clone();
 
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,

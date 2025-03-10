@@ -63,6 +63,7 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         let authenticate_or_register_service = Arc::new(AuthenticateOrRegisterUseCase::new(
             authenticate_service,
             register_service,
+            db.clone(),
         ));
 
         provider.store::<AuthenticateOrRegisterService>(authenticate_or_register_service);
@@ -76,17 +77,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
 
         provider.store::<Oauth2RedirectService>(oauth2_redirect_service);
     }
-
-    // {
-    //     use oxidauth_kernel::auth::oauth2::authenticate::Oauth2AuthenticateService;
-    //     use oxidauth_usecases::auth::strategies::oauth2::authenticator::Oauth2AuthenticateUseCase;
-
-    //     let oauth2_authenticate_service =
-    //         Arc::new(Oauth2AuthenticateUseCase::new(db.clone()));
-
-    //     provider
-    //         .store::<Oauth2AuthenticateService>(oauth2_authenticate_service);
-    // }
 
     let create_totp_secret_service = {
         use oxidauth_kernel::totp_secrets::create_totp_secret::CreateTotpSecretService;

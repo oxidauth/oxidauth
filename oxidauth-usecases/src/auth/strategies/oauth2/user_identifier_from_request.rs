@@ -7,8 +7,8 @@ use super::{OAuth2, authenticator::AuthenticateParams};
 impl UserIdentifierFromRequest for OAuth2 {
     #[tracing::instrument(name = "user_identifier from oauth2", skip(self))]
     async fn user_identifier_from_request(&self, params: &JsonValue) -> Result<String, BoxedError> {
-        let AuthenticateParams { username, .. } = params.clone().try_into()?;
+        let AuthenticateParams { email, .. } = params.clone().try_into()?;
 
-        Ok(username)
+        Ok(email)
     }
 }

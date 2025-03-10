@@ -30,6 +30,8 @@ pub struct AuthorityParams {
     pub profile_url: Url, // Url where an access code can be used to receive information from requested scopes
     pub scopes: String, // space separated list of scopes of user info requested from platform (might be a google only thing)
     pub redirect_url: Url, // Google Url where user goes through oauth flow
+    pub client_base_url: Url, // Client frontend url that callback should redirect the user to after authenticating
+    pub redirect_uri: Url, // Included in redirect url but used throughout the process as an extra security measure, required to match settings on oauth config
 }
 
 impl AuthorityParams {
@@ -41,6 +43,8 @@ impl AuthorityParams {
         profile_url: Url,
         scopes: String,
         redirect_url: Url,
+        client_base_url: Url,
+        redirect_uri: Url,
     ) -> Self {
         Self {
             exchange_url,
@@ -50,6 +54,8 @@ impl AuthorityParams {
             profile_url,
             scopes,
             redirect_url,
+            client_base_url,
+            redirect_uri,
         }
     }
 
