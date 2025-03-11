@@ -46,10 +46,8 @@ pub async fn new(authority: &Authority) -> Result<Box<dyn Authenticator>, BoxedE
         .clone()
         .try_into()?;
 
-    let authority_id = authority.id;
-
     Ok(Box::new(OAuth2 {
-        authority_id,
+        authority_id: authority.id,
         params,
     }))
 }
