@@ -138,8 +138,7 @@ where
             .await
             .map_err(|err| err.to_string())?;
 
-        let mut bearer_token = String::from("Bearer ");
-        bearer_token.push_str(&exchange.access_token);
+        let bearer_token = format!("Bearer {}", &exchange.access_token);
 
         let profile: GoogleProfile = reqwest::Client::new()
             .get("https://www.googleapis.com/userinfo/v2/me")
