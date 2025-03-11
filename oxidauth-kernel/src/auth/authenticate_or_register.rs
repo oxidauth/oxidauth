@@ -41,9 +41,7 @@ impl TryFrom<JsonValue> for OAuth2AuthenticateParams {
     type Error = BoxedError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        let s: Self = serde_json::from_value(value.inner_value())?;
-
-        Ok(s)
+        serde_json::from_value(value.inner_value())
     }
 }
 
