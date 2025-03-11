@@ -20,7 +20,7 @@ impl TryFrom<JsonValue> for AuthenticateParams {
     type Error = BoxedError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        let params = serde_json::from_value(value.inner_value())?;
+        let params = serde_json::from_value(value.inner_value());
 
         Ok(params)
     }

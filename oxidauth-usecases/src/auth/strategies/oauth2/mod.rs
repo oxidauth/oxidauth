@@ -73,8 +73,3 @@ impl TryFrom<JsonValue> for AuthorityParams {
         Ok(s)
     }
 }
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct OAuth2AuthorityParams {
-    pub access_token: String,
-}

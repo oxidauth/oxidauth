@@ -26,7 +26,10 @@ use oxidauth_repository::{
     users::{insert_user::InsertUserQuery, select_user_by_id_query::SelectUserByIdQuery},
 };
 
-use crate::auth::strategies::oauth2::registrar::Oauth2RegisterParams;
+use crate::auth::{
+    google::{exchange_token::exchange_token, retrieve_profile::retrieve_profile},
+    strategies::oauth2::registrar::Oauth2RegisterParams,
+};
 
 use super::{
     authenticate::AuthenticateUseCase, register::RegisterUseCase,
@@ -115,50 +118,23 @@ where
             .clone()
             .try_into()?;
 
-        let json = GoogleExchangeTokenReq {
-            code: authenticate_params
-                .code
-                .to_owned(),
-            client_id: authority_params.oauth2_id,
-            client_secret: authority_params.oauth2_secret,
-            redirect_uri: authority_params
-                .redirect_uri
-                .to_string(),
-            grant_type: "authorization_code".to_string(),
+        let profile: OAuth2Profile = match authority_params.flavor {
+            google => {
+                let access_token: String =
+                    exchange_token(authenticate_params.code, &authority_params).await?;
+
+                retrieve_profile(access_token, &authority_params).await?
+            },
         };
-
-        let exchange: GoogleExchangeTokenRes = reqwest::Client::new()
-            .post("https://oauth2.googleapis.com/token")
-            .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .form(&json)
-            .send()
-            .await
-            .map_err(|err| err.to_string())?
-            .json()
-            .await
-            .map_err(|err| err.to_string())?;
-
-        let bearer_token = format!("Bearer {}", &exchange.access_token);
-
-        let profile: GoogleProfile = reqwest::Client::new()
-            .get("https://www.googleapis.com/userinfo/v2/me")
-            .header(AUTHORIZATION, bearer_token)
-            .send()
-            .await?
-            .json()
-            .await?;
 
         #[derive(Debug, Serialize)]
         struct AuthParams {
             email: String,
-            access_token: String,
         }
 
         let auth_params = serde_json::to_value(AuthParams {
-            access_token: exchange.access_token.clone(),
             email: profile.email.clone(),
-        })
-        .unwrap();
+        })?;
 
         let authenticated = self
             .authenticate
@@ -191,10 +167,9 @@ where
                         kind: Some(UserKind::Human),
                         last_name: Some(profile.family_name.clone()),
                         username: profile.email.clone(),
-                        access_token: exchange.access_token,
                     };
 
-                    let reg_params_json = serde_json::to_value(reg_params).unwrap();
+                    let reg_params_json = serde_json::to_value(reg_params)?;
 
                     let result = self
                         .register

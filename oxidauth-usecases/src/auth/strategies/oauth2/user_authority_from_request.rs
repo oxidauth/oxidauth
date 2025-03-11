@@ -5,7 +5,7 @@ use oxidauth_kernel::{
     user_authorities::create_user_authority::CreateUserAuthority,
 };
 
-use super::{OAuth2, OAuth2AuthorityParams, authenticator::AuthenticateParams};
+use super::{OAuth2, authenticator::AuthenticateParams};
 
 #[async_trait]
 impl UserAuthorityFromRequest for OAuth2 {
@@ -15,10 +15,6 @@ impl UserAuthorityFromRequest for OAuth2 {
         params: JsonValue,
     ) -> Result<CreateUserAuthority, BoxedError> {
         let authority_params: AuthenticateParams = params.clone().try_into()?;
-
-        let params = OAuth2AuthorityParams {
-            access_token: authority_params.access_token,
-        };
 
         let params = serde_json::to_value(params)?;
 
