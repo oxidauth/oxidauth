@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use oxidauth_kernel::{
     JsonValue,
-    auth::{Authenticator, authenticate_or_register::OAuth2AuthenticateParams},
+    auth::Authenticator,
     authorities::{Authority, UserAuthority},
     error::BoxedError,
 };
@@ -31,18 +31,10 @@ impl Authenticator for OAuth2 {
     #[tracing::instrument(name = "oauth2 authenticate", skip(self))]
     async fn authenticate(
         &self,
-        authenticate_params: JsonValue,
+        _authenticate_params: JsonValue,
         authority: &Authority,
         user_authority: &UserAuthority,
     ) -> Result<(), BoxedError> {
-        // let _authenticate_params: OAuth2AuthenticateParams = authenticate_params.try_into()?;
-        // let _authority_params: AuthorityParams = authority
-        //     .params
-        //     .clone()
-        //     .try_into()?;
-
-        // No logic here?
-
         Ok(())
     }
 }
