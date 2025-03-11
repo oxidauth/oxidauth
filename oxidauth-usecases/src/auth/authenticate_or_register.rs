@@ -144,11 +144,9 @@ where
             .get("https://www.googleapis.com/userinfo/v2/me")
             .header(AUTHORIZATION, bearer_token)
             .send()
-            .await
-            .map_err(ToString::to_string)?
+            .await?
             .json()
-            .await
-            .map_err(ToString::to_string)?;
+            .await?;
 
         #[derive(Debug, Serialize)]
         struct AuthParams {

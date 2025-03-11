@@ -41,7 +41,9 @@ impl TryFrom<JsonValue> for OAuth2AuthenticateParams {
     type Error = BoxedError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        serde_json::from_value(value.inner_value())
+        let params = serde_json::from_value(value.inner_value())?;
+
+        Ok(params)
     }
 }
 
@@ -128,6 +130,8 @@ impl TryFrom<JsonValue> for GoogleProfile {
     type Error = BoxedError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        serde_json::from_value(value.inner_value())
+        let profile = serde_json::from_value(value.inner_value())?;
+
+        Ok(profile)
     }
 }
