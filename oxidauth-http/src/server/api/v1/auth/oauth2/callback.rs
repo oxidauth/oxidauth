@@ -93,11 +93,6 @@ fn gen_redirect_url(
 ) -> String {
     format!(
         "{}auth/sso/login/{}?email={}&given_name={}&family_name={}&user_id={}",
-        base,
-        refresh_token.to_string(),
-        email,
-        given_name,
-        family_name,
-        user_id,
+        base, refresh_token, email, given_name, family_name, user_id,
     )
 }
