@@ -83,7 +83,7 @@ pub async fn handle(
     }
 }
 
-fn location(
+fn gen_redirect_url(
     base: Url,
     refresh_token: Uuid,
     email: String,
