@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use oxidauth_kernel::{auth::oauth2::redirect::*, error::IntoOxidAuthError};
+use url::Url;
 
 use crate::{provider::Provider, response::Response};
 
@@ -10,7 +11,7 @@ pub type Oauth2RedirectReq = Oauth2RedirectParams;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Oauth2RedirectRes {
-    pub redirect_url: String,
+    pub redirect_url: Url,
 }
 
 #[tracing::instrument(name = "oauth2_redirect_handler", skip(provider))]
@@ -30,7 +31,7 @@ pub async fn handle(
             );
 
             Response::success().payload(Oauth2RedirectRes {
-                redirect_url: res.redirect_url.to_string(),
+                redirect_url: res.redirect_url,
             })
         },
         Err(err) => {
