@@ -524,15 +524,6 @@ pub async fn setup() -> Result<Provider, BoxedError> {
     }
 
     {
-        use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKeyService;
-        use oxidauth_usecases::authorities::find_authority_by_client_key::FindAuthorityByClientKeyUseCase;
-
-        let find_authority_by_client_key_service =
-            Arc::new(FindAuthorityByClientKeyUseCase::new(db.clone()));
-        provider.store::<FindAuthorityByClientKeyService>(find_authority_by_client_key_service);
-    }
-
-    {
         use oxidauth_kernel::public_keys::create_public_key::CreatePublicKeyService;
         use oxidauth_usecases::public_keys::create_public_key::CreatePublicKeyUseCase;
 

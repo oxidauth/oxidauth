@@ -1,22 +1,17 @@
 use serde::{Deserialize, Serialize};
-
-use crate::{
-    authorities::find_authority_by_client_key::FindAuthorityByClientKey,
-    error::BoxedError, JsonValue,
-};
-
 use std::sync::Arc;
 use uuid::Uuid;
 
-pub use super::UserAuthority;
 pub use crate::service::Service;
+use crate::{
+    JsonValue, authorities::find_authority_by_client_key::FindAuthorityByClientKey,
+    error::BoxedError,
+};
+
+pub use super::UserAuthority;
 
 pub type CreateUserAuthorityService = Arc<
-    dyn for<'a> Service<
-        &'a CreateUserAuthorityParams,
-        Response = UserAuthority,
-        Error = BoxedError,
-    >,
+    dyn for<'a> Service<&'a CreateUserAuthorityParams, Response = UserAuthority, Error = BoxedError>,
 >;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -57,6 +52,9 @@ mod tests {
             })),
         };
 
-        assert_eq!(format!("{create_user_authority:?}"), "CreateUserAuthority { authority_id: 97edd536-4c3c-4feb-8a27-efde58cbd21c, user_identifier: \"username\", params: JsonValue }");
+        assert_eq!(
+            format!("{create_user_authority:?}"),
+            "CreateUserAuthority { authority_id: 97edd536-4c3c-4feb-8a27-efde58cbd21c, user_identifier: \"username\", params: JsonValue }"
+        );
     }
 }

@@ -4,11 +4,7 @@ pub use oxidauth_kernel::{authorities::Authority, service::Service};
 pub use crate::prelude::*;
 
 pub trait SelectAuthorityByClientKeyQuery:
-    for<'a> Service<
-        &'a FindAuthorityByClientKey,
-        Response = Option<Authority>,
-        Error = BoxedError,
-    >
+    for<'a> Service<&'a FindAuthorityByClientKey, Response = Option<Authority>, Error = BoxedError>
 {
 }
 
