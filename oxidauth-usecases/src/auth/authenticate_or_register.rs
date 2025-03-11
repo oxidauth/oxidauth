@@ -124,7 +124,7 @@ where
             redirect_uri: authority_params
                 .redirect_uri
                 .to_string(),
-            grant_type: String::from("authorization_code"),
+            grant_type: "authorization_code".to_string(),
         };
 
         let exchange: GoogleExchangeTokenRes = reqwest::Client::new()
