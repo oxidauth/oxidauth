@@ -145,10 +145,10 @@ where
             .header(AUTHORIZATION, bearer_token)
             .send()
             .await
-            .map_err(|err| err.to_string())?
+            .map_err(ToString::to_string)?
             .json()
             .await
-            .map_err(|err| err.to_string())?;
+            .map_err(ToString::to_string)?;
 
         #[derive(Debug, Serialize)]
         struct AuthParams {
