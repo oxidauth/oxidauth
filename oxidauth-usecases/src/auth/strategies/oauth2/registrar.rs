@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-use super::{AuthorityParams, OAuth2, OAuth2AuthorityParams};
+use super::{AuthorityParams, OAuth2};
 
 #[async_trait]
 impl Registrar for OAuth2 {
@@ -26,16 +26,10 @@ impl Registrar for OAuth2 {
 
         let user: CreateUser = register_params.clone().into();
 
-        let params = OAuth2AuthorityParams {
-            access_token: register_params.access_token,
-        };
-
-        let params = serde_json::to_value(params)?;
-
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,
             user_identifier: user.username.clone(),
-            params: JsonValue::new(params),
+            params: JsonValue::new({}),
         };
 
         Ok((user, user_authority))
@@ -63,7 +57,6 @@ pub struct Oauth2RegisterParams {
     pub kind: Option<UserKind>,
     pub last_name: Option<String>,
     pub username: String,
-    pub access_token: String,
 }
 
 impl Oauth2RegisterParams {
