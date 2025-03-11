@@ -65,7 +65,7 @@ pub async fn handle(
                 res.user_id,
             );
 
-            Redirect::to(&location.as_str())
+            Redirect::to(location.as_str())
         },
         Err(err) => {
             info!(
