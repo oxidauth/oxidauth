@@ -56,7 +56,7 @@ pub async fn handle(
                 response = ?res,
             );
 
-            let location = location(
+            let location = gen_redirect_url(
                 res.client_base,
                 res.refresh_token,
                 res.email,
