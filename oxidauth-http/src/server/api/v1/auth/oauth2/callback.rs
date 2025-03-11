@@ -26,7 +26,7 @@ pub struct PathParams {
 pub async fn handle(
     State(provider): State<Provider>,
     Path(path_params): Path<PathParams>,
-    auth_response: Query<OAuth2AuthenticatePathParams>,
+    Query(auth_response): Query<OAuth2AuthenticatePathParams>,
 ) -> impl IntoResponse {
     let service = provider.fetch::<AuthenticateOrRegisterService>();
 
