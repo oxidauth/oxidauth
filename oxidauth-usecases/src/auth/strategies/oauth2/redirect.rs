@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use url::Url;
 
 use oxidauth_kernel::{
     auth::oauth2::redirect::{Oauth2RedirectParams, Oauth2RedirectResponse},
@@ -48,11 +47,16 @@ where
 
         let redirect_url = match oauth_params.flavor {
             OAuthFlavors::Google => {
-                let redirect_string = format!(
-                    "{}&login_hint={}&response_type=code&include_granted_scopes=true",
-                    oauth_params.redirect_url, params.email
-                );
-                Url::parse(&redirect_string)?
+                let mut redirect_url = oauth_params.redirect_url;
+
+                let redirect_url = redirect_url
+                    .query_pairs_mut()
+                    .append_pair("login_hint", &params.email)
+                    .append_pair("response_type", "code")
+                    .append_pair("include_granted_scopes", "true")
+                    .finish();
+
+                redirect_url.to_owned()
             },
         };
 
