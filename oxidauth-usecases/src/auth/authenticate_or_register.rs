@@ -175,11 +175,11 @@ where
                     .contains("user authority not found:")
                 {
                     let reg_params = Oauth2RegisterParams {
-                        email: Some(profile.email.clone()),
                         first_name: Some(profile.given_name.clone()),
-                        kind: Some(UserKind::Human),
                         last_name: Some(profile.family_name.clone()),
+                        email: Some(profile.email.clone()),
                         username: profile.email.clone(),
+                        kind: Some(UserKind::Human),
                     };
 
                     let reg_params_json = serde_json::to_value(reg_params)?;
