@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -27,13 +26,14 @@ use oxidauth_repository::{
 };
 
 use crate::auth::{
-    google::{exchange_token::exchange_token, retrieve_profile::retrieve_profile},
+    strategies::oauth2::google::{exchange_token, retrieve_profile},
     strategies::oauth2::registrar::Oauth2RegisterParams,
 };
 
 use super::{
-    authenticate::AuthenticateUseCase, register::RegisterUseCase,
-    strategies::oauth2::AuthorityParams,
+    authenticate::AuthenticateUseCase,
+    register::RegisterUseCase,
+    strategies::oauth2::{AuthorityParams, OAuthFlavors},
 };
 
 pub struct AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
@@ -74,6 +74,24 @@ where
             authenticate,
             register,
             authorities,
+        }
+    }
+
+    async fn fetch_profile(
+        &self,
+        authority_params: &AuthorityParams,
+        authenticate_params: &OAuth2AuthenticateParams,
+    ) -> Result<OAuth2Profile, BoxedError> {
+        match authority_params.flavor {
+            OAuthFlavors::Google => {
+                let code = authenticate_params
+                    .code
+                    .clone();
+
+                let access_token = exchange_token(code, &authority_params).await?;
+
+                retrieve_profile(access_token, &authority_params).await
+            },
         }
     }
 }
@@ -118,14 +136,9 @@ where
             .clone()
             .try_into()?;
 
-        let profile: OAuth2Profile = match authority_params.flavor {
-            google => {
-                let access_token: String =
-                    exchange_token(authenticate_params.code, &authority_params).await?;
-
-                retrieve_profile(access_token, &authority_params).await?
-            },
-        };
+        let profile = self
+            .fetch_profile(&authority_params, &authenticate_params)
+            .await?;
 
         #[derive(Debug, Serialize)]
         struct AuthParams {

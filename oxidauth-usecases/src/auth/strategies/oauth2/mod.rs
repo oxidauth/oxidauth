@@ -1,4 +1,5 @@
 pub mod authenticator;
+pub mod google;
 pub mod redirect;
 pub mod registrar;
 pub mod user_authority_from_request;
@@ -17,14 +18,14 @@ pub struct OAuth2 {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum OauthProviders {
+pub enum OAuthFlavors {
     Google,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthorityParams {
     pub exchange_url: Url, // Url where a token can be exchanged for an access code
-    pub flavor: OauthProviders, // oauth2 platform
+    pub flavor: OAuthFlavors, // oauth2 platform
     pub oauth2_id: String, // client's sso id
     pub oauth2_secret: String, // client's sso secret
     pub profile_url: Url, // Url where an access code can be used to receive information from requested scopes
@@ -37,7 +38,7 @@ pub struct AuthorityParams {
 impl AuthorityParams {
     pub fn new(
         exchange_url: Url,
-        flavor: OauthProviders,
+        flavor: OAuthFlavors,
         oauth2_id: String,
         oauth2_secret: String,
         profile_url: Url,
