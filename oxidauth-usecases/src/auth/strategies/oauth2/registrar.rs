@@ -29,7 +29,7 @@ impl Registrar for OAuth2 {
         let user_authority = CreateUserAuthority {
             authority_id: self.authority_id,
             user_identifier: user.username.clone(),
-            params: JsonValue::new({}),
+            params: JsonValue::empty(),
         };
 
         Ok((user, user_authority))

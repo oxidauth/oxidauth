@@ -1,9 +1,9 @@
 use axum::{
     extract::{Path, Query, State},
-    response::{IntoResponse, Redirect},
+    response::{IntoResponse, Redirect, Response},
 };
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::{error, info};
 use url::Url;
 use uuid::Uuid;
 
@@ -22,12 +22,15 @@ pub struct PathParams {
     pub client_key: Uuid,
 }
 
+pub const ERROR_RESPONSE: &str =
+    "OAuth2 Error - unable to authenticate. Contact support for assistance.";
+
 #[tracing::instrument(name = "oauth2_authenticate_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
     Path(path_params): Path<PathParams>,
     Query(auth_response): Query<OAuth2AuthenticatePathParams>,
-) -> impl IntoResponse {
+) -> Response {
     let service = provider.fetch::<AuthenticateOrRegisterService>();
 
     let params = {
@@ -37,7 +40,17 @@ pub async fn handle(
             client_key: path_params.client_key,
         };
 
-        let params = serde_json::to_value(&params).unwrap();
+        let params = match serde_json::to_value(&params) {
+            Ok(params) => params,
+            Err(err) => {
+                error!(
+                    message = "oauth2 authenticate or register params fail",
+                    err = ?err,
+                );
+
+                return ERROR_RESPONSE.into_response();
+            },
+        };
 
         JsonValue::new(params)
     };
@@ -65,20 +78,15 @@ pub async fn handle(
                 res.user_id,
             );
 
-            Redirect::to(location.as_str())
+            Redirect::to(location.as_str()).into_response()
         },
         Err(err) => {
-            info!(
+            error!(
                 message = "oauth2 authenticate or register fail",
                 err = ?err,
             );
 
-            println!("REDIRECT LOCATION FAIL");
-
-            // Response::fail().error(err.into_error())
-            // todo!()
-
-            Redirect::to("http://app.mindly.localhost/")
+            ERROR_RESPONSE.into_response()
         },
     }
 }

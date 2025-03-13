@@ -8,7 +8,7 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery;
 
-use super::{AuthorityParams, OauthProviders};
+use super::{AuthorityParams, OAuthFlavors};
 
 pub struct Oauth2RedirectUseCase<T>
 where
@@ -47,7 +47,7 @@ where
         let oauth_params: AuthorityParams = authority.params.try_into()?;
 
         let redirect_url = match oauth_params.flavor {
-            OauthProviders::Google => {
+            OAuthFlavors::Google => {
                 let redirect_string = format!(
                     "{}&login_hint={}&response_type=code&include_granted_scopes=true",
                     oauth_params.redirect_url, params.email

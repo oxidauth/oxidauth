@@ -49,6 +49,10 @@ impl JsonValue {
         Self(json)
     }
 
+    pub fn empty() -> Self {
+        Self(Value::Null)
+    }
+
     pub fn inner_value(self) -> Value {
         self.0
     }
