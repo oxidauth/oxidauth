@@ -69,14 +69,24 @@ pub async fn handle(
                 response = ?res,
             );
 
-            let location = gen_redirect_url(
+            let location = match gen_redirect_url(
                 res.client_base,
                 res.refresh_token,
                 res.email,
                 res.given_name,
                 res.family_name,
                 res.user_id,
-            );
+            ) {
+                Ok(location) => location,
+                Err(err) => {
+                    error!(
+                        message = "oauth2 authenticate or register params fail",
+                        err = ?err,
+                    );
+
+                    return ERROR_RESPONSE.into_response();
+                },
+            };
 
             Redirect::to(location.as_str()).into_response()
         },
@@ -98,9 +108,11 @@ fn gen_redirect_url(
     given_name: String,
     family_name: String,
     user_id: Uuid,
-) -> String {
-    format!(
-        "{}auth/sso/login/{}?email={}&given_name={}&family_name={}&user_id={}",
-        base, refresh_token, email, given_name, family_name, user_id,
-    )
+) -> Result<Url, url::ParseError> {
+    let path = format!(
+        "/auth/sso/login/{}?email={}&given_name={}&family_name={}&user_id={}",
+        refresh_token, email, given_name, family_name, user_id,
+    );
+
+    base.join(&path)
 }
