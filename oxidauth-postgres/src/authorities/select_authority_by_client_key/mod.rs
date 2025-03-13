@@ -1,6 +1,4 @@
-use oxidauth_kernel::authorities::{
-    AuthorityNotFoundError, find_authority_by_client_key::FindAuthorityByClientKey,
-};
+use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKey;
 use oxidauth_repository::authorities::select_authority_by_client_key::*;
 
 use crate::prelude::*;
