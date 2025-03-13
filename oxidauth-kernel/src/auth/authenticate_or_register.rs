@@ -1,4 +1,3 @@
-use core::fmt;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use url::Url;
@@ -82,19 +81,4 @@ pub struct OAuth2Profile {
     pub email: String,
     pub given_name: String,
     pub family_name: String,
-}
-
-#[derive(Debug)]
-pub enum ParseOAuth2AuthenticateUrlError {
-    Unknown(String),
-}
-
-impl fmt::Display for ParseOAuth2AuthenticateUrlError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use ParseOAuth2AuthenticateUrlError::*;
-
-        match self {
-            Unknown(value) => write!(f, "unable to handle oauth authenticate response: {}", value),
-        }
-    }
 }
