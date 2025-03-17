@@ -1,4 +1,4 @@
-FROM --platform=$TARGETPLATFORM debian:12.5
+FROM --platform=$TARGETPLATFORM debian:12.10
 
 ARG TARGETPLATFORM
 
