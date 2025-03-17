@@ -1,6 +1,6 @@
 [package]
 name = "oxidauth-cli"
-version = "0.3.0"
+version = "0.4.0-rc1"
 edition = "2021"
 license = "GPL-3.0"
 description = "cli interface for oxidauth"
