@@ -13,7 +13,6 @@ use super::{AuthorityParams, OAuth2};
 #[derive(Clone, Deserialize)]
 pub struct AuthenticateParams {
     pub email: String,
-    pub access_token: String,
 }
 
 impl TryFrom<JsonValue> for AuthenticateParams {
