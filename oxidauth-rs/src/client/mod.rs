@@ -109,40 +109,31 @@ impl Client {
         let jwt = state
             .jwt
             .clone()
-            .ok_or(ClientError::new(
-                ClientErrorKind::NoJwtFound,
-                None,
-            ))?;
+            .ok_or(ClientError::new(ClientErrorKind::NoJwtFound, None))?;
 
         Ok(jwt)
     }
 
     #[tracing::instrument(level = "debug", skip(self))]
     async fn get_public_keys(&self) -> Result<Vec<PublicKey>, ClientError> {
-        let public_keys: Response<ListAllPublicKeysRes> =
-            reqwest::Client::new()
-                .get(format!(
-                    "{}/public_keys",
-                    self.config.base_url
-                ))
-                .send()
-                .await
-                .map_err(|err| {
-                    ClientError::new(
-                        ClientErrorKind::Other("unable to fetch public keys"),
-                        Some(Box::new(err)),
-                    )
-                })?
-                .json()
-                .await
-                .map_err(|err| {
-                    ClientError::new(
-                        ClientErrorKind::Other(
-                            "unable to deserialize public keys",
-                        ),
-                        Some(Box::new(err)),
-                    )
-                })?;
+        let public_keys: Response<ListAllPublicKeysRes> = reqwest::Client::new()
+            .get(format!("{}/public_keys", self.config.base_url))
+            .send()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to fetch public keys"),
+                    Some(Box::new(err)),
+                )
+            })?
+            .json()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to deserialize public keys"),
+                    Some(Box::new(err)),
+                )
+            })?;
 
         let public_keys: Vec<PublicKey> = match public_keys {
             Response {
@@ -217,15 +208,9 @@ impl Client {
                 ..
             } => {
                 let jwt =
-                    Jwt::decode_with_public_keys(&payload.jwt, &public_keys)
-                        .map_err(|_| {
-                            ClientError::new(
-                                ClientErrorKind::Other(
-                                    "failed to validate jwt",
-                                ),
-                                None,
-                            )
-                        })?;
+                    Jwt::decode_with_public_keys(&payload.jwt, &public_keys).map_err(|_| {
+                        ClientError::new(ClientErrorKind::Other("failed to decode jwt"), None)
+                    })?;
 
                 state.raw_jwt = Some(payload.jwt.clone());
                 state.jwt = Some(jwt);
