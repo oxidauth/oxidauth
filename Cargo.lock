@@ -1493,11 +1493,11 @@ dependencies = [
 
 [[package]]
 name = "oxidauth-cli"
-version = "0.4.0-rc2"
+version = "0.4.0"
 
 [[package]]
 name = "oxidauth-http"
-version = "0.4.0-rc2"
+version = "0.4.0"
 dependencies = [
  "axum",
  "axum-extra",
@@ -1527,7 +1527,7 @@ version = "0.2.0"
 
 [[package]]
 name = "oxidauth-kernel"
-version = "0.4.0-rc2"
+version = "0.4.0"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -1548,7 +1548,7 @@ dependencies = [
 
 [[package]]
 name = "oxidauth-permission"
-version = "0.4.0-rc2"
+version = "0.4.0"
 dependencies = [
  "colored",
  "criterion",
@@ -1556,7 +1556,7 @@ dependencies = [
 
 [[package]]
 name = "oxidauth-postgres"
-version = "0.4.0-rc2"
+version = "0.4.0"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -1587,11 +1587,11 @@ dependencies = [
 
 [[package]]
 name = "oxidauth-seed"
-version = "0.4.0-rc2"
+version = "0.4.0"
 
 [[package]]
 name = "oxidauth-telemetry"
-version = "0.4.0-rc2"
+version = "0.4.0"
 dependencies = [
  "tracing",
  "tracing-bunyan-formatter",
@@ -1601,7 +1601,7 @@ dependencies = [
 
 [[package]]
 name = "oxidauth-usecases"
-version = "0.4.0-rc2"
+version = "0.4.0"
 dependencies = [
  "argon2",
  "async-trait",
