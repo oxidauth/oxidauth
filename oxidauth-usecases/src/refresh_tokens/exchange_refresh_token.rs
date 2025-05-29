@@ -152,7 +152,7 @@ where
                     .entitlements_encoding,
                 &permissions,
             )
-            .with_not_before_from(Duration::from_secs(0))
+            .with_not_before_from(authority.settings.jwt_nbf)
             .build()
             .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)
