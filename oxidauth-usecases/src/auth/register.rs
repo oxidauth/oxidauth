@@ -20,7 +20,6 @@ use oxidauth_repository::{
     user_authorities::insert_user_authority::InsertUserAuthorityQuery,
     users::insert_user::InsertUserQuery,
 };
-use std::time::Duration;
 
 use crate::auth::strategies;
 
