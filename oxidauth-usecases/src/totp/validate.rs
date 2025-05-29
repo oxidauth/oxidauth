@@ -3,7 +3,7 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use oxidauth_kernel::{
     auth::tree::PermissionSearch,
