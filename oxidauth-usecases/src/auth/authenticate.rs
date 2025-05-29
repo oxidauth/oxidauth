@@ -139,7 +139,7 @@ where
         let mut jwt_builder = Jwt::builder()
             .with_subject(user_authority.user_id)
             .with_issuer("oxidauth".to_owned())
-            .with_not_before_from(Duration::from_secs(0));
+            .with_not_before_from(authority.settings.jwt_nbf);
 
         match authority.settings.totp {
             TotpSettings::Enabled {
