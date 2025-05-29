@@ -31,6 +31,7 @@ pub struct Authority {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthoritySettings {
     pub jwt_ttl: Duration,
+    pub jwt_nbf: Duration,
     pub refresh_token_ttl: Duration,
     pub totp: TotpSettings,
     pub entitlements_encoding: EntitlementsEncoding,
@@ -74,11 +75,7 @@ impl FromStr for AuthorityStatus {
         match s {
             ENABLED => Ok(AuthorityStatus::Enabled),
             DISABLED => Ok(AuthorityStatus::Disabled),
-            status => Err(format!(
-                "invalid authority status: {}",
-                status
-            )
-            .into()),
+            status => Err(format!("invalid authority status: {}", status).into()),
         }
     }
 }
@@ -118,9 +115,7 @@ impl FromStr for AuthorityStrategy {
             SINGLE_USE_TOKEN => AuthorityStrategy::SingleUseToken,
             OAUTH2 => AuthorityStrategy::Oauth2,
             strategy => {
-                return Err(
-                    ParseAuthorityStrategyError::Unknown(strategy.to_owned()),
-                );
+                return Err(ParseAuthorityStrategyError::Unknown(strategy.to_owned()));
             },
         };
 
@@ -138,11 +133,7 @@ impl fmt::Display for ParseAuthorityStrategyError {
         use ParseAuthorityStrategyError::*;
 
         match self {
-            Unknown(value) => write!(
-                f,
-                "unknown authority strategy: {}",
-                value
-            ),
+            Unknown(value) => write!(f, "unknown authority strategy: {}", value),
         }
     }
 }
@@ -173,21 +164,13 @@ impl AuthorityNotFoundError {
 impl fmt::Display for AuthorityNotFoundError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AuthorityNotFoundError::Strategy(strategy) => write!(
-                f,
-                "authority not found by strategy: {}",
-                strategy
-            ),
-            AuthorityNotFoundError::Id(id) => write!(
-                f,
-                "authority not found by id: {}",
-                id,
-            ),
-            AuthorityNotFoundError::ClientKey(id) => write!(
-                f,
-                "authority not found by client_key: {}",
-                id,
-            ),
+            AuthorityNotFoundError::Strategy(strategy) => {
+                write!(f, "authority not found by strategy: {}", strategy)
+            },
+            AuthorityNotFoundError::Id(id) => write!(f, "authority not found by id: {}", id,),
+            AuthorityNotFoundError::ClientKey(id) => {
+                write!(f, "authority not found by client_key: {}", id,)
+            },
         }
     }
 }

@@ -20,7 +20,6 @@ use oxidauth_repository::{
     user_authorities::insert_user_authority::InsertUserAuthorityQuery,
     users::insert_user::InsertUserQuery,
 };
-use std::time::Duration;
 
 use crate::auth::strategies;
 
@@ -126,7 +125,7 @@ where
                     .entitlements_encoding,
                 &permissions,
             )
-            .with_not_before_from(Duration::from_secs(0))
+            .with_not_before_from(authority.settings.jwt_nbf)
             .build()
             .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)

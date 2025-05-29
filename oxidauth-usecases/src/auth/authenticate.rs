@@ -4,7 +4,7 @@ use base64::prelude::BASE64_STANDARD;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
 use reqwest::Client;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
 
 pub use oxidauth_kernel::{
@@ -139,7 +139,7 @@ where
         let mut jwt_builder = Jwt::builder()
             .with_subject(user_authority.user_id)
             .with_issuer("oxidauth".to_owned())
-            .with_not_before_from(Duration::from_secs(0));
+            .with_not_before_from(authority.settings.jwt_nbf);
 
         match authority.settings.totp {
             TotpSettings::Enabled {

@@ -5,12 +5,9 @@ use oxidauth_kernel::{
     JsonValue, Password,
     auth::register::{RegisterParams, RegisterService},
     authorities::{
-        Authority, AuthorityNotFoundError, AuthoritySettings,
-        AuthorityStrategy, TotpSettings,
+        Authority, AuthorityNotFoundError, AuthoritySettings, AuthorityStrategy, TotpSettings,
         create_authority::{CreateAuthority, CreateAuthorityService},
-        find_authority_by_strategy::{
-            FindAuthorityByStrategy, FindAuthorityByStrategyService,
-        },
+        find_authority_by_strategy::{FindAuthorityByStrategy, FindAuthorityByStrategyService},
     },
     bootstrap::BootstrapParams,
     error::BoxedError,
@@ -18,9 +15,7 @@ use oxidauth_kernel::{
     permissions::{
         Permission, PermissionNotFoundError,
         create_permission::{CreatePermission, CreatePermissionService},
-        find_permission_by_parts::{
-            FindPermissionByParts, FindPermissionByPartsService,
-        },
+        find_permission_by_parts::{FindPermissionByParts, FindPermissionByPartsService},
     },
     provider::Provider,
     public_keys::{
@@ -33,8 +28,7 @@ use oxidauth_kernel::{
             CreateRolePermissionGrant, CreateRolePermissionGrantService,
         },
         list_role_permission_grants_by_role_id::{
-            ListRolePermissionGrantsByRoleId,
-            ListRolePermissionGrantsByRoleIdService,
+            ListRolePermissionGrantsByRoleId, ListRolePermissionGrantsByRoleIdService,
         },
     },
     roles::{
@@ -45,24 +39,18 @@ use oxidauth_kernel::{
     service::Service,
     settings::{
         Setting,
-        fetch_setting::{
-            FetchSettingParams, FetchSettingService, SettingNotFoundError,
-        },
+        fetch_setting::{FetchSettingParams, FetchSettingService, SettingNotFoundError},
         save_setting::{SaveSettingParams, SaveSettingService},
     },
     user_role_grants::{
-        create_user_role_grant::{
-            CreateUserRoleGrant, CreateUserRoleGrantService,
-        },
+        create_user_role_grant::{CreateUserRoleGrant, CreateUserRoleGrantService},
         list_user_role_grants_by_user_id::{
             ListUserRoleGrantsByUserId, ListUserRoleGrantsByUserIdService,
         },
     },
     users::{
         User, UserKind, UserNotFoundError,
-        find_user_by_username::{
-            FindUserByUsername, FindUserByUsernameService,
-        },
+        find_user_by_username::{FindUserByUsername, FindUserByUsernameService},
     },
 };
 use tracing::{error, info};
@@ -92,10 +80,7 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
     type Error = BoxedError;
 
     #[tracing::instrument(name = "bootstrap_user_usecase", skip(self))]
-    async fn call(
-        &self,
-        params: &'a BootstrapParams,
-    ) -> Result<Self::Response, Self::Error> {
+    async fn call(&self, params: &'a BootstrapParams) -> Result<Self::Response, Self::Error> {
         let setting = {
             let fetch_setting = self.provider.fetch();
 
@@ -115,11 +100,7 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
 
             let create_public_key = self.provider.fetch();
 
-            first_or_create_public_key(
-                list_all_public_keys,
-                create_public_key,
-            )
-            .await?;
+            first_or_create_public_key(list_all_public_keys, create_public_key).await?;
         }
 
         let permission = {
@@ -127,11 +108,7 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
 
             let create_permission = self.provider.fetch();
 
-            first_or_create_permissions(
-                permission_by_name,
-                create_permission,
-            )
-            .await?
+            first_or_create_permissions(permission_by_name, create_permission).await?
         };
 
         let role = {
@@ -159,36 +136,21 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
             let authority_by_strategy = self.provider.fetch();
             let create_authority = self.provider.fetch();
 
-            first_or_create_authority(
-                authority_by_strategy,
-                create_authority,
-            )
-            .await?
+            first_or_create_authority(authority_by_strategy, create_authority).await?
         };
 
         let user = {
             let find_user_by_username = self.provider.fetch();
             let register_user = self.provider.fetch();
 
-            first_or_register_user(
-                find_user_by_username,
-                register_user,
-                &authority,
-            )
-            .await?
+            first_or_register_user(find_user_by_username, register_user, &authority).await?
         };
 
         {
             let list_user_role = self.provider.fetch();
             let create_user_role = self.provider.fetch();
 
-            add_admin_role_to_admin_user(
-                list_user_role,
-                create_user_role,
-                &user,
-                &role,
-            )
-            .await?;
+            add_admin_role_to_admin_user(list_user_role, create_user_role, &user, &role).await?;
         }
 
         {
@@ -356,12 +318,11 @@ async fn add_admin_permission_to_admin_role(
 }
 
 pub const DEFAULT_JWT_TTL: Duration = Duration::from_secs(60 * 2);
+pub const DEFAULT_JWT_NBF: Duration = Duration::from_secs(60 * 1);
 pub const DEFAULT_TOTP_TOKEN_TTL: Duration = Duration::from_secs(60 * 2);
 pub const DEFAULT_CLIENT_KEY: &str = "OXIDAUTH_DEFAULT_CLIENT_KEY";
-pub const DEFAULT_REFRESH_TOKEN_TTL: Duration =
-    Duration::from_secs(60 * 60 * 24 * 2);
-pub const DEFAULT_USERNAMEPASSWORD_NAME: &str =
-    "oxidauth default username_password";
+pub const DEFAULT_REFRESH_TOKEN_TTL: Duration = Duration::from_secs(60 * 60 * 24 * 2);
+pub const DEFAULT_USERNAMEPASSWORD_NAME: &str = "oxidauth default username_password";
 
 #[tracing::instrument(skip_all)]
 async fn first_or_create_authority(
@@ -393,11 +354,11 @@ async fn first_or_create_authority(
                         .flatten();
 
                     let authority_params_value =
-                        AuthorityParams::new(random_string())
-                            .as_json_value()?;
+                        AuthorityParams::new(random_string()).as_json_value()?;
 
                     let authority_settings = AuthoritySettings {
                         jwt_ttl: DEFAULT_JWT_TTL,
+                        jwt_nbf: DEFAULT_JWT_NBF,
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
                         totp: TotpSettings::Disabled,
                         entitlements_encoding: EntitlementsEncoding::Txt,
@@ -417,10 +378,7 @@ async fn first_or_create_authority(
                         .await
                 },
                 _ => {
-                    error!(
-                        message = "authority could not be found or created",
-                        ?err
-                    );
+                    error!(message = "authority could not be found or created", ?err);
                     return Err(err);
                 },
             }
@@ -447,13 +405,9 @@ async fn first_or_register_user(
         Ok(user) => return Ok(user),
         Err(err) => match err.downcast_ref::<Box<UserNotFoundError>>() {
             Some(_) => {
-                let password = env::var(DEFAULT_ADMIN_PASSWORD)
-                    .unwrap_or_else(|_| random_string());
+                let password = env::var(DEFAULT_ADMIN_PASSWORD).unwrap_or_else(|_| random_string());
 
-                println!(
-                    ":::\nDEFAULT ADMIN PASSWORD: {}\n:::",
-                    password
-                );
+                println!(":::\nDEFAULT ADMIN PASSWORD: {}\n:::", password);
 
                 let username_password_params = UsernamePasswordRegisterParams {
                     username: DEFAULT_ADMIN_USERNAME.to_owned(),
@@ -519,9 +473,7 @@ async fn add_admin_role_to_admin_user(
 }
 
 #[tracing::instrument(skip_all)]
-async fn save_bootstrap_setting(
-    save_setting: &SaveSettingService,
-) -> Result<(), BoxedError> {
+async fn save_bootstrap_setting(save_setting: &SaveSettingService) -> Result<(), BoxedError> {
     save_setting
         .call(&SaveSettingParams {
             key: BOOTSTRAP_SETTING_KEY.to_owned(),
