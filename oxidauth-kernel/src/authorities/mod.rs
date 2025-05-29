@@ -31,6 +31,7 @@ pub struct Authority {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthoritySettings {
     pub jwt_ttl: Duration,
+    pub jwt_nbf: Duration,
     pub refresh_token_ttl: Duration,
     pub totp: TotpSettings,
     pub entitlements_encoding: EntitlementsEncoding,
