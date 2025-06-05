@@ -31,10 +31,16 @@ pub struct Authority {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthoritySettings {
     pub jwt_ttl: Duration,
-    pub jwt_nbf: Duration,
+    pub jwt_nbf_offset: NbfOffset,
     pub refresh_token_ttl: Duration,
     pub totp: TotpSettings,
     pub entitlements_encoding: EntitlementsEncoding,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum NbfOffset {
+    Enabled { offset: Duration },
+    Disabled,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

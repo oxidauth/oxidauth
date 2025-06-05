@@ -8,8 +8,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use oxidauth_kernel::{
     auth::tree::PermissionSearch,
     authorities::{
+        AuthorityNotFoundError, NbfOffset, TotpSettings,
         find_authority_by_client_key::FindAuthorityByClientKey,
-        AuthorityNotFoundError, TotpSettings,
     },
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
@@ -148,7 +148,7 @@ where
             .await?
             .permissions;
 
-        let jwt_builder = Jwt::builder()
+        let mut jwt_builder = Jwt::builder()
             .with_expires_in(authority.settings.jwt_ttl)
             .with_entitlements(
                 authority
@@ -157,8 +157,17 @@ where
                 &permissions,
             )
             .with_subject(user_id)
-            .with_issuer("oxidauth".to_owned())
-            .with_not_before_from(authority.settings.jwt_nbf);
+            .with_issuer("oxidauth".to_owned());
+
+        match authority
+            .settings
+            .jwt_nbf_offset
+        {
+            NbfOffset::Enabled { offset } => {
+                jwt_builder = jwt_builder.with_not_before_from(offset);
+            },
+            NbfOffset::Disabled => {},
+        }
 
         let refresh_token_exp_at = epoch_from_now(
             authority

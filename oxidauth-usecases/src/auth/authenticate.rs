@@ -3,6 +3,7 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
+use oxidauth_kernel::authorities::NbfOffset;
 use reqwest::Client;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
@@ -138,8 +139,17 @@ where
 
         let mut jwt_builder = Jwt::builder()
             .with_subject(user_authority.user_id)
-            .with_issuer("oxidauth".to_owned())
-            .with_not_before_from(authority.settings.jwt_nbf);
+            .with_issuer("oxidauth".to_owned());
+
+        match authority
+            .settings
+            .jwt_nbf_offset
+        {
+            NbfOffset::Enabled { offset } => {
+                jwt_builder = jwt_builder.with_not_before_from(offset);
+            },
+            NbfOffset::Disabled => {},
+        }
 
         match authority.settings.totp {
             TotpSettings::Enabled {
