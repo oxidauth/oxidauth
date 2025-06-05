@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::auth::tree::PermissionSearch;
+use oxidauth_kernel::authorities::NbfOffset;
 use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
 use oxidauth_kernel::jwt::{Jwt, epoch_from_now, epoch_from_time};
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
@@ -142,7 +143,7 @@ where
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
 
-        let jwt = Jwt::builder()
+        let mut jwt_builder = Jwt::builder()
             .with_subject(user_id)
             .with_issuer("oxidauth".to_owned())
             .with_expires_in(authority.settings.jwt_ttl)
@@ -151,8 +152,19 @@ where
                     .settings
                     .entitlements_encoding,
                 &permissions,
-            )
-            .with_not_before_from(authority.settings.jwt_nbf)
+            );
+
+        match authority
+            .settings
+            .jwt_nbf_offset
+        {
+            NbfOffset::Enabled { offset } => {
+                jwt_builder = jwt_builder.with_not_before_from(offset);
+            },
+            NbfOffset::Disabled => {},
+        }
+
+        let jwt = jwt_builder
             .build()
             .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)

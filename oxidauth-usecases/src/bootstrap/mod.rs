@@ -5,8 +5,8 @@ use oxidauth_kernel::{
     JsonValue, Password,
     auth::register::{RegisterParams, RegisterService},
     authorities::{
-        Authority, AuthorityNotFoundError, AuthoritySettings,
-        AuthorityStrategy, TotpSettings,
+        Authority, AuthorityNotFoundError, AuthoritySettings, AuthorityStrategy, NbfOffset,
+        TotpSettings,
         create_authority::{CreateAuthority, CreateAuthorityService},
         find_authority_by_strategy::{
             FindAuthorityByStrategy, FindAuthorityByStrategyService,
@@ -356,7 +356,7 @@ async fn add_admin_permission_to_admin_role(
 }
 
 pub const DEFAULT_JWT_TTL: Duration = Duration::from_secs(60 * 2);
-pub const DEFAULT_JWT_NBF: Duration = Duration::from_secs(60 * 2);
+pub const DEFAULT_JWT_NBF: Duration = Duration::from_secs(0);
 pub const DEFAULT_TOTP_TOKEN_TTL: Duration = Duration::from_secs(60 * 2);
 pub const DEFAULT_CLIENT_KEY: &str = "OXIDAUTH_DEFAULT_CLIENT_KEY";
 pub const DEFAULT_REFRESH_TOKEN_TTL: Duration =
@@ -399,7 +399,9 @@ async fn first_or_create_authority(
 
                     let authority_settings = AuthoritySettings {
                         jwt_ttl: DEFAULT_JWT_TTL,
-                        jwt_nbf: DEFAULT_JWT_NBF,
+                        jwt_nbf_offset: NbfOffset::Enabled {
+                            offset: DEFAULT_JWT_NBF,
+                        },
                         refresh_token_ttl: DEFAULT_REFRESH_TOKEN_TTL,
                         totp: TotpSettings::Disabled,
                         entitlements_encoding: EntitlementsEncoding::Txt,
