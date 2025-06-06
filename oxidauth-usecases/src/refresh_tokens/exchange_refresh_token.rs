@@ -154,15 +154,13 @@ where
                 &permissions,
             );
 
-        match authority
+        let setting = authority
             .settings
-            .jwt_nbf_offset
-        {
-            NbfOffset::Enabled { offset } => {
-                jwt_builder = jwt_builder.with_not_before_from(offset);
-            },
-            NbfOffset::Disabled => {},
-        }
+            .jwt_nbf_offset;
+
+        if let NbfOffset::Enabled(value) = setting {
+            jwt_builder = jwt_builder.with_not_before_from(value);
+        };
 
         let jwt = jwt_builder
             .build()

@@ -6,7 +6,7 @@ use oxidauth_kernel::{
         Registrar,
         register::{RegisterParams, RegisterResponse},
     },
-    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
+    authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, NbfOffset},
     error::BoxedError,
     jwt::{Jwt, epoch_from_now},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
@@ -115,7 +115,7 @@ where
 
         let private_key = BASE64_STANDARD.decode(private_key.private_key)?;
 
-        let jwt = Jwt::builder()
+        let mut jwt_builder = Jwt::builder()
             .with_subject(user.id)
             .with_issuer("oxidauth".to_owned())
             .with_expires_in(authority.settings.jwt_ttl)
@@ -124,8 +124,17 @@ where
                     .settings
                     .entitlements_encoding,
                 &permissions,
-            )
-            .with_not_before_from(authority.settings.jwt_nbf)
+            );
+
+        let setting = authority
+            .settings
+            .jwt_nbf_offset;
+
+        if let NbfOffset::Enabled(value) = setting {
+            jwt_builder = jwt_builder.with_not_before_from(value);
+        };
+
+        let jwt = jwt_builder
             .build()
             .map_err(|err| format!("unable to build jwt: {:?}", err))?
             .encode(&private_key)

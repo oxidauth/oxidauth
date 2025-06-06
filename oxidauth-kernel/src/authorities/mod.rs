@@ -39,7 +39,7 @@ pub struct AuthoritySettings {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum NbfOffset {
-    Enabled { offset: Duration },
+    Enabled(Duration),
     Disabled,
 }
 
