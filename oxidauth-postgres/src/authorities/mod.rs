@@ -49,13 +49,15 @@ impl TryFrom<PgAuthority> for Authority {
     type Error = BoxedError;
 
     fn try_from(value: PgAuthority) -> Result<Self, Self::Error> {
+        let result = serde_json::from_value(value.settings);
+
         Ok(Self {
             id: value.id,
             name: value.name,
             client_key: value.client_key,
             status: AuthorityStatus::from_str(&value.status)?,
             strategy: AuthorityStrategy::from_str(&value.strategy)?,
-            settings: serde_json::from_value(value.settings)?,
+            settings: result?,
             params: JsonValue::new(value.params),
             created_at: value.created_at,
             updated_at: value.updated_at,

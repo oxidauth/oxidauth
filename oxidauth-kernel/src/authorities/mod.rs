@@ -38,9 +38,18 @@ pub struct AuthoritySettings {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum NbfOffset {
     Enabled(Duration),
     Disabled,
+}
+
+pub const DEFAULT_JWT_NBF: Duration = Duration::from_secs(10);
+
+impl Default for NbfOffset {
+    fn default() -> Self {
+        Self::Enabled(DEFAULT_JWT_NBF)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
