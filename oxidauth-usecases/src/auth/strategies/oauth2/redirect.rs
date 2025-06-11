@@ -6,6 +6,7 @@ use oxidauth_kernel::{
     error::BoxedError,
 };
 use oxidauth_repository::authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery;
+use tracing_log::log::info;
 
 use super::{AuthorityParams, OAuthFlavors};
 
@@ -35,6 +36,8 @@ where
 
     #[tracing::instrument(name = "find_authority_by_client_key_usecase", skip(self))]
     async fn call(&self, params: &'a Oauth2RedirectParams) -> Result<Self::Response, Self::Error> {
+        info!("Got to redirect call");
+
         let authority = self
             .authorities
             .call(&FindAuthorityByClientKey {
@@ -43,7 +46,11 @@ where
             .await?
             .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
 
+        info!("Got authority");
+
         let oauth_params: AuthorityParams = authority.params.try_into()?;
+
+        info!("Can get oauth params, {:?}", oauth_params);
 
         let redirect_url = match oauth_params.flavor {
             OAuthFlavors::Google => {
