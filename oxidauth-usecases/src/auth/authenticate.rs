@@ -141,11 +141,10 @@ where
             .with_subject(user_authority.user_id)
             .with_issuer("oxidauth".to_owned());
 
-        let setting = authority
+        if let NbfOffset::Enabled(value) = authority
             .settings
-            .jwt_nbf_offset;
-
-        if let NbfOffset::Enabled(value) = setting {
+            .jwt_nbf_offset
+        {
             jwt_builder = jwt_builder.with_not_before_from(value);
         };
 

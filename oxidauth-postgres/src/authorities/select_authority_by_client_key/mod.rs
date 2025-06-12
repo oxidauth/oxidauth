@@ -1,6 +1,5 @@
 use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKey;
 use oxidauth_repository::authorities::select_authority_by_client_key::*;
-use tracing_log::log::info;
 
 use crate::prelude::*;
 
@@ -22,11 +21,7 @@ impl<'a> Service<&'a FindAuthorityByClientKey> for Database {
                 .fetch_one(&self.pool)
                 .await?;
 
-        info!("Got FindAuthorityByClientKey result {:?}", result);
-
         let authority = result.try_into()?;
-
-        info!("After try into {:?}", authority);
 
         Ok(Some(authority))
     }
