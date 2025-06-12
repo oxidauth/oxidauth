@@ -3,7 +3,7 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
-use oxidauth_kernel::authorities::NbfOffset;
+use oxidauth_kernel::{authorities::NbfOffset, jwt::DurationDirection};
 use reqwest::Client;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
@@ -243,6 +243,7 @@ where
         }
 
         let refresh_token_exp_at = epoch_from_now(
+            DurationDirection::Add,
             authority
                 .settings
                 .refresh_token_ttl,

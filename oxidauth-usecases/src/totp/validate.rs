@@ -12,7 +12,7 @@ use oxidauth_kernel::{
         find_authority_by_client_key::FindAuthorityByClientKey,
     },
     error::BoxedError,
-    jwt::{epoch_from_now, Jwt},
+    jwt::{DurationDirection, Jwt, epoch_from_now},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     refresh_tokens::create_refresh_token::CreateRefreshToken,
     service::Service,
@@ -168,6 +168,7 @@ where
         };
 
         let refresh_token_exp_at = epoch_from_now(
+            DurationDirection::Add,
             authority
                 .settings
                 .refresh_token_ttl,

@@ -8,7 +8,7 @@ use oxidauth_kernel::{
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, NbfOffset},
     error::BoxedError,
-    jwt::{Jwt, epoch_from_now},
+    jwt::{DurationDirection, Jwt, epoch_from_now},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     service::Service,
 };
@@ -126,11 +126,10 @@ where
                 &permissions,
             );
 
-        let setting = authority
+        if let NbfOffset::Enabled(value) = authority
             .settings
-            .jwt_nbf_offset;
-
-        if let NbfOffset::Enabled(value) = setting {
+            .jwt_nbf_offset
+        {
             jwt_builder = jwt_builder.with_not_before_from(value);
         };
 
@@ -141,6 +140,7 @@ where
             .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
 
         let refresh_token_exp_at = epoch_from_now(
+            DurationDirection::Add,
             authority
                 .settings
                 .refresh_token_ttl,

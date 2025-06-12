@@ -1,6 +1,6 @@
 use std::fmt;
 use std::io::prelude::*;
-use std::ops::Add;
+use std::ops::{Add as _, Sub as _};
 use std::str::FromStr;
 use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
 
@@ -147,7 +147,7 @@ impl JwtBuilder {
 
         let exp_from_ttl = {
             let ttl = ttl.unwrap_or(Duration::from_secs(60 * 3));
-            epoch_from_now(ttl)?
+            epoch_from_now(DurationDirection::Add, ttl)?
         };
 
         let exp = exp.unwrap_or(exp_from_ttl);
@@ -185,7 +185,7 @@ impl JwtBuilder {
     }
 
     pub fn with_not_before_from(mut self, duration: time::Duration) -> Self {
-        let nbf = epoch_from_now(duration);
+        let nbf = epoch_from_now(DurationDirection::Sub, duration);
 
         self.nbf = Some(nbf);
 
@@ -378,12 +378,26 @@ impl<'de> Deserialize<'de> for Entitlements {
     }
 }
 
-pub fn epoch_from_now(duration: Duration) -> Result<usize, JwtError> {
-    let expiration = SystemTime::now()
+pub enum DurationDirection {
+    Add,
+    Sub,
+}
+
+pub fn epoch_from_now(direction: DurationDirection, duration: Duration) -> Result<usize, JwtError> {
+    let mut now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map_err(JwtError::new)?
-        .add(duration)
-        .as_secs() as usize;
+        .map_err(JwtError::new)?;
+
+    match direction {
+        DurationDirection::Add => {
+            now = now.add(duration);
+        },
+        DurationDirection::Sub => {
+            now = now.sub(duration);
+        },
+    }
+
+    let expiration = now.as_secs() as usize;
 
     Ok(expiration)
 }
