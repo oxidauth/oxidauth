@@ -9,7 +9,7 @@ use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::auth::tree::PermissionSearch;
 use oxidauth_kernel::authorities::NbfOffset;
 use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
-use oxidauth_kernel::jwt::{Jwt, epoch_from_now, epoch_from_time};
+use oxidauth_kernel::jwt::{DurationDirection, Jwt, epoch_from_now, epoch_from_time};
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
 use oxidauth_kernel::refresh_tokens::delete_refresh_token::DeleteRefreshToken;
@@ -169,6 +169,7 @@ where
             .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
 
         let refresh_token_exp_at = epoch_from_now(
+            DurationDirection::Add,
             authority
                 .settings
                 .refresh_token_ttl,
