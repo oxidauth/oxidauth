@@ -5,23 +5,23 @@ use base64::prelude::{BASE64_STANDARD, Engine};
 use async_trait::async_trait;
 
 use chrono::DateTime;
-use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
-use oxidauth_kernel::auth::tree::PermissionSearch;
-use oxidauth_kernel::authorities::NbfOffset;
-use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
+use oxidauth_kernel::auth::{authenticate::AuthenticateResponse, tree::PermissionSearch};
+use oxidauth_kernel::authorities::{NbfOffset, find_authority_by_id::FindAuthorityById};
 use oxidauth_kernel::jwt::{DurationDirection, Jwt, epoch_from_now, epoch_from_time};
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
-use oxidauth_kernel::refresh_tokens::delete_refresh_token::DeleteRefreshToken;
-use oxidauth_kernel::refresh_tokens::find_refresh_token_by_id::FindRefreshTokenById;
+use oxidauth_kernel::refresh_tokens::{
+    delete_refresh_token::DeleteRefreshToken, find_refresh_token_by_id::FindRefreshTokenById,
+};
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityId;
 use oxidauth_kernel::{error::BoxedError, refresh_tokens::exchange_refresh_token::*};
 use oxidauth_repository::auth::tree::PermissionTreeQuery;
 use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
 use oxidauth_repository::private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery;
-use oxidauth_repository::refresh_tokens::delete_refresh_token::DeleteRefreshTokenQuery;
-use oxidauth_repository::refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery;
-use oxidauth_repository::refresh_tokens::select_refresh_token_by_id::SelectRefreshTokenByIdQuery;
+use oxidauth_repository::refresh_tokens::{
+    delete_refresh_token::DeleteRefreshTokenQuery, insert_refresh_token::InsertRefreshTokenQuery,
+    select_refresh_token_by_id::SelectRefreshTokenByIdQuery,
+};
 use oxidauth_repository::user_authorities::select_user_authority_by_user_id_and_authority_id::SelectUserAuthorityByUserIdAndAuthorityIdQuery;
 
 pub struct ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D>
@@ -154,11 +154,10 @@ where
                 &permissions,
             );
 
-        let setting = authority
+        if let NbfOffset::Enabled(value) = authority
             .settings
-            .jwt_nbf_offset;
-
-        if let NbfOffset::Enabled(value) = setting {
+            .jwt_nbf_offset
+        {
             jwt_builder = jwt_builder.with_not_before_from(value);
         };
 
