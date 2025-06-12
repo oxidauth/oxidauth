@@ -11,7 +11,8 @@ Authorities --> Settings --> "jwt_nbf": Duration (eg: { "secs": 900, "nanos": 0 
 
 
 ### Code changes
-When a jwt is built using the JWT builder, the `with_not_before_from` method should now reference the authority setting nbf value instead of the current default of 0.
+- When a jwt is built using the JWT builder, the `with_not_before_from` method should now reference the authority setting nbf value instead of the current default of 0.
+- The `with_not_before_from` method passes a Duration to the `epoch_from_now` function, which had to be extended to allow for subtracting a duration from the current time (existing functionality only covered creating epoch times in the future).
 
 ### Database Migrations
-None
+A database migration has been added that will add the new nbf offset value to existing authorities in the oxidauth database.
