@@ -55,8 +55,6 @@ pub async fn handle(
         JsonValue::new(params)
     };
 
-    println!("SUCCESSFULLY CREATED JSON PARAMS");
-
     let result = service
         .call(&AuthenticateOrRegisterParams {
             client_key: path_params.client_key,
@@ -64,8 +62,6 @@ pub async fn handle(
             params,
         })
         .await;
-
-    println!("SUCCESS AUTH OR REG");
 
     match result {
         Ok(res) => {

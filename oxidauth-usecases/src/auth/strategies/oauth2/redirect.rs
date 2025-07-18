@@ -1,7 +1,7 @@
 use std::fmt::Error;
 
 use argon2::{
-    Argon2, PasswordHash, PasswordVerifier,
+    Argon2,
     password_hash::{Error as HashError, PasswordHasher, SaltString},
 };
 use async_trait::async_trait;
@@ -53,38 +53,12 @@ where
             .await?
             .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
 
-        println!("AUTHORITY:: {:?}", authority);
-
         let oauth_params: AuthorityParams = authority.params.try_into()?;
-
-        println!("OAUTH PARAMS:: {:?}", oauth_params);
 
         let Ok(state_hash) = state_hasher(authority.client_key) else {
             let err = Error;
             return Err(Box::new(err));
         };
-
-        let Ok(parsed_state_hash) = PasswordHash::new(&state_hash) else {
-            let err = Error;
-            return Err(Box::new(err));
-        };
-
-        println!(
-            "STATE VALUE HASH! ::: {}, {}",
-            state_hash, parsed_state_hash
-        );
-
-        println!(
-            "Testing the hash thing {}",
-            Argon2::default()
-                .verify_password(
-                    authority
-                        .client_key
-                        .as_bytes(),
-                    &parsed_state_hash
-                )
-                .is_ok()
-        );
 
         let redirect_url = match oauth_params.flavor {
             OAuthFlavors::Google => {
@@ -114,8 +88,6 @@ where
                 redirect_url.to_owned()
             },
         };
-
-        println!("REDIRECT URL:: {}", redirect_url);
 
         Ok(Oauth2RedirectResponse { redirect_url })
     }
