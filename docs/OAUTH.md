@@ -24,7 +24,7 @@ The following steps outline the oauth flow. Each step is addressed individually 
 12. Oxidauth redirects to the client (client address is an authority param) with a jwt and refresh token
 13. Client uses the jwt and refresh token information to sign in, sign up, or otherwise handle the user account next steps
 
-### Steps Breakdown
+### Steps Breakdown (Google-based Example)
 
 #### 1. Initiation
 Example client oauth initiation screen:
@@ -40,15 +40,16 @@ The oath redirect url is constructed from many values which are held between the
 - redirect_uri (identity provider redirect uri - an oxidauth address)
 - identity platform oauth base url (built into the redirect url param in oxidauth)
 - hd (optional google value to restrict which account options the user is presented with)
+- state (https://datatracker.ietf.org/doc/html/rfc6749#section-10.12 - optional security addition which oxidauth utilizes. Is verified just before the exchange token is exchanged.)
 
 #### 3. Constructed redirect url
 Ex Redirect Url: "https://accounts.google.com/o/oauth2/v2/auth?{redirect_uri}{client_id}{scopes}{hd}response_type=code&include_granted_scopes=true",
 
 #### 6. Identity Platform Authentication
-Example identity platform authentication screen:
+Login with the providing platform
 
 #### 9. Exchange Token
-The token provided by the identity platform is combined with other values and posted back to the identity platform to get an access token that is needed in order to request user info. There are two separate calls to the identity platform to go from token to user profile.
+The exchange token or code provided by the identity platform is combined with other values and posted back to the identity platform to get an access token that becomes the bearer token used to request user info from the platform.
 
 ##### Exchange Token ingredients:
 - Header "application/x-www-form-urlencoded" - request is form type
