@@ -1,3 +1,4 @@
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use async_trait::async_trait;
 use serde::Serialize;
 use std::sync::Arc;
@@ -26,8 +27,11 @@ use oxidauth_repository::{
 };
 
 use crate::auth::{
-    strategies::oauth2::google::{exchange_token, retrieve_profile},
     strategies::oauth2::registrar::Oauth2RegisterParams,
+    strategies::oauth2::{
+        google::{exchange_google_token, retrieve_google_profile},
+        microsoft::{exchange_microsoft_token, retrieve_microsoft_profile},
+    },
 };
 
 use super::{
@@ -88,9 +92,18 @@ where
                     .code
                     .clone();
 
-                let access_token = exchange_token(code, &authority_params).await?;
+                let access_token = exchange_google_token(code, &authority_params).await?;
 
-                retrieve_profile(access_token, &authority_params).await
+                retrieve_google_profile(access_token, &authority_params).await
+            },
+            OAuthFlavors::Microsoft => {
+                let code = authenticate_params
+                    .code
+                    .clone();
+
+                let access_token = exchange_microsoft_token(code, &authority_params).await?;
+
+                retrieve_microsoft_profile(access_token, &authority_params).await
             },
         }
     }
@@ -118,7 +131,6 @@ where
         &self,
         params: &'a AuthenticateOrRegisterParams,
     ) -> Result<Self::Response, Self::Error> {
-        // GET AUTHORITY
         let Some(authority) = self
             .authorities
             .call(&FindAuthorityByClientKey {
@@ -128,6 +140,24 @@ where
         else {
             return Err(format!("could not find authority by client key").into());
         };
+
+        // VERIFY THE STATE HASH VALUE
+        let Ok(parsed_state_hash) = PasswordHash::new(&params.state) else {
+            return Err(format!("could not hash state").into());
+        };
+
+        let is_state_hash_verified = Argon2::default()
+            .verify_password(
+                authority
+                    .client_key
+                    .as_bytes(),
+                &parsed_state_hash,
+            )
+            .is_ok();
+
+        if !is_state_hash_verified {
+            return Err(format!("Invalid state hash").into());
+        }
 
         // GET PARAMS
         let authority_params: AuthorityParams = authority.params.try_into()?;
