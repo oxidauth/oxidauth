@@ -11,9 +11,9 @@ pub async fn exchange_microsoft_token(
     params: &AuthorityParams,
 ) -> Result<String, BoxedError> {
     let json = MicrosoftExchangeTokenReq {
-        client_id: params.oauth2_id.clone(),
-        scope: params.scopes.clone(),
         code,
+        scope: params.scopes.clone(),
+        client_id: params.oauth2_id.clone(),
         client_secret: params.oauth2_secret.clone(),
         redirect_uri: params
             .redirect_uri

@@ -6,7 +6,10 @@ use oxidauth_kernel::error::BoxedError;
 use super::{GoogleExchangeTokenReq, GoogleExchangeTokenRes};
 
 #[tracing::instrument(name = "google oauth exchange token")]
-pub async fn exchange_token(code: String, params: &AuthorityParams) -> Result<String, BoxedError> {
+pub async fn exchange_google_token(
+    code: String,
+    params: &AuthorityParams,
+) -> Result<String, BoxedError> {
     let json = GoogleExchangeTokenReq {
         code,
         client_id: params.oauth2_id.clone(),
