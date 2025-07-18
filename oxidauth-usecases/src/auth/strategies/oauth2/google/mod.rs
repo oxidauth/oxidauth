@@ -1,8 +1,8 @@
 pub mod exchange_token;
 pub mod retrieve_profile;
 
-pub use exchange_token::exchange_token;
-pub use retrieve_profile::retrieve_profile;
+pub use exchange_token::exchange_google_token;
+pub use retrieve_profile::retrieve_google_profile;
 
 use serde::{Deserialize, Serialize};
 

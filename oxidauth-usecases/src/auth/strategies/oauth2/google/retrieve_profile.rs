@@ -5,7 +5,7 @@ use oxidauth_kernel::{auth::authenticate_or_register::OAuth2Profile, error::Boxe
 
 use super::GoogleProfile;
 
-pub async fn retrieve_profile(
+pub async fn retrieve_google_profile(
     access_token: String,
     authority_params: &AuthorityParams,
 ) -> Result<OAuth2Profile, BoxedError> {

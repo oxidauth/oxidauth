@@ -1,7 +1,17 @@
+use std::fmt::Error;
+
+use argon2::{
+    Argon2, PasswordHash, PasswordVerifier,
+    password_hash::{Error as HashError, PasswordHasher, SaltString},
+};
 use async_trait::async_trait;
+use rand_core::OsRng;
+use uuid::Uuid;
 
 use oxidauth_kernel::{
-    auth::oauth2::redirect::{Oauth2RedirectParams, Oauth2RedirectResponse},
+    auth::oauth2::redirect::{
+        Oauth2RedirectParams, Oauth2RedirectResponse, ParseOauth2RedirectUrlError,
+    },
     authorities::{AuthorityNotFoundError, find_authority_by_client_key::*},
     error::BoxedError,
 };
@@ -43,7 +53,38 @@ where
             .await?
             .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
 
+        println!("AUTHORITY:: {:?}", authority);
+
         let oauth_params: AuthorityParams = authority.params.try_into()?;
+
+        println!("OAUTH PARAMS:: {:?}", oauth_params);
+
+        let Ok(state_hash) = state_hasher(authority.client_key) else {
+            let err = Error;
+            return Err(Box::new(err));
+        };
+
+        let Ok(parsed_state_hash) = PasswordHash::new(&state_hash) else {
+            let err = Error;
+            return Err(Box::new(err));
+        };
+
+        println!(
+            "STATE VALUE HASH! ::: {}, {}",
+            state_hash, parsed_state_hash
+        );
+
+        println!(
+            "Testing the hash thing {}",
+            Argon2::default()
+                .verify_password(
+                    authority
+                        .client_key
+                        .as_bytes(),
+                    &parsed_state_hash
+                )
+                .is_ok()
+        );
 
         let redirect_url = match oauth_params.flavor {
             OAuthFlavors::Google => {
@@ -54,12 +95,39 @@ where
                     .append_pair("login_hint", &params.email)
                     .append_pair("response_type", "code")
                     .append_pair("include_granted_scopes", "true")
+                    .append_pair("state", state_hash.as_str())
+                    .finish();
+
+                redirect_url.to_owned()
+            },
+            OAuthFlavors::Microsoft => {
+                let mut redirect_url = oauth_params.redirect_url;
+
+                let redirect_url = redirect_url
+                    .query_pairs_mut()
+                    .append_pair("login_hint", &params.email)
+                    .append_pair("response_type", "code")
+                    .append_pair("response_mode", "query")
+                    .append_pair("state", state_hash.as_str())
                     .finish();
 
                 redirect_url.to_owned()
             },
         };
 
+        println!("REDIRECT URL:: {}", redirect_url);
+
         Ok(Oauth2RedirectResponse { redirect_url })
     }
+}
+
+pub fn state_hasher(client_id: Uuid) -> Result<String, HashError> {
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+
+    let password_hash = argon2
+        .hash_password(&client_id.into_bytes(), &salt)?
+        .to_string();
+
+    Ok(password_hash)
 }

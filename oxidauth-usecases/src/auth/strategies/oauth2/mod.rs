@@ -1,5 +1,6 @@
 pub mod authenticator;
 pub mod google;
+pub mod microsoft;
 pub mod redirect;
 pub mod registrar;
 pub mod user_authority_from_request;
@@ -20,6 +21,7 @@ pub struct OAuth2 {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum OAuthFlavors {
     Google,
+    Microsoft,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
