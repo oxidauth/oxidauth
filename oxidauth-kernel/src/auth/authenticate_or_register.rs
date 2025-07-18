@@ -32,7 +32,7 @@ pub struct AuthenticateOrRegisterResponse {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OAuth2AuthenticateParams {
     pub code: String,
-    pub scope: String,
+    pub scope: Option<String>,
     pub client_key: Uuid,
 }
 
@@ -49,6 +49,7 @@ impl TryFrom<JsonValue> for OAuth2AuthenticateParams {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthenticateOrRegisterParams {
     pub client_key: Uuid,
+    pub state: String,
     pub params: JsonValue,
 }
 
@@ -73,7 +74,8 @@ impl From<&AuthenticateOrRegisterParams> for RegisterParams {
 #[derive(Debug, Clone, Deserialize)]
 pub struct OAuth2AuthenticatePathParams {
     pub code: String,
-    pub scope: String,
+    pub scope: Option<String>,
+    pub state: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

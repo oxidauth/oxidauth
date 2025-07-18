@@ -35,7 +35,7 @@ pub async fn handle(
 
     let params = {
         let params = OAuth2AuthenticateParams {
-            code: auth_response.code.clone(),
+            code: auth_response.code,
             scope: auth_response.scope.clone(),
             client_key: path_params.client_key,
         };
@@ -55,12 +55,17 @@ pub async fn handle(
         JsonValue::new(params)
     };
 
+    println!("SUCCESSFULLY CREATED JSON PARAMS");
+
     let result = service
         .call(&AuthenticateOrRegisterParams {
             client_key: path_params.client_key,
+            state: auth_response.state,
             params,
         })
         .await;
+
+    println!("SUCCESS AUTH OR REG");
 
     match result {
         Ok(res) => {
