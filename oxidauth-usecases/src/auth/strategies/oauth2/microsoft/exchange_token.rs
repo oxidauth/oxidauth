@@ -7,11 +7,11 @@ use super::{MicrosoftExchangeTokenReq, MicrosoftExchangeTokenRes};
 
 #[tracing::instrument(name = "microsoft oauth exchange token")]
 pub async fn exchange_microsoft_token(
-    code: String,
+    code: &String,
     params: &AuthorityParams,
 ) -> Result<String, BoxedError> {
-    let json = MicrosoftExchangeTokenReq {
-        code,
+    let json = &MicrosoftExchangeTokenReq {
+        code: code.clone(),
         scope: params.scopes.clone(),
         client_id: params.oauth2_id.clone(),
         client_secret: params.oauth2_secret.clone(),
@@ -24,7 +24,7 @@ pub async fn exchange_microsoft_token(
     let exchange: MicrosoftExchangeTokenRes = reqwest::Client::new()
         .post(params.exchange_url.clone())
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .form(&json)
+        .form(json)
         .send()
         .await
         .map_err(|err| err.to_string())?

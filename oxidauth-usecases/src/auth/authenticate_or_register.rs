@@ -97,11 +97,8 @@ where
                 retrieve_google_profile(access_token, &authority_params).await
             },
             OAuthFlavors::Microsoft => {
-                let code = authenticate_params
-                    .code
-                    .clone();
-
-                let access_token = exchange_microsoft_token(code, &authority_params).await?;
+                let access_token =
+                    exchange_microsoft_token(&authenticate_params.code, &authority_params).await?;
 
                 retrieve_microsoft_profile(access_token, &authority_params).await
             },

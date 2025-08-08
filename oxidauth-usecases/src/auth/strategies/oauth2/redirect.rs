@@ -55,7 +55,7 @@ where
 
         let oauth_params: AuthorityParams = authority.params.try_into()?;
 
-        let Ok(state_hash) = state_hasher(authority.client_key) else {
+        let Ok(state_hash) = hash_client_id(authority.client_key) else {
             let err = Error;
             return Err(Box::new(err));
         };
