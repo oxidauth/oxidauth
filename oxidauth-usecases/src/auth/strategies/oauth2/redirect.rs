@@ -93,7 +93,7 @@ where
     }
 }
 
-pub fn state_hasher(client_id: Uuid) -> Result<String, HashError> {
+pub fn hash_client_id(client_id: Uuid) -> Result<String, HashError> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
 
