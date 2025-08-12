@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 use oxidauth_kernel::{JsonValue, error::BoxedError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MicrosoftExchangeTokenReq {
-    pub client_id: String,
-    pub scope: String,
-    pub code: String,
-    pub redirect_uri: String,
-    pub client_secret: String,
-    pub grant_type: String,
+pub struct MicrosoftExchangeTokenReq<'a> {
+    pub client_id: &'a str,
+    pub scope: &'a str,
+    pub code: &'a str,
+    pub redirect_uri: &'a str,
+    pub client_secret: &'a str,
+    pub grant_type: &'a str,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,9 +29,10 @@ pub struct MicrosoftExchangeTokenRes {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MicrosoftProfile {
-    pub displayName: String,
-    pub givenName: String,
+    pub display_name: String,
+    pub given_name: String,
     pub surname: String,
     pub id: String,
     pub mail: String,

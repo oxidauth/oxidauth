@@ -9,9 +9,7 @@ use rand_core::OsRng;
 use uuid::Uuid;
 
 use oxidauth_kernel::{
-    auth::oauth2::redirect::{
-        Oauth2RedirectParams, Oauth2RedirectResponse, ParseOauth2RedirectUrlError,
-    },
+    auth::oauth2::redirect::{Oauth2RedirectParams, Oauth2RedirectResponse},
     authorities::{AuthorityNotFoundError, find_authority_by_client_key::*},
     error::BoxedError,
 };

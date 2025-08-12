@@ -25,7 +25,7 @@ pub async fn retrieve_microsoft_profile(
 
     Ok(OAuth2Profile {
         email: profile.mail,
-        given_name: profile.givenName,
+        given_name: profile.given_name,
         family_name: profile.surname,
     })
 }
