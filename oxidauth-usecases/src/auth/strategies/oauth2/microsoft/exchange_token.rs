@@ -10,21 +10,19 @@ pub async fn exchange_microsoft_token(
     code: &String,
     params: &AuthorityParams,
 ) -> Result<String, BoxedError> {
-    let json = &MicrosoftExchangeTokenReq {
-        code: code.clone(),
-        scope: params.scopes.clone(),
-        client_id: params.oauth2_id.clone(),
-        client_secret: params.oauth2_secret.clone(),
-        redirect_uri: params
-            .redirect_uri
-            .to_string(),
-        grant_type: "authorization_code".to_string(),
+    let json = MicrosoftExchangeTokenReq {
+        code,
+        scope: &params.scopes,
+        client_id: &params.oauth2_id,
+        client_secret: &params.oauth2_secret,
+        redirect_uri: params.redirect_uri.as_ref(),
+        grant_type: "authorization_code",
     };
 
     let exchange: MicrosoftExchangeTokenRes = reqwest::Client::new()
         .post(params.exchange_url.clone())
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .form(json)
+        .form(&json)
         .send()
         .await
         .map_err(|err| err.to_string())?
