@@ -25,7 +25,7 @@ pub struct MicrosoftExchangeTokenRes {
     pub expires_in: u32,
     pub ext_expires_in: u32,
     pub access_token: String,
-    pub id_token: String,
+    pub id_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

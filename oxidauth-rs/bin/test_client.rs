@@ -2,8 +2,6 @@ use oxidauth_kernel::error::BoxedError;
 
 #[tokio::main]
 async fn main() -> Result<(), BoxedError> {
-    // println!("testing client...");
-
     // let client = OxidAuthClient::new(
     //     &"http://api.oxidauth.localhost".parse()?,
     //     "malreynolds",

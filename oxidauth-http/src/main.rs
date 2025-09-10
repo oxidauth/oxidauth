@@ -12,7 +12,7 @@ use server::Server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    println!("engaging oxidauth http server...");
+    info!("engaging oxidauth http server...");
 
     let subscriber = oxidauth_telemetry::get_subscriber(
         "oxidauth-http-api".into(),
@@ -24,9 +24,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
     let provider = provider::setup().await?;
 
-    let bootstrap: BootstrapService = Arc::new(SudoUserBootstrapUseCase::new(
-        &provider,
-    ));
+    let bootstrap: BootstrapService = Arc::new(SudoUserBootstrapUseCase::new(&provider));
 
     bootstrap
         .call(&BootstrapParams)
