@@ -35,7 +35,7 @@ async fn can(
         Ok(true) => Response::success()
             .payload(true)
             .notice("yes you can"),
-        Ok(false) => Response::fail()
+        Ok(false) => Response::success()
             .payload(false)
             .warning("no you can't"),
         Err(err) => Response::fail().error(err.to_string()),
