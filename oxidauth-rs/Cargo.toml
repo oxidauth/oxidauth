@@ -20,8 +20,8 @@ oxidauth-http = { path = "../oxidauth-http" }
 oxidauth-permission = { path = "../oxidauth-permission" }
 oxidauth-usecases = { path = "../oxidauth-usecases" }
 
-axum = "0.7.5"
-axum-extra = { version = "0.9.3", features = ["typed-header"] }
+axum = "0.8.8"
+axum-extra = { version = "0.12.5", features = ["typed-header"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 reqwest = { version = "0.12.5", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1.0.203", features = ["derive"] }

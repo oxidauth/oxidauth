@@ -15,7 +15,8 @@ oxidauth-postgres = { path = "../oxidauth-postgres" }
 oxidauth-permission = { path = "../oxidauth-permission" }
 oxidauth-telemetry = { path = "../oxidauth-telemetry" }
 
-axum = { version = "0.7.5", features = [
+async-trait = { version = "0.1.89" }
+axum = { version = "0.8.8", features = [
     "http1",
     "json",
     "macros",
@@ -24,7 +25,7 @@ axum = { version = "0.7.5", features = [
     "tower-log",
     "query",
 ] }
-axum-extra = { version = "0.9.3", features = ["typed-header"] }
+axum-extra = { version = "0.12.5", features = ["typed-header"] }
 axum-macros = "0.4.1"
 chrono = { version = "0.4.38", features = ["serde"] }
 rust_decimal = { version = "1.36.0", features = ["serde"] }

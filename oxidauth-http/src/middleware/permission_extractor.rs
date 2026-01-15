@@ -1,5 +1,7 @@
+use std::future::Future;
+
+use async_trait::async_trait;
 use axum::{
-    async_trait,
     extract::{FromRef, FromRequestParts},
     http::{self, request::Parts},
     RequestPartsExt,
@@ -20,7 +22,6 @@ use crate::provider::Provider;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractJwt(pub Jwt);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for ExtractJwt
 where
     Provider: FromRef<S>,
@@ -28,38 +29,82 @@ where
 {
     type Rejection = http::StatusCode;
 
-    #[tracing::instrument(
-        name = "oxidauth extract jwt",
-        level = "trace",
-        skip_all,
-        ret,
-        err
-    )]
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
-        let TypedHeader(Authorization(bearer)) = parts
-            .extract::<TypedHeader<Authorization<Bearer>>>()
-            .await
-            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+    // #[tracing::instrument(
+    //     name = "oxidauth extract jwt",
+    //     level = "trace",
+    //     skip_all,
+    //     ret,
+    //     err
+    // )]
+    fn from_request_parts<'a>(
+        parts: &'a mut Parts,
+        state: &'a S,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send + Sync + 'a {
+        Box::pin(
+        async {
+            let TypedHeader(Authorization(bearer)) = parts
+                .extract::<TypedHeader<Authorization<Bearer>>>()
+                .await
+                .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-        let provider = Provider::from_ref(state);
+            let provider = Provider::from_ref(state);
 
-        let list_all_public_keys_service =
-            provider.fetch::<ListAllPublicKeysService>();
+            let list_all_public_keys_service =
+                provider.fetch::<ListAllPublicKeysService>();
 
-        let public_keys = list_all_public_keys_service
-            .call(&ListAllPublicKeys)
-            .await
-            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+            let public_keys = list_all_public_keys_service
+                .call(&ListAllPublicKeys)
+                .await
+                .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-        let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
-            .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+            let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
+                .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 
-        Ok(ExtractJwt(jwt))
+            Ok(ExtractJwt(jwt))
+        }
+    )
     }
 }
+// #[async_trait]
+// impl<S> FromRequestParts<S> for ExtractJwt
+// where
+//     Provider: FromRef<S>,
+//     S: Send + Sync,
+// {
+//     type Rejection = http::StatusCode;
+
+//     #[tracing::instrument(
+//         name = "oxidauth extract jwt",
+//         level = "trace",
+//         skip_all,
+//         ret,
+//         err
+//     )]
+//     async fn from_request_parts(
+//         parts: &mut Parts,
+//         state: &S,
+//     ) -> Result<Self, Self::Rejection> {
+//         let TypedHeader(Authorization(bearer)) = parts
+//             .extract::<TypedHeader<Authorization<Bearer>>>()
+//             .await
+//             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+
+//         let provider = Provider::from_ref(state);
+
+//         let list_all_public_keys_service =
+//             provider.fetch::<ListAllPublicKeysService>();
+
+//         let public_keys = list_all_public_keys_service
+//             .call(&ListAllPublicKeys)
+//             .await
+//             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+
+//         let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
+//             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
+
+//         Ok(ExtractJwt(jwt))
+//     }
+// }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractEntitlements(pub Vec<String>);
