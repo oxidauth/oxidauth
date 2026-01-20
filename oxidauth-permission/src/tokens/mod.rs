@@ -99,8 +99,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_and_validate_errors_on_wildcard_challenges() {
+    fn parse_and_validate_errors_on_double_wildcard_challenges() {
         let err = parse_and_validate("**:offers:read", &["oxidauth:offers:read"]);
+
+        assert!(err.is_err());
+
+        let err = err.expect_err("should be err");
+
+        assert_eq!(err, PermissionParseErr::WildcardChallenge)
+    }
+    
+    #[test]
+    fn parse_and_validate_errors_on_single_wildcard_challenges() {
+        let err = parse_and_validate("*:offers:read", &["oxidauth:offers:read"]);
 
         assert!(err.is_err());
 
