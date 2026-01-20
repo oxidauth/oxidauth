@@ -2,6 +2,10 @@ use super::*;
 
 pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
     use Token::*;
+    
+    if input.is_empty() || challenge.is_empty() {
+        return false
+    }
 
     let mut i = 0;
     let mut j = 0;
