@@ -23,7 +23,7 @@ pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
         match (
             (i == input.len() - 1 || j == challenge.len() - 1),
             compare_tokens(&input[i], &challenge[j]),
-            &challenge[j],
+            &input[i],
         ) {
             (true, true, _) => break,
             (_, true, Double) => {
@@ -73,8 +73,8 @@ fn compare_tokens(t1: &Token, t2: &Token) -> bool {
 
     match (t1, t2) {
         (t1, t2) if t1 == t2 => true,
-        (_, t2) if t2 == &Double => true,
-        (_, t2) if t2 == &Single => true,
+        (t1, _) if t1 == &Double => true,
+        (t1, _) if t1 == &Single => true,
         _ => false,
     }
 }
@@ -130,51 +130,42 @@ mod tests {
 
         assert_compare!(
             true,
+            [Single, Colon, Double, Colon, Double],
             [
                 Dynamic("oxidauth"),
                 Colon,
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
-            ],
-            [Single, Colon, Double, Colon, Double]
+            ]
         );
 
         assert_compare!(
             false,
+            [Dynamic("oxid"), Colon, Double, Colon, Double],
             [
                 Dynamic("oxidauth"),
                 Colon,
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
-            ],
-            [Dynamic("oxid"), Colon, Double, Colon, Double]
+            ]
         );
 
         assert_compare!(
             true,
+            [Double, Colon, Double, Colon, Double],
             [
                 Dynamic("oxidauth"),
                 Colon,
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
-            ],
-            [Double, Colon, Double, Colon, Double]
+            ]
         );
 
         assert_compare!(
             true,
-            [
-                Dynamic("oxidauth"),
-                Period,
-                Dynamic("admin"),
-                Colon,
-                Dynamic("users"),
-                Colon,
-                Dynamic("read")
-            ],
             [
                 Dynamic("oxidauth"),
                 Period,
@@ -183,6 +174,37 @@ mod tests {
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
+            ],
+            [
+                Dynamic("oxidauth"),
+                Period,
+                Dynamic("admin"),
+                Colon,
+                Dynamic("users"),
+                Colon,
+                Dynamic("read")
+            ]
+        );
+
+        assert_compare!(
+            true,
+            [
+                Dynamic("oxidauth"),
+                Period,
+                Single,
+                Colon,
+                Dynamic("users"),
+                Colon,
+                Dynamic("read")
+            ],
+            [
+                Dynamic("oxidauth"),
+                Period,
+                Dynamic("admin"),
+                Colon,
+                Dynamic("users"),
+                Colon,
+                Dynamic("read")
             ]
         );
 
@@ -194,22 +216,11 @@ mod tests {
                 Dynamic("admin"),
                 Colon,
                 Dynamic("users"),
-                Colon,
-                Dynamic("read")
-            ],
-            [
-                Dynamic("oxidauth"),
                 Period,
                 Single,
                 Colon,
-                Dynamic("users"),
-                Colon,
                 Dynamic("read")
-            ]
-        );
-
-        assert_compare!(
-            true,
+            ],
             [
                 Dynamic("oxidauth"),
                 Period,
@@ -220,15 +231,18 @@ mod tests {
                 Dynamic("1"),
                 Colon,
                 Dynamic("read")
-            ],
+            ]
+        );
+
+        assert_compare!(
+            true,
+            [Double, Colon, Double, Colon, Double],
             [
                 Dynamic("oxidauth"),
                 Period,
                 Dynamic("admin"),
                 Colon,
                 Dynamic("users"),
-                Period,
-                Single,
                 Colon,
                 Dynamic("read")
             ]
@@ -236,6 +250,7 @@ mod tests {
 
         assert_compare!(
             true,
+            [Double, Colon, Double, Colon, Double],
             [
                 Dynamic("oxidauth"),
                 Period,
@@ -244,48 +259,34 @@ mod tests {
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
-            ],
-            [Double, Colon, Double, Colon, Double]
+            ]
         );
 
         assert_compare!(
             true,
+            [Double, Colon, Double, Colon, Double],
             [
                 Dynamic("oxidauth"),
+                Period,
+                Dynamic("admin"),
                 Period,
                 Dynamic("admin"),
                 Colon,
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
-            ],
-            [Double, Colon, Double, Colon, Double]
+            ]
         );
-
+        
         assert_compare!(
-            true,
-            [
-                Dynamic("oxidauth"),
-                Period,
-                Dynamic("admin"),
-                Period,
-                Dynamic("admin"),
-                Colon,
-                Dynamic("users"),
-                Colon,
-                Dynamic("read")
-            ],
-            [Double, Colon, Double, Colon, Double]
+            false,
+            [Double, Colon, Double, Colon, Double],
+            []
         );
         
         assert_compare!(
             false,
             [],
-            [Double, Colon, Double, Colon, Double]
-        );
-        
-        assert_compare!(
-            false,
             [
                 Dynamic("oxidauth"),
                 Period,
@@ -296,8 +297,7 @@ mod tests {
                 Dynamic("users"),
                 Colon,
                 Dynamic("read")
-            ],
-            []
+            ]
         );
     }
 
