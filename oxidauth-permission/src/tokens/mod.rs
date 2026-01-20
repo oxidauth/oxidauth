@@ -18,11 +18,16 @@ pub enum Token<'a> {
 #[derive(Debug, PartialEq)]
 pub enum PermissionParseErr {
     InvalidPermission,
+    WildcardChallenge,
 }
 
 impl fmt::Display for PermissionParseErr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid permission")
+        match self {
+            PermissionParseErr::InvalidPermission => write!(f, "invalid permission"),
+            PermissionParseErr::WildcardChallenge => write!(f, "challenges don't support globs"),
+        }
+        
     }
 }
 
@@ -41,7 +46,7 @@ pub fn validate_single(
 ) -> Result<bool, PermissionParseErr> {
     let parsed = parse::parse(permissions)?;
 
-    let passed = compare::compare(&parsed, challenge);
+    let passed = compare::compare(challenge, &parsed);
 
     Ok(passed)
 }
@@ -66,6 +71,10 @@ pub fn parse_and_validate(
     permissions: &[impl AsRef<str>],
 ) -> Result<bool, PermissionParseErr> {
     let challenge = parse(challenge.as_ref())?;
+    
+    if challenge.contains(&Token::Double) || challenge.contains(&Token::Single) {
+        return Err(PermissionParseErr::WildcardChallenge)
+    }
 
     validate(&challenge, permissions)
 }
