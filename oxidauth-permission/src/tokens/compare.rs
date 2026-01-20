@@ -1,10 +1,10 @@
 use super::*;
 
-pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
+pub fn compare(challenge: &[Token<'_>], input: &[Token<'_>]) -> bool {
     use Token::*;
-    
+
     if input.is_empty() || challenge.is_empty() {
-        return false
+        return false;
     }
 
     let mut i = 0;
@@ -22,8 +22,8 @@ pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
 
         match (
             (i == input.len() - 1 || j == challenge.len() - 1),
-            compare_tokens(&input[i], &challenge[j]),
-            &challenge[j],
+            compare_tokens(&challenge[j], &input[i]),
+            &input[i],
         ) {
             (true, true, _) => break,
             (_, true, Double) => {
@@ -40,18 +40,13 @@ pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
                 }
             },
             (_, true, Single) => {
-                if let Some(advance) =
-                    advance_till(&[Period, Colon], &input[i..])
-                {
+                if let Some(advance) = advance_till(&[Period, Colon], &input[i..]) {
                     i += advance;
                 } else {
                     return false;
                 }
 
-                if let Some(advance) = advance_till(
-                    &[Period, Colon],
-                    &challenge[j..],
-                ) {
+                if let Some(advance) = advance_till(&[Period, Colon], &challenge[j..]) {
                     j += advance;
                 } else {
                     return false;
@@ -117,10 +112,7 @@ mod tests {
 
     macro_rules! assert_compare {
         ($b:expr, $set:expr, $challenge:expr) => {
-            assert_eq!(
-                $b,
-                compare(&$set, &$challenge)
-            );
+            assert_eq!($b, compare(&$set, &$challenge));
         };
     }
 
@@ -277,13 +269,9 @@ mod tests {
             ],
             [Double, Colon, Double, Colon, Double]
         );
-        
-        assert_compare!(
-            false,
-            [],
-            [Double, Colon, Double, Colon, Double]
-        );
-        
+
+        assert_compare!(false, [], [Double, Colon, Double, Colon, Double]);
+
         assert_compare!(
             false,
             [
@@ -299,6 +287,8 @@ mod tests {
             ],
             []
         );
+
+        assert_compare!(false, [], []);
     }
 
     #[test]
@@ -306,34 +296,22 @@ mod tests {
         use Token::*;
 
         assert_eq!(
-            advance_till(
-                &[Colon, Single],
-                &[Single, Colon, Single, Colon]
-            ),
+            advance_till(&[Colon, Single], &[Single, Colon, Single, Colon]),
             Some(0),
         );
 
         assert_eq!(
-            advance_till(
-                &[Colon],
-                &[Single, Colon, Single, Colon]
-            ),
+            advance_till(&[Colon], &[Single, Colon, Single, Colon]),
             Some(1),
         );
 
         assert_eq!(
-            advance_till(
-                &[Single],
-                &[Single, Colon, Single, Colon]
-            ),
+            advance_till(&[Single], &[Single, Colon, Single, Colon]),
             Some(0),
         );
 
         assert_eq!(
-            advance_till(
-                &[Double],
-                &[Single, Colon, Single, Colon]
-            ),
+            advance_till(&[Double], &[Single, Colon, Single, Colon]),
             None,
         );
     }
