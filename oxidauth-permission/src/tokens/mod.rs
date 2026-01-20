@@ -27,11 +27,11 @@ impl fmt::Display for PermissionParseErr {
             PermissionParseErr::InvalidPermission => write!(f, "invalid permission"),
             PermissionParseErr::WildcardChallenge => write!(f, "challenges don't support globs"),
         }
-        
     }
 }
 
-impl Error for PermissionParseErr {}
+impl Error for PermissionParseErr {
+}
 
 #[derive(Debug, PartialEq)]
 enum Prev<'a> {
@@ -71,9 +71,9 @@ pub fn parse_and_validate(
     permissions: &[impl AsRef<str>],
 ) -> Result<bool, PermissionParseErr> {
     let challenge = parse(challenge.as_ref())?;
-    
+
     if challenge.contains(&Token::Double) || challenge.contains(&Token::Single) {
-        return Err(PermissionParseErr::WildcardChallenge)
+        return Err(PermissionParseErr::WildcardChallenge);
     }
 
     validate(&challenge, permissions)
@@ -92,4 +92,20 @@ pub fn parse_and_validate_multiple(
     }
 
     Ok(false)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_and_validate_errors_on_wildcard_challenges() {
+        let err = parse_and_validate("**:offers:read", &["oxidauth:offers:read"]);
+
+        assert!(err.is_err());
+
+        let err = err.expect_err("should be err");
+
+        assert_eq!(err, PermissionParseErr::WildcardChallenge)
+    }
 }
