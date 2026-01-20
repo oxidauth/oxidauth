@@ -15,7 +15,6 @@ oxidauth-postgres = { path = "../oxidauth-postgres" }
 oxidauth-permission = { path = "../oxidauth-permission" }
 oxidauth-telemetry = { path = "../oxidauth-telemetry" }
 
-async-trait = { version = "0.1.89" }
 axum = { version = "0.8.8", features = [
     "http1",
     "json",
