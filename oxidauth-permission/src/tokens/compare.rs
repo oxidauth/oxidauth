@@ -277,6 +277,28 @@ mod tests {
             ],
             [Double, Colon, Double, Colon, Double]
         );
+        
+        assert_compare!(
+            false,
+            [],
+            [Double, Colon, Double, Colon, Double]
+        );
+        
+        assert_compare!(
+            false,
+            [
+                Dynamic("oxidauth"),
+                Period,
+                Dynamic("admin"),
+                Period,
+                Dynamic("admin"),
+                Colon,
+                Dynamic("users"),
+                Colon,
+                Dynamic("read")
+            ],
+            []
+        );
     }
 
     #[test]
