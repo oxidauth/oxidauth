@@ -287,6 +287,8 @@ mod tests {
             ],
             []
         );
+
+        assert_compare!(false, [], []);
     }
 
     #[test]
