@@ -18,11 +18,11 @@ pub fn router() -> Router<Provider> {
             get(list_role_permission_grants_by_role_id::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             post(create_role_permission_grant::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             delete(delete_role_permission_grant::handle),
         )
 }

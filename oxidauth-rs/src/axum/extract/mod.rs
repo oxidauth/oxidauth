@@ -1,5 +1,4 @@
 use axum::{
-    async_trait,
     extract::FromRequestParts,
     http::{self, request::Parts},
     RequestPartsExt,
@@ -20,7 +19,6 @@ use crate::OxidAuthClient;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractJwt(pub Jwt);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for ExtractJwt
 where
     OxidAuthClient: FromRef<S>,
@@ -73,7 +71,6 @@ where
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractEntitlements(pub Vec<String>);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for ExtractEntitlements
 where
     OxidAuthClient: FromRef<S>,
@@ -109,7 +106,6 @@ where
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractUserId(pub Uuid);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for ExtractUserId
 where
     OxidAuthClient: FromRef<S>,

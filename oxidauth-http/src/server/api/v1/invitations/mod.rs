@@ -16,15 +16,15 @@ pub fn router() -> Router<Provider> {
             post(create_invitation::handle),
         )
         .route(
-            "/:invitation_id",
+            "/{invitation_id}",
             get(find_invitation::handle),
         )
         .route(
-            "/:invitation_id",
+            "/{invitation_id}",
             post(accept_invitation::handle),
         )
         .route(
-            "/:invitation_id",
+            "/{invitation_id}",
             delete(delete_invitation::handle),
         )
 }

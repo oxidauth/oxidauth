@@ -1,5 +1,4 @@
 use axum::{
-    async_trait,
     extract::{FromRef, FromRequestParts},
     http::{self, request::Parts},
     RequestPartsExt,
@@ -20,7 +19,6 @@ use crate::provider::Provider;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractJwt(pub Jwt);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for ExtractJwt
 where
     Provider: FromRef<S>,
@@ -64,7 +62,6 @@ where
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractEntitlements(pub Vec<String>);
 
-#[async_trait]
 impl FromRequestParts<Provider> for ExtractEntitlements {
     type Rejection = http::StatusCode;
 
