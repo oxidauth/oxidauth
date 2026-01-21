@@ -2,5 +2,6 @@
     - upgrades packages to the following versions:
         - axum 0.8.8
         - axum-extra 0.12.5
+    - fixes paths
     - removes unnecessary `async_trait` tags
 

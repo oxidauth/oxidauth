@@ -17,11 +17,11 @@ pub fn router() -> Router<Provider> {
             get(list_user_permissions_by_user_id::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             post(create_user_permission::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             delete(delete_user_permission::handle),
         )
 }

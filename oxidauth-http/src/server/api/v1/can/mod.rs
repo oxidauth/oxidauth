@@ -9,7 +9,7 @@ use crate::provider::Provider;
 use crate::response::Response;
 
 pub fn router() -> Router<Provider> {
-    Router::new().route("/:permission", get(can))
+    Router::new().route("/{permission}", get(can))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
