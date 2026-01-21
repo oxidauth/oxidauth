@@ -31,31 +31,31 @@ pub fn router() -> Router<Provider> {
         )
         .route("/", post(create_user::handle))
         .route(
-            "/:user_id",
+            "/{user_id}",
             get(find_user_by_id::handle),
         )
         .route(
-            "/:user_id",
+            "/{user_id}",
             put(update_user::handle),
         )
         .route(
-            "/:user_id",
+            "/{user_id}",
             delete(delete_user_by_id::handle),
         )
         .route(
-            "/by_username/:username",
+            "/by_username/{username}",
             get(find_user_by_username::handle),
         )
         .nest(
-            "/:user_id/authorities",
+            "/{user_id}/authorities",
             authorities::router(),
         )
         .nest(
-            "/:user_id/permissions",
+            "/{user_id}/permissions",
             permissions::router(),
         )
         .nest(
-            "/:user_id/roles",
+            "/{user_id}/roles",
             roles::router(),
         )
 }

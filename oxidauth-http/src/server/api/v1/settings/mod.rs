@@ -16,7 +16,7 @@ pub fn router() -> Router<Provider> {
         )
         .route("/", put(save_setting::handle))
         .route(
-            "/:key",
+            "/{key}",
             get(fetch_setting::handle),
         )
 }

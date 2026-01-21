@@ -21,11 +21,11 @@ pub fn router() -> Router<Provider> {
             post(create_public_key::handle),
         )
         .route(
-            "/:public_key_id",
+            "/{public_key_id}",
             get(find_public_key_by_id::handle),
         )
         .route(
-            "/:public_key_id",
+            "/{public_key_id}",
             delete(delete_public_key::handle),
         )
 }

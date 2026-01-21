@@ -11,5 +11,5 @@ use crate::provider::Provider;
 pub fn router() -> Router<Provider> {
     Router::new()
         .route("/redirect", post(redirect::handle))
-        .route("/callback/:client_key", get(callback::handle))
+        .route("/callback/{client_key}", get(callback::handle))
 }

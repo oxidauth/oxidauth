@@ -17,11 +17,11 @@ pub fn router() -> Router<Provider> {
             get(list_user_roles_by_user_id::handle),
         )
         .route(
-            "/:role_id",
+            "/{role_id}",
             post(create_user_role::handle),
         )
         .route(
-            "/:role_id",
+            "/{role_id}",
             delete(delete_user_role::handle),
         )
 }

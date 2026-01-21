@@ -25,27 +25,27 @@ pub fn router() -> Router<Provider> {
         )
         .route("/", post(create_role::handle))
         .route(
-            "/:role_id",
+            "/{role_id}",
             get(find_role_by_id::handle),
         )
         .route(
-            "/:role_id",
+            "/{role_id}",
             put(update_role::handle),
         )
         .route(
-            "/:role_id",
+            "/{role_id}",
             delete(delete_role::handle),
         )
         .route(
-            "/by_name/:role",
+            "/by_name/{role}",
             get(find_role_by_name::handle),
         )
         .nest(
-            "/:parent_id/roles",
+            "/{parent_id}/roles",
             roles::router(),
         )
         .nest(
-            "/:role_id/permissions",
+            "/{role_id}/permissions",
             permissions::router(),
         )
 }

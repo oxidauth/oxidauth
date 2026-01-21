@@ -23,15 +23,15 @@ pub fn router() -> Router<Provider> {
             post(create_user_authority::handle),
         )
         .route(
-            "/:authority_id",
+            "/{authority_id}",
             get(find_user_authority_by_user_id_and_authority_id::handle),
         )
         .route(
-            "/:authority_id",
+            "/{authority_id}",
             put(update_user_authority::handle),
         )
         .route(
-            "/:authority_id",
+            "/{authority_id}",
             delete(delete_user_authority::handle),
         )
 }

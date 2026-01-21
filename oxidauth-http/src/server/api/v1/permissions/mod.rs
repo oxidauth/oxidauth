@@ -19,15 +19,15 @@ pub fn router() -> Router<Provider> {
             get(list_all_permissions::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             get(find_permission_by_parts::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             post(create_permission::handle),
         )
         .route(
-            "/:permission",
+            "/{permission}",
             delete(delete_permission::handle),
         )
 }

@@ -18,11 +18,11 @@ pub fn router() -> Router<Provider> {
             get(list_role_role_grants_by_parent_id::handle),
         )
         .route(
-            "/:child_id",
+            "/{child_id}",
             post(create_role_role_grant::handle),
         )
         .route(
-            "/:child_id",
+            "/{child_id}",
             delete(delete_role_role_grant::handle),
         )
 }
