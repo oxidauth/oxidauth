@@ -121,6 +121,12 @@ mod tests {
         use Token::*;
 
         assert_compare!(
+            false,
+            [],
+            [Single, Colon, Double, Colon, Double]
+        );
+
+        assert_compare!(
             true,
             [
                 Dynamic("oxidauth"),

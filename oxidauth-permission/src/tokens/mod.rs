@@ -46,7 +46,7 @@ pub fn validate_single(
 ) -> Result<bool, PermissionParseErr> {
     let parsed = parse::parse(permissions)?;
 
-    let passed = compare::compare(challenge, &parsed);
+    let passed = compare::compare( &parsed, challenge);
 
     Ok(passed)
 }
