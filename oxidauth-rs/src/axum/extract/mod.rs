@@ -37,35 +37,47 @@ where
         parts: &mut Parts,
         state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let TypedHeader(Authorization(bearer)) = parts
-            .extract::<TypedHeader<Authorization<Bearer>>>()
-            .await
-            .map_err(|err| {
-                error!(msg = "error getting authorization header", err = ?err);
-
-                http::StatusCode::UNAUTHORIZED
-            })?;
-
         let client = OxidAuthClient::from_ref(state);
 
-        let ListAllPublicKeysRes { public_keys } = client
-            .list_all_public_keys()
-            .await
-            .map_err(|err| {
-                error!(msg = "error getting public keys", err = ?err);
+        #[cfg(feature = "mock")]
+        if let Some(jwt) = client.mock_jwt {
+            return Ok(ExtractJwt(jwt));
+        }
 
-                http::StatusCode::UNAUTHORIZED
-            })?;
-
-        let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
-            .map_err(|err| {
-                error!(msg = "error decoding public keys", err = ?err);
-
-                http::StatusCode::UNAUTHORIZED
-            })?;
-
-        Ok(ExtractJwt(jwt))
+        decode_jwt(parts, client).await
     }
+}
+
+async fn decode_jwt(
+    parts: &mut Parts,
+    client: OxidAuthClient,
+) -> Result<ExtractJwt, http::StatusCode> {
+    let TypedHeader(Authorization(bearer)) = parts
+        .extract::<TypedHeader<Authorization<Bearer>>>()
+        .await
+        .map_err(|err| {
+            error!(msg = "error getting authorization header", err = ?err);
+
+            http::StatusCode::UNAUTHORIZED
+        })?;
+
+    let ListAllPublicKeysRes { public_keys } = client
+        .list_all_public_keys()
+        .await
+        .map_err(|err| {
+            error!(msg = "error getting public keys", err = ?err);
+
+            http::StatusCode::UNAUTHORIZED
+        })?;
+
+    let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
+        .map_err(|err| {
+            error!(msg = "error decoding public keys", err = ?err);
+
+            http::StatusCode::UNAUTHORIZED
+        })?;
+
+    Ok(ExtractJwt(jwt))
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
