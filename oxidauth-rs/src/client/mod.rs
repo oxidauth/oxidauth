@@ -38,6 +38,8 @@ pub mod users;
 pub struct Client {
     config: Config,
     state: Arc<RwLock<State>>,
+    #[cfg(feature = "mock")]
+    pub mock_jwt: Option<Jwt>,
 }
 
 #[derive(Debug, Clone)]
@@ -72,6 +74,20 @@ impl Client {
                 )
             })?;
 
+
+        #[cfg(feature = "mock")]
+        return Ok(Self {
+            config: Config {
+                base_url,
+                client_key,
+                username: username.to_owned(),
+                password: Password::new(password.to_owned()),
+            },
+            state: Arc::new(RwLock::new(State::default())),
+            mock_jwt: None,
+        });
+
+        #[cfg(not(feature = "mock"))]
         Ok(Self {
             config: Config {
                 base_url,
@@ -80,6 +96,37 @@ impl Client {
                 password: Password::new(password.to_owned()),
             },
             state: Arc::new(RwLock::new(State::default())),
+        })
+    }
+
+    #[cfg(feature = "mock")]
+    pub fn test_client(
+        mock_jwt: Jwt,
+    ) -> Result<Self, ClientError> {
+        let base_url = Url::parse("http://base_url.com/")
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::UrlParseError,
+                    Some(Box::new(err)),
+                )
+            })?
+            .join("/api/v1")
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::UrlParseError,
+                    Some(Box::new(err)),
+                )
+            })?;
+
+        Ok(Self {
+            config: Config {
+                base_url,
+                client_key: Uuid::new_v4(),
+                username: "username".to_owned(),
+                password: Password::new("password".to_owned()),
+            },
+            state: Arc::new(RwLock::new(State::default())),
+            mock_jwt: Some(mock_jwt),
         })
     }
 
