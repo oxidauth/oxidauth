@@ -3,6 +3,10 @@ use super::*;
 pub fn compare(input: &[Token<'_>], challenge: &[Token<'_>]) -> bool {
     use Token::*;
 
+    if input.is_empty() {
+        return false;
+    }
+
     let mut i = 0;
     let mut j = 0;
 
@@ -123,6 +127,12 @@ mod tests {
     #[test]
     fn test_compare() {
         use Token::*;
+
+        assert_compare!(
+            false,
+            [],
+            [Single, Colon, Double, Colon, Double]
+        );
 
         assert_compare!(
             true,
