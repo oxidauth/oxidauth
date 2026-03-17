@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::roles::create_user_role::CreateUserRoleRes;
 use oxidauth_kernel::error::BoxedError;
@@ -15,14 +16,25 @@ pub struct CreateUserRole {
 const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "create_user_role";
 
-impl Client {
-    #[tracing::instrument(skip(self))]
-    pub async fn create_user_role<T>(
+#[async_trait]
+pub trait CreateUserRoleTrait {
+    async fn create_user_role<T>(
         &self,
         params: T,
     ) -> Result<CreateUserRoleRes, BoxedError>
     where
-        T: Into<CreateUserRole> + fmt::Debug,
+        T: Into<CreateUserRole> + fmt::Debug + Send;
+}
+
+#[async_trait]
+impl CreateUserRoleTrait for Client {
+    #[tracing::instrument(skip(self))]
+    async fn create_user_role<T>(
+        &self,
+        params: T,
+    ) -> Result<CreateUserRoleRes, BoxedError>
+    where
+        T: Into<CreateUserRole> + fmt::Debug + Send,
     {
         let CreateUserRole { user_id, role_id } = params.into();
 
@@ -39,5 +51,26 @@ impl Client {
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_res)
+    }
+}
+
+#[cfg(feature = "mock")]
+use crate::mock::ClientMock;
+
+#[cfg(feature = "mock")]
+#[async_trait]
+impl CreateUserRoleTrait for ClientMock {
+    async fn create_user_role<T>(
+        &self,
+        params: T,
+    ) -> Result<CreateUserRoleRes, BoxedError>
+    where
+        T: Into<CreateUserRole> + fmt::Debug + Send,
+    {
+        let Some(func) = self.create_user_role_fn.clone() else {
+            panic!("create_user_role not defined for mock client");
+        };
+
+        return func(params.into());
     }
 }
