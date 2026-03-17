@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::list_all_authorities::{
     ListAllAuthoritiesReq, ListAllAuthoritiesRes,
@@ -9,14 +10,25 @@ use super::*;
 const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "find_authority_by_strategy";
 
-impl Client {
-    #[tracing::instrument(skip(self))]
-    pub async fn list_all_authorities<T>(
+#[async_trait]
+pub trait ListAllAuthoritiesTrait {
+    async fn list_all_authorities<T>(
         &self,
         params: T,
     ) -> Result<ListAllAuthoritiesRes, BoxedError>
     where
-        T: Into<ListAllAuthoritiesReq> + fmt::Debug,
+        T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send;
+}
+
+#[async_trait]
+impl ListAllAuthoritiesTrait for Client {
+    #[tracing::instrument(skip(self))]
+    async fn list_all_authorities<T>(
+        &self,
+        params: T,
+    ) -> Result<ListAllAuthoritiesRes, BoxedError>
+    where
+        T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send,
     {
         let params = params.into();
 
@@ -27,5 +39,26 @@ impl Client {
         let authority_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(authority_res)
+    }
+}
+
+#[cfg(feature = "mock")]
+use crate::mock::ClientMock;
+
+#[cfg(feature = "mock")]
+#[async_trait]
+impl ListAllAuthoritiesTrait for ClientMock {
+    async fn list_all_authorities<T>(
+        &self,
+        params: T,
+    ) -> Result<ListAllAuthoritiesRes, BoxedError>
+    where
+        T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send,
+    {
+        let Some(func) = self.list_all_authorities_fn.clone() else {
+            panic!("list_all_authorities not defined for mock client");
+        };
+
+        return func(params.into());
     }
 }

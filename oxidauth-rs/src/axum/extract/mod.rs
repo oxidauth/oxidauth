@@ -15,6 +15,7 @@ use oxidauth_kernel::jwt::Jwt;
 use tracing::error;
 use uuid::Uuid;
 
+use crate::client::public_keys::list_all_public_keys::ListAllPublicKeysTrait;
 use crate::OxidAuthClient;
 
 #[derive(Debug, PartialEq, Eq, Clone)]

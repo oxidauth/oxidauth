@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::invitations::create_invitation::{
     CreateInvitationParams, CreateInvitationReq, CreateInvitationRes,
@@ -12,14 +13,25 @@ use super::*;
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "create_invitaion";
 
-impl Client {
-    #[tracing::instrument(skip(self))]
-    pub async fn create_invitation<T>(
+#[async_trait]
+pub trait CreateInvitationTrait {
+    async fn create_invitation<T>(
         &self,
         user: T,
     ) -> Result<CreateInvitationRes, BoxedError>
     where
-        T: Into<CreateInvitationReq> + fmt::Debug,
+        T: Into<CreateInvitationReq> + fmt::Debug + Send;
+}
+
+#[async_trait]
+impl CreateInvitationTrait for Client {
+    #[tracing::instrument(skip(self))]
+    async fn create_invitation<T>(
+        &self,
+        user: T,
+    ) -> Result<CreateInvitationRes, BoxedError>
+    where
+        T: Into<CreateInvitationReq> + fmt::Debug + Send,
     {
         let user = user.into();
 
@@ -30,5 +42,26 @@ impl Client {
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_res)
+    }
+}
+
+#[cfg(feature = "mock")]
+use crate::mock::ClientMock;
+
+#[cfg(feature = "mock")]
+#[async_trait]
+impl CreateInvitationTrait for ClientMock {
+    async fn create_invitation<T>(
+        &self,
+        user: T,
+    ) -> Result<CreateInvitationRes, BoxedError>
+    where
+        T: Into<CreateInvitationReq> + fmt::Debug + Send,
+    {
+        let Some(func) = self.create_invitation_fn.clone() else {
+            panic!("create_invitation not defined for mock client");
+        };
+
+        return func(user.into());
     }
 }

@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use uuid::Uuid;
 
 use oxidauth_http::response::Response;
@@ -9,14 +10,25 @@ use super::*;
 const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "list_user_roles_by_user_id";
 
-impl Client {
-    #[tracing::instrument(skip(self))]
-    pub async fn list_user_roles_by_user_id<T>(
+#[async_trait]
+pub trait ListUserRolesByUserIdTrait {
+    async fn list_user_roles_by_user_id<T>(
         &self,
         user_id: T,
     ) -> Result<ListUserRoleGrantsByUserIdRes, BoxedError>
     where
-        T: Into<Uuid> + fmt::Debug,
+        T: Into<Uuid> + fmt::Debug + Send;
+}
+
+#[async_trait]
+impl ListUserRolesByUserIdTrait for Client {
+    #[tracing::instrument(skip(self))]
+    async fn list_user_roles_by_user_id<T>(
+        &self,
+        user_id: T,
+    ) -> Result<ListUserRoleGrantsByUserIdRes, BoxedError>
+    where
+        T: Into<Uuid> + fmt::Debug + Send,
     {
         let user_id = user_id.into();
 
@@ -30,5 +42,26 @@ impl Client {
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_res)
+    }
+}
+
+#[cfg(feature = "mock")]
+use crate::mock::ClientMock;
+
+#[cfg(feature = "mock")]
+#[async_trait]
+impl ListUserRolesByUserIdTrait for ClientMock {
+    async fn list_user_roles_by_user_id<T>(
+        &self,
+        user_id: T,
+    ) -> Result<ListUserRoleGrantsByUserIdRes, BoxedError>
+    where
+        T: Into<Uuid> + fmt::Debug + Send,
+    {
+        let Some(func) = self.list_user_roles_by_user_id_fn.clone() else {
+            panic!("list_user_roles_by_user_id not defined for mock client");
+        };
+
+        return func(user_id.into());
     }
 }
