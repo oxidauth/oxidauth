@@ -74,7 +74,6 @@ impl Client {
                 )
             })?;
 
-
         #[cfg(feature = "mock")]
         return Ok(Self {
             config: Config {
@@ -209,7 +208,7 @@ impl Client {
                 return Err(ClientError::new(
                     ClientErrorKind::Other("failed to deserialize public keys"),
                     None,
-                ))
+                ));
             },
         };
 
@@ -341,7 +340,7 @@ impl Client {
                 return Err(ClientError::new(
                     ClientErrorKind::Other("failed authenticate response"),
                     None,
-                ))
+                ));
             },
         }
 
@@ -464,7 +463,7 @@ impl Client {
                 return Err(ClientError::new(
                     ClientErrorKind::Other(""),
                     None,
-                ))
+                ));
             },
         }
 
@@ -745,4 +744,24 @@ where
         })?;
 
     Ok(payload)
+}
+
+#[cfg(feature = "mock")]
+pub mod mock {
+    use std::sync::Arc;
+    use oxidauth_http::server::api::v1::users::list_all_users::{
+        ListAllUsersReq, ListAllUsersRes,
+    };
+    use oxidauth_kernel::error::BoxedError;
+
+    #[derive(Default)]
+    pub struct ClientMock {
+        pub list_all_users: Option<
+            Arc<
+                dyn Fn(ListAllUsersReq) -> Result<ListAllUsersRes, BoxedError>
+                    + Send
+                    + Sync,
+            >,
+        >,
+    }
 }
