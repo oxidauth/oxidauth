@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::permissions::create_permission::{
     CreatePermissionReq, CreatePermissionRes,
@@ -11,14 +12,25 @@ use super::*;
 const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "create_permission";
 
-impl Client {
-    #[tracing::instrument(skip(self))]
-    pub async fn create_permission<T>(
+#[async_trait]
+pub trait CreatePermissionTrait {
+    async fn create_permission<T>(
         &self,
         permission: T,
     ) -> Result<CreatePermissionRes, BoxedError>
     where
-        T: Into<CreatePermissionReq> + fmt::Debug,
+        T: Into<CreatePermissionReq> + fmt::Debug + Send;
+}
+
+#[async_trait]
+impl CreatePermissionTrait for Client {
+    #[tracing::instrument(skip(self))]
+    async fn create_permission<T>(
+        &self,
+        permission: T,
+    ) -> Result<CreatePermissionRes, BoxedError>
+    where
+        T: Into<CreatePermissionReq> + fmt::Debug + Send,
     {
         let permission = permission.into();
 
@@ -35,6 +47,27 @@ impl Client {
         let permission_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(permission_res)
+    }
+}
+
+#[cfg(feature = "mock")]
+use crate::mock::ClientMock;
+
+#[cfg(feature = "mock")]
+#[async_trait]
+impl CreatePermissionTrait for ClientMock {
+    async fn create_permission<T>(
+        &self,
+        permission: T,
+    ) -> Result<CreatePermissionRes, BoxedError>
+    where
+        T: Into<CreatePermissionReq> + fmt::Debug + Send,
+    {
+        let Some(func) = self.create_permission_fn.clone() else {
+            panic!("create_permission not defined for mock client");
+        };
+
+        return func(permission.into());
     }
 }
 

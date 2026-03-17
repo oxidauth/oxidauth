@@ -54,7 +54,7 @@ impl ListAllUsersTrait for ClientMock {
     ) -> Result<ListAllUsersRes, BoxedError>
     where
         T: Into<ListAllUsersReq> + fmt::Debug + Send {
-            let Some(func) = self.list_all_users.clone() else {
+            let Some(func) = self.list_all_users_fn.clone() else {
                 panic!("list_all_users not defined for mock client");
             };
 
