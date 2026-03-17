@@ -166,6 +166,14 @@ impl Client {
 
     #[tracing::instrument(level = "debug", skip(self))]
     async fn get_public_keys(&self) -> Result<Vec<PublicKey>, ClientError> {
+        #[cfg(feature = "mock")]
+        return Ok(vec![PublicKey {
+            id: Uuid::new_v4(),
+            public_key: "public_key".to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }]);
+
         let public_keys: Response<ListAllPublicKeysRes> =
             reqwest::Client::new()
                 .get(format!(
@@ -217,6 +225,9 @@ impl Client {
 
     #[tracing::instrument(skip(self))]
     async fn auth(&self) -> Result<bool, ClientError> {
+        #[cfg(feature = "mock")]
+        return Ok(true);
+
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;
@@ -336,6 +347,9 @@ impl Client {
 
     #[tracing::instrument(skip(self))]
     pub async fn refresh(&self) -> Result<bool, ClientError> {
+        #[cfg(feature = "mock")]
+        return Ok(true);
+
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;

@@ -20,6 +20,7 @@ oxidauth-http = { path = "../oxidauth-http" }
 oxidauth-permission = { path = "../oxidauth-permission" }
 oxidauth-usecases = { path = "../oxidauth-usecases" }
 
+async-trait = "0.1.89"
 axum = "0.8.8"
 axum-extra = { version = "0.12.5", features = ["typed-header"] }
 chrono = { version = "0.4.38", features = ["serde"] }
@@ -30,6 +31,7 @@ tokio = { version = "1.40.0", features = ["full"] }
 tracing = "0.1.40"
 url = { version = "2.5.2", features = ["serde"] }
 uuid = { version = "1.8.0", features = ["serde", "v4"] }
+mockall = "0.14.0"
 
 [features]
 mock = []
