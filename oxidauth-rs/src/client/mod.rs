@@ -34,6 +34,9 @@ pub mod roles;
 pub mod settings;
 pub mod users;
 
+#[cfg(feature = "mock")]
+pub mod mock;
+
 #[derive(Debug, Clone)]
 pub struct Client {
     config: Config,
