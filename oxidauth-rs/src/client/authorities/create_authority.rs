@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::create_authority::{
-    CreateAuthority, CreateAuthorityReq, CreateAuthorityRes,
+    CreateAuthority,
+    CreateAuthorityReq,
+    CreateAuthorityRes,
 };
 pub use oxidauth_kernel::{authorities::TotpSettings, error::BoxedError};
 
@@ -55,7 +57,10 @@ impl CreateAuthorityTrait for ClientMock {
     where
         T: Into<CreateAuthorityReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.create_authority_fn.clone() else {
+        let Some(func) = self
+            .create_authority_fn
+            .clone()
+        else {
             panic!("create_authority not defined for mock client");
         };
 

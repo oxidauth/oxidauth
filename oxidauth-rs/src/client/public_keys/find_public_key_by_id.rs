@@ -60,7 +60,10 @@ impl FindPublicKeyByIdTrait for ClientMock {
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_public_key_by_id_fn.clone() else {
+        let Some(func) = self
+            .find_public_key_by_id_fn
+            .clone()
+        else {
             panic!("find_public_key_by_id not defined for mock client");
         };
 

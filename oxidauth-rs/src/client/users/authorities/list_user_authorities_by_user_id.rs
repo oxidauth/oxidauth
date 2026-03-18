@@ -61,8 +61,13 @@ impl ListUserAuthoritiesByUserIdTrait for ClientMock {
     where
         T: Into<ListUserAuthoritiesByUserIdReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.list_user_authorities_by_user_id_fn.clone() else {
-            panic!("list_user_authorities_by_user_id not defined for mock client");
+        let Some(func) = self
+            .list_user_authorities_by_user_id_fn
+            .clone()
+        else {
+            panic!(
+                "list_user_authorities_by_user_id not defined for mock client"
+            );
         };
 
         return func(params.into());

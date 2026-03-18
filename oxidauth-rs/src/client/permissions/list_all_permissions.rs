@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::permissions::list_all_permissions::{
-    ListAllPermissionsReq, ListAllPermissionsRes,
+    ListAllPermissionsReq,
+    ListAllPermissionsRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -55,7 +56,10 @@ impl ListAllPermissionsTrait for ClientMock {
     where
         T: Into<ListAllPermissionsReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.list_all_permissions_fn.clone() else {
+        let Some(func) = self
+            .list_all_permissions_fn
+            .clone()
+        else {
             panic!("list_all_permissions not defined for mock client");
         };
 

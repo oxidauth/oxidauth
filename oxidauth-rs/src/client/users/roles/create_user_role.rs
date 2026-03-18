@@ -67,7 +67,10 @@ impl CreateUserRoleTrait for ClientMock {
     where
         T: Into<CreateUserRole> + fmt::Debug + Send,
     {
-        let Some(func) = self.create_user_role_fn.clone() else {
+        let Some(func) = self
+            .create_user_role_fn
+            .clone()
+        else {
             panic!("create_user_role not defined for mock client");
         };
 

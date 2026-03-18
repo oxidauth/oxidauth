@@ -3,7 +3,9 @@ use async_trait::async_trait;
 
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::update_authority::{
-    UpdateAuthority, UpdateAuthorityPathReq, UpdateAuthorityReq,
+    UpdateAuthority,
+    UpdateAuthorityPathReq,
+    UpdateAuthorityReq,
     UpdateAuthorityRes,
 };
 use oxidauth_kernel::error::BoxedError;
@@ -71,10 +73,16 @@ impl UpdateAuthorityTrait for ClientMock {
         U: Into<Uuid> + fmt::Debug + Send,
         T: Into<UpdateAuthorityReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.update_authority_fn.clone() else {
+        let Some(func) = self
+            .update_authority_fn
+            .clone()
+        else {
             panic!("update_authority not defined for mock client");
         };
 
-        return func(authority_id.into(), params.into());
+        return func(
+            authority_id.into(),
+            params.into(),
+        );
     }
 }

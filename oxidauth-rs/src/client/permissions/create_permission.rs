@@ -3,7 +3,8 @@ use std::error::Error;
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::permissions::create_permission::{
-    CreatePermissionReq, CreatePermissionRes,
+    CreatePermissionReq,
+    CreatePermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -63,7 +64,10 @@ impl CreatePermissionTrait for ClientMock {
     where
         T: Into<CreatePermissionReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.create_permission_fn.clone() else {
+        let Some(func) = self
+            .create_permission_fn
+            .clone()
+        else {
             panic!("create_permission not defined for mock client");
         };
 
@@ -86,4 +90,5 @@ impl fmt::Display for CreatePermissionError {
     }
 }
 
-impl Error for CreatePermissionError {}
+impl Error for CreatePermissionError {
+}

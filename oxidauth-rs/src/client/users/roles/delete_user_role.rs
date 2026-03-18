@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-use uuid::Uuid;
-
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::roles::delete_user_role::DeleteUserRoleRes;
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
@@ -68,7 +67,10 @@ impl DeleteUserRoleTrait for ClientMock {
         T: Into<Uuid> + fmt::Debug + Send,
         R: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.delete_user_role_fn.clone() else {
+        let Some(func) = self
+            .delete_user_role_fn
+            .clone()
+        else {
             panic!("delete_user_role not defined for mock client");
         };
 

@@ -60,7 +60,10 @@ impl DeletePublicKeyTrait for ClientMock {
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.delete_public_key_fn.clone() else {
+        let Some(func) = self
+            .delete_public_key_fn
+            .clone()
+        else {
             panic!("delete_public_key not defined for mock client");
         };
 

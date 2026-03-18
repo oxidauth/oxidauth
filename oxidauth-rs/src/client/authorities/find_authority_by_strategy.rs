@@ -59,7 +59,10 @@ impl FindAuthorityByStrategyTrait for ClientMock {
     where
         T: Into<String> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_authority_by_strategy_fn.clone() else {
+        let Some(func) = self
+            .find_authority_by_strategy_fn
+            .clone()
+        else {
             panic!("find_authority_by_strategy not defined for mock client");
         };
 

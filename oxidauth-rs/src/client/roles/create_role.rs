@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::roles::create_role::{
-    CreateRole, CreateRoleReq, CreateRoleRes,
+    CreateRole,
+    CreateRoleReq,
+    CreateRoleRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -23,10 +25,7 @@ pub trait CreateRoleTrait {
 #[async_trait]
 impl CreateRoleTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn create_role<T>(
-        &self,
-        role: T,
-    ) -> Result<CreateRoleRes, BoxedError>
+    async fn create_role<T>(&self, role: T) -> Result<CreateRoleRes, BoxedError>
     where
         T: Into<CreateRoleReq> + fmt::Debug + Send,
     {
@@ -48,10 +47,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl CreateRoleTrait for ClientMock {
-    async fn create_role<T>(
-        &self,
-        role: T,
-    ) -> Result<CreateRoleRes, BoxedError>
+    async fn create_role<T>(&self, role: T) -> Result<CreateRoleRes, BoxedError>
     where
         T: Into<CreateRoleReq> + fmt::Debug + Send,
     {

@@ -59,7 +59,10 @@ impl FindUserByUsernameTrait for ClientMock {
     where
         T: Into<String> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_user_by_username_fn.clone() else {
+        let Some(func) = self
+            .find_user_by_username_fn
+            .clone()
+        else {
             panic!("find_user_by_username not defined for mock client");
         };
 

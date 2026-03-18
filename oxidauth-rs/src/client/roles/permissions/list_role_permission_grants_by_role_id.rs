@@ -60,8 +60,13 @@ impl ListRolePermissionGrantsByRoleIdTrait for ClientMock {
     where
         T: Into<ListRolePermissionGrantsByRoleIdReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.list_role_permission_grants_by_role_id_fn.clone() else {
-            panic!("list_role_permission_grants_by_role_id not defined for mock client");
+        let Some(func) = self
+            .list_role_permission_grants_by_role_id_fn
+            .clone()
+        else {
+            panic!(
+                "list_role_permission_grants_by_role_id not defined for mock client"
+            );
         };
 
         return func(params.into());

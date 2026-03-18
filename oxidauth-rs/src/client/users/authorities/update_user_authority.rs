@@ -59,7 +59,10 @@ impl UpdateUserAuthorityTrait for ClientMock {
     where
         T: Into<UpdateUserAuthority> + fmt::Debug + Send,
     {
-        let Some(func) = self.update_user_authority_fn.clone() else {
+        let Some(func) = self
+            .update_user_authority_fn
+            .clone()
+        else {
             panic!("update_user_authority not defined for mock client");
         };
 

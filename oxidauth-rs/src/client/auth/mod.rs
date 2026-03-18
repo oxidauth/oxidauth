@@ -3,4 +3,24 @@ pub mod oauth2;
 pub mod register;
 pub mod username_password;
 
-use super::{Client, Resource, fmt, handle_response};
+#[cfg(feature = "mock")]
+use super::mock::ClientMock;
+use super::{
+    Client,
+    Resource,
+    fmt,
+    handle_response,
+};
+use crate::auth::{
+    authenticate::AuthenticateTrait,
+    register::RegisterTrait,
+};
+
+pub trait AuthTrait: RegisterTrait + AuthenticateTrait {}
+
+impl AuthTrait for Client {
+}
+
+#[cfg(feature = "mock")]
+impl AuthTrait for ClientMock {
+}

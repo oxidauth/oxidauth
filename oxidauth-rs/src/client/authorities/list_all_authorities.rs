@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::authorities::list_all_authorities::{
-    ListAllAuthoritiesReq, ListAllAuthoritiesRes,
+    ListAllAuthoritiesReq,
+    ListAllAuthoritiesRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -55,7 +56,10 @@ impl ListAllAuthoritiesTrait for ClientMock {
     where
         T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.list_all_authorities_fn.clone() else {
+        let Some(func) = self
+            .list_all_authorities_fn
+            .clone()
+        else {
             panic!("list_all_authorities not defined for mock client");
         };
 

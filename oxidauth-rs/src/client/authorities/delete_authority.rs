@@ -61,7 +61,10 @@ impl DeleteAuthorityTrait for ClientMock {
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.delete_authority_fn.clone() else {
+        let Some(func) = self
+            .delete_authority_fn
+            .clone()
+        else {
             panic!("delete_authority not defined for mock client");
         };
 

@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-use uuid::Uuid;
-
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::roles::find_role_by_id::FindRoleByIdRes;
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
@@ -58,7 +57,10 @@ impl FindRoleByIdTrait for ClientMock {
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_role_by_id_fn.clone() else {
+        let Some(func) = self
+            .find_role_by_id_fn
+            .clone()
+        else {
             panic!("find_role_by_id not defined for mock client");
         };
 

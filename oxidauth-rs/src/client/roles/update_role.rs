@@ -1,11 +1,11 @@
 use async_trait::async_trait;
-use uuid::Uuid;
-
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::roles::update_role::{
-    UpdateRoleReq, UpdateRoleRes,
+    UpdateRoleReq,
+    UpdateRoleRes,
 };
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
