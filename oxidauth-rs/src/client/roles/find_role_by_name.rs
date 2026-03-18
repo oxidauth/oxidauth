@@ -56,7 +56,10 @@ impl FindRoleByNameTrait for ClientMock {
     where
         T: Into<String> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_role_by_name_fn.clone() else {
+        let Some(func) = self
+            .find_role_by_name_fn
+            .clone()
+        else {
             panic!("find_role_by_name not defined for mock client");
         };
 

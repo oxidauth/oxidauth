@@ -60,8 +60,13 @@ impl ListUserPermissionGrantsByUserIdTrait for ClientMock {
     where
         T: Into<ListUserPermissionGrantsByUserIdReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.list_user_permission_grants_by_user_id_fn.clone() else {
-            panic!("list_user_permission_grants_by_user_id not defined for mock client");
+        let Some(func) = self
+            .list_user_permission_grants_by_user_id_fn
+            .clone()
+        else {
+            panic!(
+                "list_user_permission_grants_by_user_id not defined for mock client"
+            );
         };
 
         return func(params.into());

@@ -69,10 +69,16 @@ impl CreateUserAuthorityTrait for ClientMock {
         T: Into<Uuid> + fmt::Debug + Send,
         U: Into<CreateUserAuthorityBodyReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.create_user_authority_fn.clone() else {
+        let Some(func) = self
+            .create_user_authority_fn
+            .clone()
+        else {
             panic!("create_user_authority not defined for mock client");
         };
 
-        return func(user_id.into(), user_authority.into());
+        return func(
+            user_id.into(),
+            user_authority.into(),
+        );
     }
 }

@@ -2,10 +2,13 @@ use async_trait::async_trait;
 pub use oxidauth_http::{
     response::Response,
     server::api::v1::auth::register::{
-        AuthorityStrategy, RegisterReq, RegisterRes,
+        AuthorityStrategy,
+        RegisterReq,
+        RegisterRes,
     },
 };
 use oxidauth_kernel::error::BoxedError;
+pub use oxidauth_usecases::auth::strategies::*;
 
 use super::*;
 
@@ -14,10 +17,7 @@ const METHOD: &str = "register";
 
 #[async_trait]
 pub trait RegisterTrait {
-    async fn register<T>(
-        &self,
-        params: T,
-    ) -> Result<RegisterRes, BoxedError>
+    async fn register<T>(&self, params: T) -> Result<RegisterRes, BoxedError>
     where
         T: Into<RegisterReq> + fmt::Debug + Send;
 }
@@ -25,10 +25,7 @@ pub trait RegisterTrait {
 #[async_trait]
 impl RegisterTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn register<T>(
-        &self,
-        params: T,
-    ) -> Result<RegisterRes, BoxedError>
+    async fn register<T>(&self, params: T) -> Result<RegisterRes, BoxedError>
     where
         T: Into<RegisterReq> + fmt::Debug + Send,
     {
@@ -50,10 +47,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl RegisterTrait for ClientMock {
-    async fn register<T>(
-        &self,
-        params: T,
-    ) -> Result<RegisterRes, BoxedError>
+    async fn register<T>(&self, params: T) -> Result<RegisterRes, BoxedError>
     where
         T: Into<RegisterReq> + fmt::Debug + Send,
     {

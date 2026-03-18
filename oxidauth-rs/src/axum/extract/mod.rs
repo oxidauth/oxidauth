@@ -1,21 +1,27 @@
+pub use axum::extract::FromRef;
 use axum::{
     extract::FromRequestParts,
-    http::{self, request::Parts},
-    RequestPartsExt,
+    http::{
+        self,
+        request::Parts,
+    },
 };
-
-pub use axum::extract::FromRef;
 use axum_extra::{
-    headers::{authorization::Bearer, Authorization},
     TypedHeader,
+    headers::{
+        Authorization,
+        authorization::Bearer,
+    },
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::jwt::Jwt;
 use tracing::error;
 use uuid::Uuid;
 
-use crate::client::public_keys::list_all_public_keys::ListAllPublicKeysTrait;
-use crate::OxidAuthClient;
+use crate::{
+    OxidAuthClient,
+    client::public_keys::list_all_public_keys::ListAllPublicKeysTrait,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractJwt(pub Jwt);

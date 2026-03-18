@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::update_user::{
-    UpdateUserBodyReq, UpdateUserRes,
+    UpdateUserBodyReq,
+    UpdateUserRes,
 };
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;

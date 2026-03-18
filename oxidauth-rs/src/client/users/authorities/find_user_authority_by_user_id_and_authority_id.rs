@@ -61,8 +61,13 @@ impl FindUserAuthorityByUserIdAndAuthorityIdTrait for ClientMock {
     where
         T: Into<FindUserAuthorityByUserIdAndAuthorityIdReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_user_authority_by_user_id_and_authority_id_fn.clone() else {
-            panic!("find_user_authority_by_user_id_and_authority_id not defined for mock client");
+        let Some(func) = self
+            .find_user_authority_by_user_id_and_authority_id_fn
+            .clone()
+        else {
+            panic!(
+                "find_user_authority_by_user_id_and_authority_id not defined for mock client"
+            );
         };
 
         return func(params.into());

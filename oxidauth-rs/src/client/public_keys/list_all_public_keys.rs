@@ -40,7 +40,10 @@ impl ListAllPublicKeysTrait for ClientMock {
     async fn list_all_public_keys(
         &self,
     ) -> Result<ListAllPublicKeysRes, BoxedError> {
-        let Some(func) = self.list_all_public_keys_fn.clone() else {
+        let Some(func) = self
+            .list_all_public_keys_fn
+            .clone()
+        else {
             panic!("list_all_public_keys not defined for mock client");
         };
 

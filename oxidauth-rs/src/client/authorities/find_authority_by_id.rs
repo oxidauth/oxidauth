@@ -60,7 +60,10 @@ impl FindAuthorityByIdTrait for ClientMock {
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_authority_by_id_fn.clone() else {
+        let Some(func) = self
+            .find_authority_by_id_fn
+            .clone()
+        else {
             panic!("find_authority_by_id not defined for mock client");
         };
 

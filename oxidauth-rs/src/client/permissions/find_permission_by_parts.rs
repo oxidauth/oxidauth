@@ -59,7 +59,10 @@ impl FindPermissionByPartsTrait for ClientMock {
     where
         T: Into<FindPermissionByPartsReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_permission_by_parts_fn.clone() else {
+        let Some(func) = self
+            .find_permission_by_parts_fn
+            .clone()
+        else {
             panic!("find_permission_by_parts not defined for mock client");
         };
 

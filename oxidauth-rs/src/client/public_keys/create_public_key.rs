@@ -10,9 +10,8 @@ const METHOD: &str = "create_public_key";
 
 #[async_trait]
 pub trait CreatePublicKeyTrait {
-    async fn create_public_key(
-        &self,
-    ) -> Result<CreatePublicKeyRes, BoxedError>;
+    async fn create_public_key(&self)
+    -> Result<CreatePublicKeyRes, BoxedError>;
 }
 
 #[async_trait]
@@ -40,7 +39,10 @@ impl CreatePublicKeyTrait for ClientMock {
     async fn create_public_key(
         &self,
     ) -> Result<CreatePublicKeyRes, BoxedError> {
-        let Some(func) = self.create_public_key_fn.clone() else {
+        let Some(func) = self
+            .create_public_key_fn
+            .clone()
+        else {
             panic!("create_public_key not defined for mock client");
         };
 

@@ -1,9 +1,10 @@
+use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::list_all_users::{
-    ListAllUsersReq, ListAllUsersRes,
+    ListAllUsersReq,
+    ListAllUsersRes,
 };
 use oxidauth_kernel::error::BoxedError;
-use async_trait::async_trait;
 
 use super::*;
 
@@ -53,12 +54,12 @@ impl ListAllUsersTrait for ClientMock {
         params: T,
     ) -> Result<ListAllUsersRes, BoxedError>
     where
-        T: Into<ListAllUsersReq> + fmt::Debug + Send {
-            let Some(func) = self.list_all_users_fn.clone() else {
-                panic!("list_all_users not defined for mock client");
-            };
+        T: Into<ListAllUsersReq> + fmt::Debug + Send,
+    {
+        let Some(func) = self.list_all_users_fn.clone() else {
+            panic!("list_all_users not defined for mock client");
+        };
 
-            return func(params.into())
-        }
+        return func(params.into());
+    }
 }
-

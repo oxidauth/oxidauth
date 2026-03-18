@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::roles::list_all_roles::{
-    ListAllRolesReq, ListAllRolesRes,
+    ListAllRolesReq,
+    ListAllRolesRes,
 };
 use oxidauth_kernel::error::BoxedError;
 

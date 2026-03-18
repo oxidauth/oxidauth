@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::permissions::delete_permission::{
-    DeletePermissionReq, DeletePermissionRes,
+    DeletePermissionReq,
+    DeletePermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -61,7 +62,10 @@ impl DeletePermissionTrait for ClientMock {
     where
         T: Into<DeletePermissionReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.delete_permission_fn.clone() else {
+        let Some(func) = self
+            .delete_permission_fn
+            .clone()
+        else {
             panic!("delete_permission not defined for mock client");
         };
 

@@ -2,26 +2,64 @@ pub use std::fmt;
 use std::sync::Arc;
 
 use chrono::Utc;
-use oxidauth_http::response::Response;
-use oxidauth_http::server::api::v1::auth::authenticate::{
-    AuthenticateReq, AuthenticateRes,
+use oxidauth_http::{
+    response::Response,
+    server::api::v1::{
+        auth::authenticate::{
+            AuthenticateReq,
+            AuthenticateRes,
+        },
+        public_keys::list_all_public_keys::ListAllPublicKeysRes,
+        refresh_tokens::exchange::{
+            ExchangeRefreshTokenReq,
+            ExchangeRefreshTokenRes,
+        },
+    },
 };
-use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
-use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
-    ExchangeRefreshTokenReq, ExchangeRefreshTokenRes,
+use oxidauth_kernel::{
+    JsonValue,
+    Password,
+    base64::*,
+    jwt::Jwt,
+    public_keys::PublicKey,
 };
-
-use oxidauth_kernel::jwt::Jwt;
-use oxidauth_kernel::public_keys::PublicKey;
-use oxidauth_kernel::{base64::*, JsonValue, Password};
-use reqwest::header::HeaderMap;
-use reqwest::Method;
-use serde::{Deserialize, Serialize};
+use reqwest::{
+    Method,
+    header::HeaderMap,
+};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use serde_json::json;
 use tokio::sync::RwLock;
 use tracing::info;
 use url::Url;
 use uuid::Uuid;
+
+#[cfg(feature = "mock")]
+use crate::mock::ClientMock;
+use crate::{
+    auth::AuthTrait,
+    authorities::AuthoritiesTrait,
+    can::CanTrait,
+    client::permissions::PermissionsTrait,
+    invitations::InvitationsTrait,
+    public_keys::PublicKeysTrait,
+    refresh_tokens::RefreshTokensTrait,
+    roles::{
+        RolesTrait,
+        permissions::RolePermissionsTrait,
+        roles::RoleRoleGrantsTrait,
+    },
+    settings::SettingsTrait,
+    users::{
+        UsersTrait,
+        authorities::UserAuthoritiesTrait,
+        permissions::UserPermissionsTrait,
+        roles::UserRolesTrait,
+    },
+};
 
 pub mod auth;
 pub mod authorities;
@@ -37,12 +75,41 @@ pub mod users;
 #[cfg(feature = "mock")]
 pub mod mock;
 
+pub trait ClientTrait:
+    AuthTrait
+    + AuthoritiesTrait
+    + CanTrait
+    + InvitationsTrait
+    + PermissionsTrait
+    + PublicKeysTrait
+    + RefreshTokensTrait
+    + RolesTrait
+    + RoleRoleGrantsTrait
+    + RolePermissionsTrait
+    + SettingsTrait
+    + UsersTrait
+    + UserAuthoritiesTrait
+    + UserPermissionsTrait
+    + UserRolesTrait
+    + Send
+    + Sync
+    + 'static
+{
+}
+
 #[derive(Debug, Clone)]
 pub struct Client {
     config: Config,
     state: Arc<RwLock<State>>,
     #[cfg(feature = "mock")]
     pub mock_jwt: Option<Jwt>,
+}
+
+impl ClientTrait for Client {
+}
+
+#[cfg(feature = "mock")]
+impl ClientTrait for ClientMock {
 }
 
 #[derive(Debug, Clone)]
@@ -103,9 +170,7 @@ impl Client {
     }
 
     #[cfg(feature = "mock")]
-    pub fn test_client(
-        mock_jwt: Jwt,
-    ) -> Result<Self, ClientError> {
+    pub fn test_client(mock_jwt: Jwt) -> Result<Self, ClientError> {
         let base_url = Url::parse("http://base_url.com/")
             .map_err(|err| {
                 ClientError::new(
@@ -169,14 +234,6 @@ impl Client {
 
     #[tracing::instrument(level = "debug", skip(self))]
     async fn get_public_keys(&self) -> Result<Vec<PublicKey>, ClientError> {
-        #[cfg(feature = "mock")]
-        return Ok(vec![PublicKey {
-            id: Uuid::new_v4(),
-            public_key: "public_key".to_string(),
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
-        }]);
-
         let public_keys: Response<ListAllPublicKeysRes> =
             reqwest::Client::new()
                 .get(format!(
@@ -228,9 +285,6 @@ impl Client {
 
     #[tracing::instrument(skip(self))]
     async fn auth(&self) -> Result<bool, ClientError> {
-        #[cfg(feature = "mock")]
-        return Ok(true);
-
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;
@@ -350,9 +404,6 @@ impl Client {
 
     #[tracing::instrument(skip(self))]
     pub async fn refresh(&self) -> Result<bool, ClientError> {
-        #[cfg(feature = "mock")]
-        return Ok(true);
-
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;
@@ -490,9 +541,11 @@ impl Client {
         match self.check_auth_state().await {
             AuthState::Valid => Ok(true),
             AuthState::Auth => self.auth().await,
-            AuthState::Refresh => match self.refresh().await {
-                Ok(res) => Ok(res),
-                Err(_) => self.auth().await,
+            AuthState::Refresh => {
+                match self.refresh().await {
+                    Ok(res) => Ok(res),
+                    Err(_) => self.auth().await,
+                }
             },
         }
     }
@@ -679,23 +732,43 @@ impl fmt::Display for ClientError {
         use ClientErrorKind::*;
 
         match self.kind {
-            NoJwtFound => write!(f, "no jwt found when calling get_jwt"),
-            AuthError => write!(
-                f,
-                "encountered an error authenticating"
-            ),
-            RefreshError => write!(
-                f,
-                "encountered an error while refreshing token"
-            ),
-            EmptyPayload(resource, method) => write!(
-                f,
-                "received an empty payload when a response payload was expcected for resource {} method {}",
-                resource,
-                method
-            ),
-            APIResponseError => write!(f, "error reported when making a request to the API"),
-            UrlParseError => write!(f, "encountered an error while parsing url"),
+            NoJwtFound => {
+                write!(
+                    f,
+                    "no jwt found when calling get_jwt"
+                )
+            },
+            AuthError => {
+                write!(
+                    f,
+                    "encountered an error authenticating"
+                )
+            },
+            RefreshError => {
+                write!(
+                    f,
+                    "encountered an error while refreshing token"
+                )
+            },
+            EmptyPayload(resource, method) => {
+                write!(
+                    f,
+                    "received an empty payload when a response payload was expcected for resource {} method {}",
+                    resource, method
+                )
+            },
+            APIResponseError => {
+                write!(
+                    f,
+                    "error reported when making a request to the API"
+                )
+            },
+            UrlParseError => {
+                write!(
+                    f,
+                    "encountered an error while parsing url"
+                )
+            },
             Other(reason) => write!(f, "error: {}", reason),
         }
     }

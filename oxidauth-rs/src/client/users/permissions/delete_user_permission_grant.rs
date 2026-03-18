@@ -63,7 +63,10 @@ impl DeleteUserPermissionGrantTrait for ClientMock {
     where
         T: Into<DeleteUserPermissionReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.delete_user_permission_grant_fn.clone() else {
+        let Some(func) = self
+            .delete_user_permission_grant_fn
+            .clone()
+        else {
             panic!("delete_user_permission_grant not defined for mock client");
         };
 

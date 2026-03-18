@@ -61,7 +61,10 @@ impl DeleteRoleRoleGrantTrait for ClientMock {
     where
         T: Into<DeleteRoleRoleGrantReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.delete_role_role_grant_fn.clone() else {
+        let Some(func) = self
+            .delete_role_role_grant_fn
+            .clone()
+        else {
             panic!("delete_role_role_grant not defined for mock client");
         };
 

@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::users::find_users_by_ids::{
-    FindUsersByIdsReq, FindUsersByIdsRes,
+    FindUsersByIdsReq,
+    FindUsersByIdsRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -55,7 +56,10 @@ impl FindUsersByIdsTrait for ClientMock {
     where
         T: Into<FindUsersByIdsReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.find_users_by_ids_fn.clone() else {
+        let Some(func) = self
+            .find_users_by_ids_fn
+            .clone()
+        else {
             panic!("find_users_by_ids not defined for mock client");
         };
 

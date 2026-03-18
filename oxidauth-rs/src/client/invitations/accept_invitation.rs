@@ -1,21 +1,29 @@
 use async_trait::async_trait;
 pub use oxidauth_http::server::api::v1::invitations::accept_invitation::{
-    AcceptInvitationParams, AcceptInvitationRes, AcceptInvitationUserParams,
+    AcceptInvitationParams,
+    AcceptInvitationRes,
+    AcceptInvitationUserParams,
 };
 use oxidauth_http::{
     response::Response,
     server::api::v1::invitations::accept_invitation::AcceptInvitationBodyReq,
 };
-pub use oxidauth_kernel::auth::{
-    authenticate::AuthenticateParams, register::RegisterParams,
-};
 use oxidauth_kernel::error::BoxedError;
-pub use oxidauth_kernel::users::create_user::CreateUser;
+pub use oxidauth_kernel::{
+    auth::{
+        authenticate::AuthenticateParams,
+        register::RegisterParams,
+    },
+    users::create_user::CreateUser,
+};
 pub use oxidauth_usecases::auth::strategies::username_password::registrar::UsernamePasswordRegisterParams;
 
-use crate::{client::handle_response, Client, Resource};
-
 use super::*;
+use crate::{
+    Client,
+    Resource,
+    client::handle_response,
+};
 
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "accept_invitation";
@@ -80,7 +88,10 @@ impl AcceptInvitationTrait for ClientMock {
     where
         T: Into<AcceptInvitationParams> + fmt::Debug + Send,
     {
-        let Some(func) = self.accept_invitation_fn.clone() else {
+        let Some(func) = self
+            .accept_invitation_fn
+            .clone()
+        else {
             panic!("accept_invitation not defined for mock client");
         };
 

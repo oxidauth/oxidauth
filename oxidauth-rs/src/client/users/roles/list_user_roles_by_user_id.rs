@@ -58,7 +58,10 @@ impl ListUserRolesByUserIdTrait for ClientMock {
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
-        let Some(func) = self.list_user_roles_by_user_id_fn.clone() else {
+        let Some(func) = self
+            .list_user_roles_by_user_id_fn
+            .clone()
+        else {
             panic!("list_user_roles_by_user_id not defined for mock client");
         };
 

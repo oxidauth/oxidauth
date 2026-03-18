@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
 pub use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
-    ExchangeRefreshTokenReq, ExchangeRefreshTokenRes,
+    ExchangeRefreshTokenReq,
+    ExchangeRefreshTokenRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -55,7 +56,10 @@ impl ExchangeRefreshTokenTrait for ClientMock {
     where
         T: Into<ExchangeRefreshTokenReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.exchange_refresh_token_fn.clone() else {
+        let Some(func) = self
+            .exchange_refresh_token_fn
+            .clone()
+        else {
             panic!("exchange_refresh_token not defined for mock client");
         };
 

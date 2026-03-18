@@ -63,7 +63,10 @@ impl CreateRolePermissionGrantTrait for ClientMock {
     where
         T: Into<CreateRolePermissionGrantReq> + fmt::Debug + Send,
     {
-        let Some(func) = self.create_role_permission_grant_fn.clone() else {
+        let Some(func) = self
+            .create_role_permission_grant_fn
+            .clone()
+        else {
             panic!("create_role_permission_grant not defined for mock client");
         };
 
