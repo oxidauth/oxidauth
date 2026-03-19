@@ -7,7 +7,7 @@ pub use oxidauth_kernel::invitations::*;
 use super::fmt;
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
-use crate::{
+pub use crate::{
     Client,
     invitations::{
         accept_invitation::AcceptInvitationTrait,

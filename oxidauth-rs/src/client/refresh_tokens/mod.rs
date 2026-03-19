@@ -8,7 +8,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::refresh_tokens::exchange_refresh_token::ExchangeRefreshTokenTrait;
+pub use crate::refresh_tokens::exchange_refresh_token::ExchangeRefreshTokenTrait;
 
 pub trait RefreshTokensTrait: ExchangeRefreshTokenTrait {}
 

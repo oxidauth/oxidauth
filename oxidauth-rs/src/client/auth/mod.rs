@@ -11,7 +11,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::auth::{
+pub use crate::auth::{
     authenticate::AuthenticateTrait,
     register::RegisterTrait,
 };

@@ -1,9 +1,6 @@
 mod fetch_setting;
 mod save_setting;
 
-use fetch_setting::FetchSettingTrait;
-use save_setting::SaveSettingTrait;
-
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
 use super::{
@@ -11,6 +8,10 @@ use super::{
     Resource,
     fmt,
     handle_response,
+};
+pub use crate::settings::{
+    fetch_setting::FetchSettingTrait,
+    save_setting::SaveSettingTrait,
 };
 
 pub trait SettingsTrait: SaveSettingTrait + FetchSettingTrait {}

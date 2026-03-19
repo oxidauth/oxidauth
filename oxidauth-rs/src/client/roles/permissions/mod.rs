@@ -5,7 +5,7 @@ pub mod list_role_permission_grants_by_role_id;
 use super::*;
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
-use crate::roles::permissions::{
+pub use crate::roles::permissions::{
     create_role_permission_grant::CreateRolePermissionGrantTrait,
     delete_role_permission_grant::DeleteRolePermissionGrantTrait,
     list_role_permission_grants_by_role_id::ListRolePermissionGrantsByRoleIdTrait,

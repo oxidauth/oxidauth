@@ -11,7 +11,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::client::permissions::{
+pub use crate::client::permissions::{
     create_permission::CreatePermissionTrait,
     delete_permission::DeletePermissionTrait,
     find_permission_by_parts::FindPermissionByPartsTrait,

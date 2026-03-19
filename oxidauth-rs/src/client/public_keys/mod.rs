@@ -11,7 +11,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::public_keys::{
+pub use crate::public_keys::{
     create_public_key::CreatePublicKeyTrait,
     delete_public_key::DeletePublicKeyTrait,
     find_public_key_by_id::FindPublicKeyByIdTrait,

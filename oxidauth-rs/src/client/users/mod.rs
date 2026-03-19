@@ -19,7 +19,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::users::{
+pub use crate::users::{
     create_user::CreateUserTrait,
     delete_user::DeleteUserTrait,
     find_user_by_id::FindUserByIdTrait,

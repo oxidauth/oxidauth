@@ -7,7 +7,7 @@ pub mod update_user_authority;
 use super::*;
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
-use crate::users::authorities::{
+pub use crate::users::authorities::{
     create_user_authority::CreateUserAuthorityTrait,
     delete_user_authority::DeleteUserAuthorityTrait,
     find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityIdTrait,
