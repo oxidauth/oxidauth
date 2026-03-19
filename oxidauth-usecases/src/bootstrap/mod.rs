@@ -11,7 +11,7 @@ use oxidauth_kernel::{
         Authority, AuthorityNotFoundError, AuthoritySettings,
         AuthorityStrategy, TotpSettings,
     },
-    bootstrap::BootstrapParams,
+    bootstrap::{BootstrapParams, BootstrapTrait},
     error::BoxedError,
     jwt::EntitlementsEncoding,
     permissions::{
@@ -41,10 +41,10 @@ use oxidauth_kernel::{
         list_all_roles::{ListAllRoles, ListAllRolesService},
         Role,
     },
-    service::Service,
     settings::{
         fetch_setting::{
-            FetchSettingParams, FetchSettingService, SettingNotFoundError,
+            FetchSettingParams, FetchSettingService,
+            SettingNotFoundError,
         },
         save_setting::{SaveSettingParams, SaveSettingService},
         Setting,
@@ -87,15 +87,12 @@ impl SudoUserBootstrapUseCase {
 }
 
 #[async_trait]
-impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
-    type Response = ();
-    type Error = BoxedError;
-
+impl BootstrapTrait for SudoUserBootstrapUseCase {
     #[tracing::instrument(name = "bootstrap_user_usecase", skip(self))]
-    async fn call(
+    async fn bootstrap(
         &self,
-        params: &'a BootstrapParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &BootstrapParams,
+    ) -> Result<(), BoxedError> {
         let setting = {
             let fetch_setting = self.provider.fetch();
 
@@ -208,7 +205,7 @@ async fn check_bootstrap_setting(
     fetch_settings_service: &FetchSettingService,
 ) -> Result<Option<Setting>, BoxedError> {
     let bootstrap_setting = fetch_settings_service
-        .call(&FetchSettingParams {
+        .fetch_setting(&FetchSettingParams {
             key: BOOTSTRAP_SETTING_KEY.to_owned(),
         })
         .await;
@@ -228,7 +225,7 @@ async fn first_or_create_public_key(
     create_public_key: &CreatePublicKeyService,
 ) -> Result<PublicKey, BoxedError> {
     let mut public_keys = list_all_public_keys
-        .call(&ListAllPublicKeys)
+        .list_all_public_keys(&ListAllPublicKeys)
         .await?;
 
     if let Some(public_key) = public_keys.pop() {
@@ -236,7 +233,7 @@ async fn first_or_create_public_key(
     }
 
     create_public_key
-        .call(&CreatePublicKey)
+        .create_public_key(&CreatePublicKey)
         .await
 }
 
@@ -253,7 +250,7 @@ async fn first_or_create_permissions(
     let permission_name = TOTP_VALIDATE_PERMISSION.to_owned();
 
     let permission = permission_by_name
-        .call(&FindPermissionByParts {
+        .find_permission_by_parts(&FindPermissionByParts {
             permission: permission_name.clone(),
         })
         .await;
@@ -263,7 +260,7 @@ async fn first_or_create_permissions(
         Err(err) => match err.downcast_ref::<PermissionNotFoundError>() {
             Some(_) => {
                 create_permission
-                    .call(&CreatePermission {
+                    .create_permission(&CreatePermission {
                         permission: permission_name,
                     })
                     .await
@@ -275,7 +272,7 @@ async fn first_or_create_permissions(
     let permission_name = ADMIN_PERMISSION.to_owned();
 
     let permission = permission_by_name
-        .call(&FindPermissionByParts {
+        .find_permission_by_parts(&FindPermissionByParts {
             permission: permission_name.clone(),
         })
         .await;
@@ -285,7 +282,7 @@ async fn first_or_create_permissions(
         Err(err) => match err.downcast_ref::<PermissionNotFoundError>() {
             Some(_) => {
                 create_permission
-                    .call(&CreatePermission {
+                    .create_permission(&CreatePermission {
                         permission: permission_name,
                     })
                     .await
@@ -308,7 +305,7 @@ async fn first_or_create_role(
     create_role: &CreateRoleService,
 ) -> Result<Role, BoxedError> {
     let roles = list_all_roles
-        .call(&ListAllRoles)
+        .list_all_roles(&ListAllRoles)
         .await?;
 
     let admin_role = roles
@@ -320,7 +317,7 @@ async fn first_or_create_role(
     }
 
     create_role
-        .call(&CreateRole {
+        .create_role(&CreateRole {
             name: ADMIN_ROLE.to_owned(),
         })
         .await
@@ -334,7 +331,7 @@ async fn add_admin_permission_to_admin_role(
     permission: &Permission,
 ) -> Result<(), BoxedError> {
     let role_permissions = list_role_permission_grants
-        .call(&ListRolePermissionGrantsByRoleId { role_id: role.id })
+        .list_role_permission_grants_by_role_id(&ListRolePermissionGrantsByRoleId { role_id: role.id })
         .await?;
 
     let admin_role_permission = role_permissions
@@ -346,7 +343,7 @@ async fn add_admin_permission_to_admin_role(
     }
 
     create_role_permission
-        .call(&CreateRolePermissionGrant {
+        .create_role_permission_grant(&CreateRolePermissionGrant {
             role_id: role.id,
             permission: ADMIN_PERMISSION.to_owned(),
         })
@@ -371,7 +368,7 @@ async fn first_or_create_authority(
     // TODO(dewey4iv): we should swap this for something
     // that can pull the authority by the name
     let authority = authority_by_strategy
-        .call(&FindAuthorityByStrategy {
+        .find_authority_by_strategy(&FindAuthorityByStrategy {
             strategy: AuthorityStrategy::UsernamePassword,
         })
         .await;
@@ -413,7 +410,7 @@ async fn first_or_create_authority(
                     };
 
                     create_authority
-                        .call(&mut create_authority_params)
+                        .create_authority(&mut create_authority_params)
                         .await
                 },
                 _ => {
@@ -438,7 +435,7 @@ async fn first_or_register_user(
     authority: &Authority,
 ) -> Result<User, BoxedError> {
     let user = find_user_by_username
-        .call(&FindUserByUsername {
+        .find_user_by_username(&FindUserByUsername {
             username: DEFAULT_ADMIN_USERNAME.parse()?,
         })
         .await;
@@ -472,11 +469,11 @@ async fn first_or_register_user(
                 };
 
                 register_user
-                    .call(&register_params)
+                    .register(&register_params)
                     .await?;
 
                 let registered = find_user_by_username
-                    .call(&FindUserByUsername {
+                    .find_user_by_username(&FindUserByUsername {
                         username: DEFAULT_ADMIN_USERNAME.parse()?,
                     })
                     .await?;
@@ -497,7 +494,7 @@ async fn add_admin_role_to_admin_user(
     role: &Role,
 ) -> Result<(), BoxedError> {
     let user_role_grants = list_user_role
-        .call(&ListUserRoleGrantsByUserId { user_id: user.id })
+        .list_user_role_grants_by_user_id(&ListUserRoleGrantsByUserId { user_id: user.id })
         .await?;
 
     let user_role_grant = user_role_grants
@@ -509,7 +506,7 @@ async fn add_admin_role_to_admin_user(
     }
 
     create_user_role
-        .call(&CreateUserRoleGrant {
+        .create_user_role_grant(&CreateUserRoleGrant {
             user_id: user.id,
             role_id: role.id,
         })
@@ -523,7 +520,7 @@ async fn save_bootstrap_setting(
     save_setting: &SaveSettingService,
 ) -> Result<(), BoxedError> {
     save_setting
-        .call(&SaveSettingParams {
+        .save_setting(&SaveSettingParams {
             key: BOOTSTRAP_SETTING_KEY.to_owned(),
             value: serde_json::Value::Bool(true),
         })

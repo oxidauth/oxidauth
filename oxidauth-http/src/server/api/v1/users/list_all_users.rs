@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided ListAllUsersService");
 
-    let result = service.call(&params).await;
+    let result = service.list_all_users(&params).await;
 
     match result {
         Ok(users) => {

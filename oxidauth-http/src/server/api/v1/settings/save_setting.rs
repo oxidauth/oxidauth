@@ -29,7 +29,7 @@ pub async fn handle(
     info!("provided SaveSettingService");
 
     let result = service
-        .call(&params.setting)
+        .save_setting(&params.setting)
         .await;
 
     match result {

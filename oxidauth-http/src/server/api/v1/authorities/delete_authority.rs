@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided DeleteAuthorityService");
 
-    let result = service.call(&params).await;
+    let result = service.delete_authority(&params).await;
 
     match result {
         Ok(authority) => {

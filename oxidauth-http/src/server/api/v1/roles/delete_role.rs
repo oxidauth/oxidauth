@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided DeleteRoleService");
 
-    let result = service.call(&params).await;
+    let result = service.delete_role(&params).await;
 
     match result {
         Ok(role) => {

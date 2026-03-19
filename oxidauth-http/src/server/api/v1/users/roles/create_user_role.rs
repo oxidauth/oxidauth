@@ -46,7 +46,7 @@ pub async fn handle(
 
     info!("provided CreateUserRoleGrantService");
 
-    let result = service.call(&params).await;
+    let result = service.create_user_role_grant(&params).await;
 
     match result {
         Ok(user_role) => {

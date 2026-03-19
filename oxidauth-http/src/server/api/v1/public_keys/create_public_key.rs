@@ -49,7 +49,7 @@ pub async fn handle(
     info!("provided CreatePublicKeyService");
 
     let result = service
-        .call(&CreatePublicKey)
+        .create_public_key(&CreatePublicKey)
         .await;
 
     match result {

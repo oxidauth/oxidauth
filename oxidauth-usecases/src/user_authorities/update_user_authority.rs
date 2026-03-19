@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    error::BoxedError, user_authorities::update_user_authority::*,
+    error::BoxedError,
+    user_authorities::update_user_authority::{
+        UpdateUserAuthority, UpdateUserAuthorityTrait, UserAuthority,
+    },
 };
 use oxidauth_repository::user_authorities::update_user_authority::UpdateUserAuthorityQuery;
 
@@ -22,20 +25,17 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a UpdateUserAuthority> for UpdateUserAuthorityUseCase<T>
+impl<T> UpdateUserAuthorityTrait for UpdateUserAuthorityUseCase<T>
 where
     T: UpdateUserAuthorityQuery,
 {
-    type Response = UserAuthority;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "update_user_authority_usecase", skip(self))]
-    async fn call(
+    async fn update_user_authority(
         &self,
-        req: &'a UpdateUserAuthority,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &UpdateUserAuthority,
+    ) -> Result<UserAuthority, BoxedError> {
         self.user_authorities
-            .call(req)
+            .call(params)
             .await
     }
 }

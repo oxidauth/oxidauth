@@ -69,7 +69,7 @@ pub async fn handle(
     info!("provided CreateUserAuthorityService");
 
     let result = service
-        .call(&CreateUserAuthorityParams {
+        .create_user_authority(&CreateUserAuthorityParams {
             user_id: params.user_id,
             client_key: request.client_key,
             params: request.user_authority.params,

@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    invitations::{delete_invitation::DeleteInvitationParams, Invitation},
-    service::Service,
+    invitations::{
+        delete_invitation::{DeleteInvitationParams, DeleteInvitationTrait},
+        Invitation,
+    },
 };
 use oxidauth_repository::invitations::delete_invitation_by_id::DeleteInvitationByIdQuery;
 
@@ -25,18 +27,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a DeleteInvitationParams> for DeleteInvitationUseCase<T>
+impl<T> DeleteInvitationTrait for DeleteInvitationUseCase<T>
 where
     T: DeleteInvitationByIdQuery,
 {
-    type Response = Invitation;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "delete_invitation_usecase", skip(self))]
-    async fn call(
+    async fn delete_invitation(
         &self,
-        params: &'a DeleteInvitationParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &DeleteInvitationParams,
+    ) -> Result<Invitation, BoxedError> {
         self.delete_invitation_by_id
             .call(params)
             .await

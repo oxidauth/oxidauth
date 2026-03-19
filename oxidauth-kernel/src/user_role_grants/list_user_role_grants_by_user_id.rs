@@ -2,13 +2,15 @@ use crate::dev_prelude::*;
 
 pub use super::UserRole;
 
-pub type ListUserRoleGrantsByUserIdService = Arc<
-    dyn for<'a> Service<
-        &'a ListUserRoleGrantsByUserId,
-        Response = Vec<UserRole>,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait ListUserRoleGrantsByUserIdTrait: Send + Sync + 'static {
+    async fn list_user_role_grants_by_user_id(
+        &self,
+        params: &ListUserRoleGrantsByUserId,
+    ) -> Result<Vec<UserRole>, BoxedError>;
+}
+
+pub type ListUserRoleGrantsByUserIdService = Arc<dyn ListUserRoleGrantsByUserIdTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct ListUserRoleGrantsByUserId {

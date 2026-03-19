@@ -49,7 +49,7 @@ pub async fn handle(
 
     info!("provided FindUsersByIdsService");
 
-    let result = service.call(&params).await;
+    let result = service.find_users_by_ids(&params).await;
 
     match result {
         Ok(UsersByIds {

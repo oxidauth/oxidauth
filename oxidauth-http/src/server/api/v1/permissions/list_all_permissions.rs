@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided ListAllPermissionsService");
 
-    let result = service.call(&params).await;
+    let result = service.list_all_permissions(&params).await;
 
     match result {
         Ok(permissions) => {

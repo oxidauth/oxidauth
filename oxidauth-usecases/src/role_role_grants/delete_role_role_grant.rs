@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    error::BoxedError, role_role_grants::delete_role_role_grant::*,
+    error::BoxedError,
+    role_role_grants::delete_role_role_grant::{
+        DeleteRoleRoleGrant, DeleteRoleRoleGrantTrait, RoleRoleGrant,
+    },
 };
 use oxidauth_repository::role_role_grants::delete_role_role_grant::DeleteRoleRoleGrantQuery;
 
@@ -22,20 +25,17 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a DeleteRoleRoleGrant> for DeleteRoleRoleGrantUseCase<T>
+impl<T> DeleteRoleRoleGrantTrait for DeleteRoleRoleGrantUseCase<T>
 where
     T: DeleteRoleRoleGrantQuery,
 {
-    type Response = RoleRoleGrant;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "delete_role_role_grant_usecase", skip(self))]
-    async fn call(
+    async fn delete_role_role_grant(
         &self,
-        req: &'a DeleteRoleRoleGrant,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &DeleteRoleRoleGrant,
+    ) -> Result<RoleRoleGrant, BoxedError> {
         self.role_role_grants
-            .call(req)
+            .call(params)
             .await
     }
 }

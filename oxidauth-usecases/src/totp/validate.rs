@@ -15,8 +15,7 @@ use oxidauth_kernel::{
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     refresh_tokens::create_refresh_token::CreateRefreshToken,
-    service::Service,
-    totp::{validate::ValidateTOTP, TOTPValidationRes},
+    totp::{validate::{ValidateTOTP, ValidateTOTPTrait}, TOTPValidationRes},
     totp_secrets::{
         find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret,
     },
@@ -70,7 +69,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T, K, P, A, R> Service<&'a ValidateTOTP>
+impl<T, K, P, A, R> ValidateTOTPTrait
     for ValidateTOTPUseCase<T, K, P, A, R>
 where
     T: SelectTOTPSecrețByUserIdQuery,
@@ -79,14 +78,11 @@ where
     A: SelectAuthorityByClientKeyQuery,
     R: InsertRefreshTokenQuery,
 {
-    type Response = TOTPValidationRes;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "validate_totp_usecase", skip(self))]
-    async fn call(
+    async fn validate_totp(
         &self,
-        req: &'a ValidateTOTP,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &ValidateTOTP,
+    ) -> Result<TOTPValidationRes, BoxedError> {
         let user_id = req.user_id;
 
         let authority = self

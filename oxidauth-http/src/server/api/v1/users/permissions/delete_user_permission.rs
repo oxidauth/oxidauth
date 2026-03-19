@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided DeleteUserPermissionGrantService");
 
-    let result = service.call(&params).await;
+    let result = service.delete_user_permission_grant(&params).await;
 
     match result {
         Ok(user_permission) => {

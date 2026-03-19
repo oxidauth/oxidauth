@@ -1,19 +1,22 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::dev_prelude::{BoxedError, Service};
+use crate::dev_prelude::BoxedError;
 
 use super::Setting;
 
-pub type SaveSettingService = Arc<
-    dyn for<'a> Service<
-        &'a SaveSettingParams,
-        Response = Setting,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait SaveSettingTrait: Send + Sync + 'static {
+    async fn save_setting(
+        &self,
+        params: &SaveSettingParams,
+    ) -> Result<Setting, BoxedError>;
+}
+
+pub type SaveSettingService = Arc<dyn SaveSettingTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SaveSettingParams {

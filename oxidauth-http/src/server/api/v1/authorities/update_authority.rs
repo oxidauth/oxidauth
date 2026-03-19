@@ -65,7 +65,7 @@ pub async fn handle(
     params.authority.id = Some(path.authority_id);
 
     let result = service
-        .call(&mut params.authority)
+        .update_authority(&mut params.authority)
         .await;
 
     match result {

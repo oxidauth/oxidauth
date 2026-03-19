@@ -6,7 +6,9 @@ use oxidauth_kernel::{
     totp_secrets::create_totp_secret::{
         CreateTotpSecret, CreateTotpSecretService,
     },
-    user_authorities::create_user_authority::*,
+    user_authorities::create_user_authority::{
+        CreateUserAuthorityParams, CreateUserAuthorityTrait, UserAuthority,
+    },
 };
 use oxidauth_repository::{
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
@@ -44,20 +46,17 @@ where
 }
 
 #[async_trait]
-impl<'a, A, U> Service<&'a CreateUserAuthorityParams>
+impl<A, U> CreateUserAuthorityTrait
     for CreateUserAuthorityUseCase<A, U>
 where
     A: SelectAuthorityByClientKeyQuery,
     U: InsertUserAuthorityQuery,
 {
-    type Response = UserAuthority;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_user_authority_usecase", skip(self))]
-    async fn call(
+    async fn create_user_authority(
         &self,
-        params: &'a CreateUserAuthorityParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &CreateUserAuthorityParams,
+    ) -> Result<UserAuthority, BoxedError> {
         let authority = self
             .authority_by_client_key
             .call(&params.into())
@@ -79,7 +78,7 @@ where
             };
 
             self.totp_secrets
-                .call(&totp_secret_params)
+                .create_totp_secret(&totp_secret_params)
                 .await?;
         }
 

@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided FindAuthorityByIdService");
 
-    let result = service.call(&params).await;
+    let result = service.find_authority_by_id(&params).await;
 
     match result {
         Ok(authority) => {

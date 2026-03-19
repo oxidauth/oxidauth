@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    invitations::{find_invitation::FindInvitationParams, Invitation},
-    service::Service,
+    invitations::{
+        find_invitation::{FindInvitationParams, FindInvitationTrait},
+        Invitation,
+    },
 };
 use oxidauth_repository::invitations::select_invitation_by_id::SelectInvitationByIdQuery;
 
@@ -25,18 +27,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FindInvitationParams> for FindInvitationUseCase<T>
+impl<T> FindInvitationTrait for FindInvitationUseCase<T>
 where
     T: SelectInvitationByIdQuery,
 {
-    type Response = Invitation;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "find_invitation_usecase", skip(self))]
-    async fn call(
+    async fn find_invitation(
         &self,
-        params: &'a FindInvitationParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &FindInvitationParams,
+    ) -> Result<Invitation, BoxedError> {
         self.select_invitation_by_id
             .call(params)
             .await

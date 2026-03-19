@@ -1,21 +1,16 @@
-use std::sync::Arc;
-
-use chrono::{DateTime, Utc};
-use serde::Deserialize;
-use uuid::Uuid;
-
-use crate::error::BoxedError;
-pub use crate::service::Service;
+use crate::dev_prelude::*;
 
 pub use super::RefreshToken;
 
-pub type CreateRefreshTokenService = Arc<
-    dyn for<'a> Service<
-        &'a CreateRefreshToken,
-        Response = RefreshToken,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait CreateRefreshTokenTrait: Send + Sync + 'static {
+    async fn create_refresh_token(
+        &self,
+        params: &CreateRefreshToken,
+    ) -> Result<RefreshToken, BoxedError>;
+}
+
+pub type CreateRefreshTokenService = Arc<dyn CreateRefreshTokenTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateRefreshToken {

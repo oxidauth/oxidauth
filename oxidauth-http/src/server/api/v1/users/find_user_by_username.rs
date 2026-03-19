@@ -57,7 +57,7 @@ pub async fn handle(
 
     info!("provided FindUserByUsernameService");
 
-    let result = service.call(&params).await;
+    let result = service.find_user_by_username(&params).await;
 
     match result {
         Ok(user) => {

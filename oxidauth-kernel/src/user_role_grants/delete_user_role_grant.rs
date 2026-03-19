@@ -2,13 +2,15 @@ use crate::dev_prelude::*;
 
 pub use super::UserRole;
 
-pub type DeleteUserRoleGrantService = Arc<
-    dyn for<'a> Service<
-        &'a DeleteUserRoleGrant,
-        Response = UserRole,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeleteUserRoleGrantTrait: Send + Sync + 'static {
+    async fn delete_user_role_grant(
+        &self,
+        params: &DeleteUserRoleGrant,
+    ) -> Result<UserRole, BoxedError>;
+}
+
+pub type DeleteUserRoleGrantService = Arc<dyn DeleteUserRoleGrantTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct DeleteUserRoleGrant {

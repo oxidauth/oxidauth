@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use oxidauth_kernel::{
     error::BoxedError,
-    users::{find_user_by_id::FindUserById, update_user::*},
+    users::{
+        find_user_by_id::FindUserById,
+        update_user::{UpdateUser, UpdateUserTrait, User},
+    },
 };
 use oxidauth_repository::users::{
     select_user_by_id_query::SelectUserByIdQuery, update_user::UpdateUserQuery,
@@ -31,19 +34,16 @@ where
 }
 
 #[async_trait]
-impl<'a, S, U> Service<&'a mut UpdateUser> for UpdateUserUseCase<S, U>
+impl<S, U> UpdateUserTrait for UpdateUserUseCase<S, U>
 where
     S: SelectUserByIdQuery,
     U: UpdateUserQuery,
 {
-    type Response = User;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "update_user_usecase", skip(self))]
-    async fn call(
+    async fn update_user(
         &self,
-        params: &'a mut UpdateUser,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &mut UpdateUser,
+    ) -> Result<User, BoxedError> {
         let current = self
             .user_by_id
             .call(&FindUserById { user_id: params.id })

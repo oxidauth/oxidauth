@@ -3,8 +3,9 @@ use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
     roles::find_role_by_id::FindRoleById,
-    service::Service,
-    user_role_grants::{delete_user_role_grant::*, UserRole},
+    user_role_grants::delete_user_role_grant::{
+        DeleteUserRoleGrant, DeleteUserRoleGrantTrait, UserRole,
+    },
     users::find_user_by_id::FindUserById,
 };
 use oxidauth_repository::{
@@ -40,32 +41,29 @@ where
 }
 
 #[async_trait]
-impl<'a, U, R, UR> Service<&'a DeleteUserRoleGrant>
+impl<U, R, UR> DeleteUserRoleGrantTrait
     for DeleteUserRoleGrantUseCase<U, R, UR>
 where
     U: SelectUserByIdQuery,
     R: SelectRoleByIdQuery,
     UR: DeleteUserRoleGrantQuery,
 {
-    type Response = UserRole;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "delete_user_role_grant_usecase", skip(self))]
-    async fn call(
+    async fn delete_user_role_grant(
         &self,
-        req: &'a DeleteUserRoleGrant,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &DeleteUserRoleGrant,
+    ) -> Result<UserRole, BoxedError> {
         let user = self
             .users
             .call(&FindUserById {
-                user_id: req.user_id,
+                user_id: params.user_id,
             })
             .await?;
 
         let role = self
             .roles
             .call(&FindRoleById {
-                role_id: req.role_id,
+                role_id: params.role_id,
             })
             .await?;
 

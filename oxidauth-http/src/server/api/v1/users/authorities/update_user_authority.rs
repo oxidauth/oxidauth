@@ -64,7 +64,7 @@ pub async fn handle(
     info!("provided UpdateUserAuthorityService");
 
     let result = service
-        .call(&UpdateUserAuthority {
+        .update_user_authority(&UpdateUserAuthority {
             user_id: params.user_id,
             authority_id: params.authority_id,
             params: request.params.into(),

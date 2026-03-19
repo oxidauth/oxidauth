@@ -11,10 +11,12 @@ pub struct CreateTotpSecretResponse {
     pub success: bool,
 }
 
-pub type CreateTotpSecretService = Arc<
-    dyn for<'a> Service<
-        &'a CreateTotpSecret,
-        Response = CreateTotpSecretResponse,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait CreateTotpSecretTrait: Send + Sync + 'static {
+    async fn create_totp_secret(
+        &self,
+        params: &CreateTotpSecret,
+    ) -> Result<CreateTotpSecretResponse, BoxedError>;
+}
+
+pub type CreateTotpSecretService = Arc<dyn CreateTotpSecretTrait>;

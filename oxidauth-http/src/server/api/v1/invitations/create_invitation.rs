@@ -53,7 +53,7 @@ pub async fn handle(
     info!("provided CreateInvitationService");
 
     let result = service
-        .call(&params.invitation)
+        .create_invitation(&params.invitation)
         .await;
 
     match result {

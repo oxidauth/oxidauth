@@ -55,7 +55,7 @@ pub async fn handle(
 
     info!("provided FindInvitationService");
 
-    let result = service.call(&params).await;
+    let result = service.find_invitation(&params).await;
 
     match result {
         Ok(invitation) => {

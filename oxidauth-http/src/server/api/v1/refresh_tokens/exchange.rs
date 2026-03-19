@@ -20,7 +20,7 @@ pub async fn handle(
 
     info!("provided ExchangeRefreshTokenService");
 
-    let result = service.call(&params).await;
+    let result = service.exchange_refresh_token(&params).await;
 
     match result {
         Ok(result) => {

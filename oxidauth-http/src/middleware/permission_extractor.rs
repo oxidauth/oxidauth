@@ -50,7 +50,7 @@ where
             provider.fetch::<ListAllPublicKeysService>();
 
         let public_keys = list_all_public_keys_service
-            .call(&ListAllPublicKeys)
+            .list_all_public_keys(&ListAllPublicKeys)
             .await
             .map_err(|_| http::StatusCode::UNAUTHORIZED)?;
 

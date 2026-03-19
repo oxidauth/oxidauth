@@ -53,7 +53,7 @@ pub async fn handle(
 
     info!("provided ListUserAuthoritiesByUserIdService");
 
-    let result = service.call(&params).await;
+    let result = service.list_user_authorities_by_user_id(&params).await;
 
     match result {
         Ok(user_authorities) => {

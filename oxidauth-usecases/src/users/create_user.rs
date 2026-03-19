@@ -1,6 +1,9 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{error::BoxedError, users::create_user::*};
+use oxidauth_kernel::{
+    error::BoxedError,
+    users::create_user::{CreateUser, CreateUserTrait, User},
+};
 use oxidauth_repository::users::insert_user::InsertUserQuery;
 
 #[derive(Clone)]
@@ -21,19 +24,16 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a CreateUser> for CreateUserUseCase<T>
+impl<T> CreateUserTrait for CreateUserUseCase<T>
 where
     T: InsertUserQuery,
 {
-    type Response = User;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_user_usecase", skip(self))]
-    async fn call(
+    async fn create_user(
         &self,
-        req: &'a CreateUser,
-    ) -> Result<Self::Response, Self::Error> {
-        let user = self.users.call(req).await?;
+        params: &CreateUser,
+    ) -> Result<User, BoxedError> {
+        let user = self.users.call(params).await?;
 
         Ok(user)
     }

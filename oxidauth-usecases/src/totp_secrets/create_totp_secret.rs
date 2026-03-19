@@ -1,9 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    service::Service,
     totp_secrets::create_totp_secret::{
-        CreateTotpSecret, CreateTotpSecretResponse,
+        CreateTotpSecret, CreateTotpSecretResponse, CreateTotpSecretTrait,
     },
 };
 use oxidauth_repository::totp_secrets::insert_totp_secret::{
@@ -29,18 +28,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a CreateTotpSecret> for CreateTotpSecretUseCase<T>
+impl<T> CreateTotpSecretTrait for CreateTotpSecretUseCase<T>
 where
     T: InsertTotpSecretQuery,
 {
-    type Response = CreateTotpSecretResponse;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_totp_secret_usecase", skip(self))]
-    async fn call(
+    async fn create_totp_secret(
         &self,
-        req: &'a CreateTotpSecret,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &CreateTotpSecret,
+    ) -> Result<CreateTotpSecretResponse, BoxedError> {
         let nums = random_string();
 
         let totp_secret_params = InsertTotpSecretParams {

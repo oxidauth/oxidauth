@@ -83,7 +83,7 @@ pub async fn handle(
     };
 
     let result = service
-        .call(&mut update_user)
+        .update_user(&mut update_user)
         .await;
 
     match result {

@@ -65,7 +65,7 @@ pub async fn handle(
 
     updates.role_id = Some(params.role_id);
 
-    let result = service.call(&updates).await;
+    let result = service.update_role(&updates).await;
 
     match result {
         Ok(role) => {

@@ -63,7 +63,7 @@ pub async fn handle(
     };
 
     let result = service
-        .call(&validation_params)
+        .validate_totp(&validation_params)
         .await;
 
     match result {

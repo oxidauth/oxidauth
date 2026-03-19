@@ -51,7 +51,7 @@ pub async fn handle(
     info!("provided CreateAuthorityService");
 
     let result = service
-        .call(&mut params.authority)
+        .create_authority(&mut params.authority)
         .await;
 
     match result {

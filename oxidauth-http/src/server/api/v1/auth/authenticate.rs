@@ -26,7 +26,7 @@ pub async fn handle(
 
     info!("provided AuthenticateService");
 
-    let result = service.call(&params).await;
+    let result = service.authenticate(&params).await;
 
     match result {
         Ok(response) => {

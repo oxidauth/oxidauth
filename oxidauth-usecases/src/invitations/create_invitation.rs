@@ -6,8 +6,8 @@ use oxidauth_kernel::{
     error::BoxedError,
     invitations::create_invitation::{
         CreateInvitationParams, CreateInvitationResponse,
+        CreateInvitationTrait,
     },
-    service::Service,
     users::create_user::CreateUserTrait,
 };
 use oxidauth_repository::invitations::insert_invitation::{
@@ -37,23 +37,20 @@ where
 }
 
 #[async_trait]
-impl<'a, T, U> Service<&'a CreateInvitationParams>
+impl<T, U> CreateInvitationTrait
     for CreateInvitationUseCase<T, U>
 where
     T: InsertInvitationQuery,
     U: CreateUserTrait,
 {
-    type Response = CreateInvitationResponse;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_invitation_usecase", skip(self))]
-    async fn call(
+    async fn create_invitation(
         &self,
-        params: &'a CreateInvitationParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &CreateInvitationParams,
+    ) -> Result<CreateInvitationResponse, BoxedError> {
         let user = self
             .create_user
-            .call(&params.user)
+            .create_user(&params.user)
             .await?;
 
         let insert_invitation_params = InsertInvitationParams {

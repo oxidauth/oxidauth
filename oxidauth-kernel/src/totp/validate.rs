@@ -7,13 +7,15 @@ use std::{
 
 use super::TOTPValidationRes;
 
-pub type ValidateTOTPService = Arc<
-    dyn for<'a> Service<
-        &'a ValidateTOTP,
-        Response = TOTPValidationRes,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait ValidateTOTPTrait: Send + Sync + 'static {
+    async fn validate_totp(
+        &self,
+        params: &ValidateTOTP,
+    ) -> Result<TOTPValidationRes, BoxedError>;
+}
+
+pub type ValidateTOTPService = Arc<dyn ValidateTOTPTrait>;
 
 #[derive(Debug)]
 pub struct ValidateTOTP {

@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    service::Service,
-    settings::{save_setting::SaveSettingParams, Setting},
+    settings::{save_setting::{SaveSettingParams, SaveSettingTrait}, Setting},
 };
 use oxidauth_repository::settings::upsert_setting::SaveSettingQuery;
 
@@ -23,18 +22,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a SaveSettingParams> for SaveSettingUseCase<T>
+impl<T> SaveSettingTrait for SaveSettingUseCase<T>
 where
     T: SaveSettingQuery,
 {
-    type Response = Setting;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "save_setting_usecase", skip(self))]
-    async fn call(
+    async fn save_setting(
         &self,
-        params: &'a SaveSettingParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &SaveSettingParams,
+    ) -> Result<Setting, BoxedError> {
         self.save_setting
             .call(params)
             .await

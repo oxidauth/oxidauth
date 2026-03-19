@@ -8,13 +8,14 @@ use chrono::DateTime;
 use oxidauth_kernel::auth::authenticate::AuthenticateResponse;
 use oxidauth_kernel::auth::tree::PermissionSearch;
 use oxidauth_kernel::authorities::find_authority_by_id::FindAuthorityById;
+use oxidauth_kernel::error::BoxedError;
 use oxidauth_kernel::jwt::{epoch_from_time, Jwt, epoch_from_now};
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
 use oxidauth_kernel::refresh_tokens::delete_refresh_token::DeleteRefreshToken;
 use oxidauth_kernel::refresh_tokens::find_refresh_token_by_id::FindRefreshTokenById;
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityId;
-use oxidauth_kernel::{refresh_tokens::exchange_refresh_token::*, error::BoxedError};
+use oxidauth_kernel::refresh_tokens::exchange_refresh_token::*;
 use oxidauth_repository::auth::tree::PermissionTreeQuery;
 use oxidauth_repository::private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery;
 use oxidauth_repository::refresh_tokens::delete_refresh_token::DeleteRefreshTokenQuery;
@@ -74,7 +75,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T, I, U, A, P, K, D> Service<&'a ExchangeRefreshToken>
+impl<T, I, U, A, P, K, D> ExchangeRefreshTokenTrait
     for ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D>
 where
     T: SelectRefreshTokenByIdQuery,
@@ -85,14 +86,11 @@ where
     K: SelectMostRecentPrivateKeyQuery,
     D: DeleteRefreshTokenQuery,
 {
-    type Response = AuthenticateResponse;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "exchange_refresh_token_usecase", skip(self))]
-    async fn call(
+    async fn exchange_refresh_token(
         &self,
-        req: &'a ExchangeRefreshToken,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &ExchangeRefreshToken,
+    ) -> Result<AuthenticateResponse, BoxedError> {
         let RefreshToken {
             user_id,
             authority_id,
@@ -101,7 +99,7 @@ where
         } = self
             .refresh_tokens
             .call(&FindRefreshTokenById {
-                refresh_token_id: req.refresh_token,
+                refresh_token_id: params.refresh_token,
             })
             .await?;
 
@@ -115,7 +113,7 @@ where
         if expires_at.timestamp() < now as i64 {
             self.delete_refresh_tokens
                 .call(&DeleteRefreshToken {
-                    refresh_token_id: req.refresh_token,
+                    refresh_token_id: params.refresh_token,
                 })
                 .await?;
             return Err("refresh token has expired".into());
@@ -206,7 +204,7 @@ where
 
         self.delete_refresh_tokens
             .call(&DeleteRefreshToken {
-                refresh_token_id: req.refresh_token,
+                refresh_token_id: params.refresh_token,
             })
             .await?;
 

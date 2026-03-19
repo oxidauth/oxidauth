@@ -49,7 +49,7 @@ pub async fn handle(
 
     info!("provided DeleteRolePermissionGrantService");
 
-    let result = service.call(&params).await;
+    let result = service.delete_role_permission_grant(&params).await;
 
     match result {
         Ok(res) => {

@@ -53,7 +53,7 @@ pub async fn handle(
 
     info!("provided FindPermissionByPartsService");
 
-    let result = service.call(&params).await;
+    let result = service.find_permission_by_parts(&params).await;
 
     match result {
         Ok(permission) => {

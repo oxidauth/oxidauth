@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided ListAllRolesService");
 
-    let result = service.call(&params).await;
+    let result = service.list_all_roles(&params).await;
 
     match result {
         Ok(roles) => {

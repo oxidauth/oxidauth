@@ -2,13 +2,15 @@ use crate::dev_prelude::*;
 
 pub use super::UserPermission;
 
-pub type DeleteUserPermissionGrantService = Arc<
-    dyn for<'a> Service<
-        &'a DeleteUserPermission,
-        Response = UserPermission,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeleteUserPermissionGrantTrait: Send + Sync + 'static {
+    async fn delete_user_permission_grant(
+        &self,
+        params: &DeleteUserPermission,
+    ) -> Result<UserPermission, BoxedError>;
+}
+
+pub type DeleteUserPermissionGrantService = Arc<dyn DeleteUserPermissionGrantTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteUserPermission {

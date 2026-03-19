@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    error::BoxedError, role_role_grants::create_role_role_grant::*,
+    error::BoxedError,
+    role_role_grants::create_role_role_grant::{
+        CreateRoleRoleGrant, CreateRoleRoleGrantTrait, RoleRoleGrantDetail,
+    },
     roles::find_role_by_id::FindRoleById,
 };
 use oxidauth_repository::{
@@ -32,36 +35,33 @@ where
 }
 
 #[async_trait]
-impl<'a, T, R> Service<&'a CreateRoleRoleGrant>
+impl<T, R> CreateRoleRoleGrantTrait
     for CreateRoleRoleGrantUseCase<T, R>
 where
     T: InsertRoleRoleGrantQuery,
     R: SelectRoleByIdQuery,
 {
-    type Response = RoleRoleGrantDetail;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_role_role_grant_usecase", skip(self))]
-    async fn call(
+    async fn create_role_role_grant(
         &self,
-        req: &'a CreateRoleRoleGrant,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &CreateRoleRoleGrant,
+    ) -> Result<RoleRoleGrantDetail, BoxedError> {
         self.roles
             .call(&FindRoleById {
-                role_id: req.parent_id,
+                role_id: params.parent_id,
             })
             .await?;
 
         let child = self
             .roles
             .call(&FindRoleById {
-                role_id: req.child_id,
+                role_id: params.child_id,
             })
             .await?;
 
         let grant = self
             .role_role_grants
-            .call(req)
+            .call(params)
             .await?;
 
         Ok(RoleRoleGrantDetail { role: child, grant })

@@ -1,7 +1,12 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::{find_authority_by_strategy::*, AuthorityNotFoundError},
+    authorities::{
+        find_authority_by_strategy::{
+            Authority, FindAuthorityByStrategy, FindAuthorityByStrategyTrait,
+        },
+        AuthorityNotFoundError,
+    },
     error::BoxedError,
 };
 use oxidauth_repository::authorities::select_authority_by_strategy::SelectAuthorityByStrategyQuery;
@@ -23,22 +28,18 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FindAuthorityByStrategy>
-    for FindAuthorityByStrategyUseCase<T>
+impl<T> FindAuthorityByStrategyTrait for FindAuthorityByStrategyUseCase<T>
 where
     T: SelectAuthorityByStrategyQuery,
 {
-    type Response = Authority;
-    type Error = BoxedError;
-
     #[tracing::instrument(
         name = "find_authority_by_strategy_usecase",
         skip(self)
     )]
-    async fn call(
+    async fn find_authority_by_strategy(
         &self,
-        params: &'a FindAuthorityByStrategy,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &FindAuthorityByStrategy,
+    ) -> Result<Authority, BoxedError> {
         let authority = self
             .authorities
             .call(params)

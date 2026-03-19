@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    public_keys::{delete_public_key::DeletePublicKey, PublicKey},
-    service::Service,
+    public_keys::{delete_public_key::{DeletePublicKey, DeletePublicKeyTrait}, PublicKey},
 };
 use oxidauth_repository::public_keys::delete_public_key::DeletePublicKeyQuery;
 
@@ -23,18 +22,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a DeletePublicKey> for DeletePublicKeyUseCase<T>
+impl<T> DeletePublicKeyTrait for DeletePublicKeyUseCase<T>
 where
     T: DeletePublicKeyQuery,
 {
-    type Response = PublicKey;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "delete_public_key_usecase", skip(self))]
-    async fn call(
+    async fn delete_public_key(
         &self,
-        params: &'a DeletePublicKey,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &DeletePublicKey,
+    ) -> Result<PublicKey, BoxedError> {
         self.public_keys
             .call(params)
             .await

@@ -1,21 +1,24 @@
 use std::{fmt, sync::Arc};
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     authorities::find_authority_by_client_key::FindAuthorityByClientKey,
-    dev_prelude::{BoxedError, Service},
+    dev_prelude::BoxedError,
     JsonValue,
 };
 
-pub type AuthenticateService = Arc<
-    dyn for<'a> Service<
-        &'a AuthenticateParams,
-        Response = AuthenticateResponse,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait AuthenticateTrait: Send + Sync + 'static {
+    async fn authenticate(
+        &self,
+        params: &AuthenticateParams,
+    ) -> Result<AuthenticateResponse, BoxedError>;
+}
+
+pub type AuthenticateService = Arc<dyn AuthenticateTrait>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthenticateParams {

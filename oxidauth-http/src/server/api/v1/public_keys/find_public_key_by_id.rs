@@ -26,7 +26,7 @@ pub async fn handle(
 
     info!("provided FindPublicKeyByIdService");
 
-    let result = service.call(&params).await;
+    let result = service.find_public_key_by_id(&params).await;
 
     match result {
         Ok(public_key) => {

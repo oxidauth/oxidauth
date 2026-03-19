@@ -1,23 +1,26 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    dev_prelude::{BoxedError, Service},
+    error::BoxedError,
     users::{create_user::CreateUser, User},
 };
 
 use super::Invitation;
 
-pub type CreateInvitationService = Arc<
-    dyn for<'a> Service<
-        &'a CreateInvitationParams,
-        Response = CreateInvitationResponse,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait CreateInvitationTrait: Send + Sync + 'static {
+    async fn create_invitation(
+        &self,
+        params: &CreateInvitationParams,
+    ) -> Result<CreateInvitationResponse, BoxedError>;
+}
+
+pub type CreateInvitationService = Arc<dyn CreateInvitationTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateInvitationResponse {

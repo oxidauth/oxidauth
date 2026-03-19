@@ -1,20 +1,16 @@
-use std::sync::Arc;
-
-use serde::Deserialize;
-use uuid::Uuid;
-
-use crate::error::BoxedError;
-pub use crate::service::Service;
+use crate::dev_prelude::*;
 
 pub use super::RefreshToken;
 
-pub type DeleteRefreshTokenService = Arc<
-    dyn for<'a> Service<
-        &'a DeleteRefreshToken,
-        Response = RefreshToken,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeleteRefreshTokenTrait: Send + Sync + 'static {
+    async fn delete_refresh_token(
+        &self,
+        params: &DeleteRefreshToken,
+    ) -> Result<RefreshToken, BoxedError>;
+}
+
+pub type DeleteRefreshTokenService = Arc<dyn DeleteRefreshTokenTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct DeleteRefreshToken {

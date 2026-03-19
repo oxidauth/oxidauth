@@ -1,22 +1,25 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
     auth::register::RegisterParams,
-    dev_prelude::{BoxedError, Service},
+    error::BoxedError,
     users::{update_user::UpdateUser, User, UserStatus},
 };
 
-pub type AcceptInvitationService = Arc<
-    dyn for<'a> Service<
-        &'a AcceptInvitationParams,
-        Response = User,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait AcceptInvitationTrait: Send + Sync + 'static {
+    async fn accept_invitation(
+        &self,
+        params: &AcceptInvitationParams,
+    ) -> Result<User, BoxedError>;
+}
+
+pub type AcceptInvitationService = Arc<dyn AcceptInvitationTrait>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceptInvitationParams {

@@ -51,7 +51,7 @@ pub async fn handle(
     info!("provided CreateUserService");
 
     let result = service
-        .call(&params.user)
+        .create_user(&params.user)
         .await;
 
     match result {

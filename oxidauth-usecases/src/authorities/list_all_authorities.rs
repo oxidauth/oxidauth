@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    authorities::list_all_authorities::*, error::BoxedError,
+    authorities::list_all_authorities::{
+        Authority, ListAllAuthorities, ListAllAuthoritiesTrait,
+    },
+    error::BoxedError,
 };
 use oxidauth_repository::authorities::select_all_authorities::SelectAllAuthoritiesQuery;
 
@@ -22,18 +25,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a ListAllAuthorities> for ListAllAuthoritiesUseCase<T>
+impl<T> ListAllAuthoritiesTrait for ListAllAuthoritiesUseCase<T>
 where
     T: SelectAllAuthoritiesQuery,
 {
-    type Response = Vec<Authority>;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "list_all_authorities_usecase", skip(self))]
-    async fn call(
+    async fn list_all_authorities(
         &self,
-        req: &'a ListAllAuthorities,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &ListAllAuthorities,
+    ) -> Result<Vec<Authority>, BoxedError> {
         self.authorities
             .call(req)
             .await

@@ -3,14 +3,13 @@ use base64::prelude::*;
 use chrono::DateTime;
 use oxidauth_kernel::{
     auth::{
-        register::{RegisterParams, RegisterResponse},
+        register::{RegisterParams, RegisterResponse, RegisterTrait},
         Registrar,
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy},
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
-    service::Service,
 };
 use oxidauth_repository::{
     auth::tree::{PermissionSearch, PermissionTreeQuery},
@@ -72,7 +71,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T, U, A, P, M, R> Service<&'a RegisterParams>
+impl<T, U, A, P, M, R> RegisterTrait
     for RegisterUseCase<T, U, A, P, M, R>
 where
     T: SelectAuthorityByClientKeyQuery,
@@ -82,14 +81,11 @@ where
     M: SelectMostRecentPrivateKeyQuery,
     R: InsertRefreshTokenQuery,
 {
-    type Response = RegisterResponse;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "register_usecase", skip(self))]
-    async fn call(
+    async fn register(
         &self,
-        params: &'a RegisterParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &RegisterParams,
+    ) -> Result<RegisterResponse, BoxedError> {
         let authority = self
             .authority_by_client_key
             .call(&params.into())

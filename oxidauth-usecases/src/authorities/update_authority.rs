@@ -5,8 +5,14 @@ use oxidauth_kernel::totp_secrets::create_totp_secrets_by_authority_id::{
 };
 use uuid::Uuid;
 
-use oxidauth_kernel::{authorities::update_authority::*, error::BoxedError};
-use oxidauth_repository::authorities::select_authority_by_id::*;
+use oxidauth_kernel::{
+    authorities::{
+        find_authority_by_id::FindAuthorityById,
+        update_authority::{Authority, UpdateAuthority, UpdateAuthorityTrait},
+    },
+    error::BoxedError,
+};
+use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
 use oxidauth_repository::authorities::update_authority::UpdateAuthorityQuery;
 
 pub struct UpdateAuthorityUseCase<T, I>
@@ -38,19 +44,16 @@ where
 }
 
 #[async_trait]
-impl<'a, T, I> Service<&'a mut UpdateAuthority> for UpdateAuthorityUseCase<T, I>
+impl<T, I> UpdateAuthorityTrait for UpdateAuthorityUseCase<T, I>
 where
     T: UpdateAuthorityQuery,
     I: SelectAuthorityByIdQuery,
 {
-    type Response = Authority;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "update_authority_usecase", skip(self))]
-    async fn call(
+    async fn update_authority(
         &self,
-        req: &'a mut UpdateAuthority,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &mut UpdateAuthority,
+    ) -> Result<Authority, BoxedError> {
         let authority_id = req
             .id
             .ok_or("UpdateAuthority must have authority_id")?;

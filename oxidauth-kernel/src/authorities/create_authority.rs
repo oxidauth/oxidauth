@@ -1,22 +1,24 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub use crate::service::Service;
 use crate::{error::BoxedError, JsonValue};
 
 pub use super::{
     Authority, AuthoritySettings, AuthorityStatus, AuthorityStrategy,
 };
 
-pub type CreateAuthorityService = Arc<
-    dyn for<'a> Service<
-        &'a mut CreateAuthority,
-        Response = Authority,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait CreateAuthorityTrait: Send + Sync + 'static {
+    async fn create_authority(
+        &self,
+        params: &mut CreateAuthority,
+    ) -> Result<Authority, BoxedError>;
+}
+
+pub type CreateAuthorityService = Arc<dyn CreateAuthorityTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateAuthority {

@@ -53,7 +53,7 @@ pub async fn handle(
 
     info!("provided ListUserPermissionGrantsByUserIdService");
 
-    let result = service.call(&params).await;
+    let result = service.list_user_permission_grants_by_user_id(&params).await;
 
     match result {
         Ok(user_permission_grants) => {

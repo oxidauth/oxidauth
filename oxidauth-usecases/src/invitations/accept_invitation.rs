@@ -2,10 +2,9 @@ use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
     invitations::{
-        accept_invitation::AcceptInvitationParams,
+        accept_invitation::{AcceptInvitationParams, AcceptInvitationTrait},
         delete_invitation::DeleteInvitationParams, Invitation,
     },
-    service::Service,
     user_authorities::create_user_authority::{
         CreateUserAuthorityParams, CreateUserAuthorityService,
     },
@@ -43,18 +42,15 @@ where
 }
 
 #[async_trait]
-impl<'a, I> Service<&'a AcceptInvitationParams> for AcceptInvitationUseCase<I>
+impl<I> AcceptInvitationTrait for AcceptInvitationUseCase<I>
 where
     I: DeleteInvitationByIdQuery,
 {
-    type Response = User;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "accept_invitation_usecase", skip(self))]
-    async fn call(
+    async fn accept_invitation(
         &self,
-        params: &'a AcceptInvitationParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &AcceptInvitationParams,
+    ) -> Result<User, BoxedError> {
         let delete_invitation = DeleteInvitationParams {
             id: params.invitation_id,
         };
@@ -77,14 +73,14 @@ where
 
         let _user_authority = self
             .user_authority
-            .call(&create_user_authority)
+            .create_user_authority(&create_user_authority)
             .await?;
 
         let mut update_user: UpdateUser = (user_id, &params.user).into();
 
         let user = self
             .update_user
-            .call(&mut update_user)
+            .update_user(&mut update_user)
             .await?;
 
         Ok(user)

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use base64::prelude::*;
 
 use oxidauth_kernel::{
-    error::BoxedError, public_keys::list_all_public_keys::*, service::Service,
+    error::BoxedError, public_keys::list_all_public_keys::*,
 };
 use oxidauth_repository::public_keys::select_all_public_keys::SelectAllPublicKeysQuery;
 
@@ -23,18 +23,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a ListAllPublicKeys> for ListAllPublicKeysUseCase<T>
+impl<T> ListAllPublicKeysTrait for ListAllPublicKeysUseCase<T>
 where
     T: SelectAllPublicKeysQuery,
 {
-    type Response = Vec<PublicKey>;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "list_all_public_keys_usecase", skip(self))]
-    async fn call(
+    async fn list_all_public_keys(
         &self,
-        req: &'a ListAllPublicKeys,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &ListAllPublicKeys,
+    ) -> Result<Vec<PublicKey>, BoxedError> {
         let public_keys = self
             .public_keys
             .call(req)

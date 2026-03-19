@@ -2,8 +2,10 @@ use async_trait::async_trait;
 
 use oxidauth_kernel::{
     error::BoxedError,
-    service::Service,
-    users::{find_user_by_username::*, UserNotFoundError},
+    users::{
+        find_user_by_username::{FindUserByUsername, FindUserByUsernameTrait, User},
+        UserNotFoundError,
+    },
 };
 use oxidauth_repository::users::select_user_by_username_query::SelectUserByUsernameQuery;
 
@@ -24,18 +26,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FindUserByUsername> for FindUserByUsernameUseCase<T>
+impl<T> FindUserByUsernameTrait for FindUserByUsernameUseCase<T>
 where
     T: SelectUserByUsernameQuery,
 {
-    type Response = User;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "find_user_by_username_usecase", skip(self))]
-    async fn call(
+    async fn find_user_by_username(
         &self,
-        params: &'a FindUserByUsername,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &FindUserByUsername,
+    ) -> Result<User, BoxedError> {
         let user = self
             .users
             .call(&params.username)

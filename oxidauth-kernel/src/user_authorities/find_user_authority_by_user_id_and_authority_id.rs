@@ -1,14 +1,21 @@
-use crate::dev_prelude::*;
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use uuid::Uuid;
+
+use crate::error::BoxedError;
 
 pub use super::UserAuthorityWithAuthority;
 
-pub type FindUserAuthorityByUserIdAndAuthorityIdService = Arc<
-    dyn for<'a> Service<
-        &'a FindUserAuthorityByUserIdAndAuthorityId,
-        Response = UserAuthorityWithAuthority,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FindUserAuthorityByUserIdAndAuthorityIdTrait: Send + Sync + 'static {
+    async fn find_user_authority_by_user_id_and_authority_id(
+        &self,
+        params: &FindUserAuthorityByUserIdAndAuthorityId,
+    ) -> Result<UserAuthorityWithAuthority, BoxedError>;
+}
+
+pub type FindUserAuthorityByUserIdAndAuthorityIdService = Arc<dyn FindUserAuthorityByUserIdAndAuthorityIdTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindUserAuthorityByUserIdAndAuthorityId {

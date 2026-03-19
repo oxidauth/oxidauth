@@ -1,19 +1,22 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::dev_prelude::{BoxedError, Service};
+use crate::error::BoxedError;
 
 use super::Invitation;
 
-pub type DeleteInvitationService = Arc<
-    dyn for<'a> Service<
-        &'a DeleteInvitationParams,
-        Response = Invitation,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeleteInvitationTrait: Send + Sync + 'static {
+    async fn delete_invitation(
+        &self,
+        params: &DeleteInvitationParams,
+    ) -> Result<Invitation, BoxedError>;
+}
+
+pub type DeleteInvitationService = Arc<dyn DeleteInvitationTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteInvitationParams {

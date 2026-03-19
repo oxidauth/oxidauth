@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{error::BoxedError, roles::find_role_by_name::*};
+use oxidauth_kernel::error::BoxedError;
+use oxidauth_kernel::roles::find_role_by_name::{FindRoleByName, FindRoleByNameTrait, Role};
 use oxidauth_repository::roles::select_role_by_name::SelectRoleByNameQuery;
 
 pub struct FindRoleByNameUseCase<T>
@@ -20,18 +21,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FindRoleByName> for FindRoleByNameUseCase<T>
+impl<T> FindRoleByNameTrait for FindRoleByNameUseCase<T>
 where
     T: SelectRoleByNameQuery,
 {
-    type Response = Role;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "find_role_by_name_usecase", skip(self))]
-    async fn call(
+    async fn find_role_by_name(
         &self,
-        req: &'a FindRoleByName,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &FindRoleByName,
+    ) -> Result<Role, BoxedError> {
         self.roles.call(req).await
     }
 }

@@ -2,13 +2,15 @@ use crate::dev_prelude::*;
 
 pub use super::User;
 
-pub type FindUsersByIdsService = Arc<
-    dyn for<'a> Service<
-        &'a FindUsersByIds,
-        Response = UsersByIds,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FindUsersByIdsTrait: Send + Sync + 'static {
+    async fn find_users_by_ids(
+        &self,
+        params: &FindUsersByIds,
+    ) -> Result<UsersByIds, BoxedError>;
+}
+
+pub type FindUsersByIdsService = Arc<dyn FindUsersByIdsTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindUsersByIds {

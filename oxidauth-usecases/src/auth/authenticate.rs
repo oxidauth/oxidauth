@@ -8,14 +8,14 @@ use chrono::DateTime;
 use async_trait::async_trait;
 pub use oxidauth_kernel::{
     auth::{
-        authenticate::{AuthenticateParams, AuthenticateResponse, WebhookReq, WebhookRes},
+        authenticate::{AuthenticateParams, AuthenticateResponse, AuthenticateTrait, WebhookReq, WebhookRes},
         Authenticator,
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, TotpSettings},
     error::BoxedError,
     jwt::{epoch_from_now, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
-    service::Service, totp_secrets::{find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret}, users::find_user_by_id::FindUserById,
+    totp_secrets::{find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret}, users::find_user_by_id::FindUserById,
 };
 use oxidauth_repository::{
     auth::tree::{PermissionSearch, PermissionTreeQuery}, authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery, private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery, refresh_tokens::insert_refresh_token::{
@@ -80,7 +80,7 @@ where
 }
 
 #[async_trait]
-impl<'a, T, U, P, M, R, S, UU> Service<&'a AuthenticateParams>
+impl<T, U, P, M, R, S, UU> AuthenticateTrait
     for AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
     T: SelectAuthorityByClientKeyQuery,
@@ -91,14 +91,11 @@ where
     S: SelectTOTPSecrețByUserIdQuery,
     UU: SelectUserByIdQuery,
 {
-    type Response = AuthenticateResponse;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "authenticate_usecase", skip(self))]
-    async fn call(
+    async fn authenticate(
         &self,
-        params: &'a AuthenticateParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &AuthenticateParams,
+    ) -> Result<AuthenticateResponse, BoxedError> {
         let authority = self
             .authority_by_client_key
             .call(&params.into())

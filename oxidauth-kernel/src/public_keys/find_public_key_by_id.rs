@@ -2,13 +2,15 @@ use crate::dev_prelude::*;
 
 pub use super::PublicKey;
 
-pub type FindPublicKeyByIdService = Arc<
-    dyn for<'a> Service<
-        &'a FindPublicKeyById,
-        Response = PublicKey,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FindPublicKeyByIdTrait: Send + Sync + 'static {
+    async fn find_public_key_by_id(
+        &self,
+        params: &FindPublicKeyById,
+    ) -> Result<PublicKey, BoxedError>;
+}
+
+pub type FindPublicKeyByIdService = Arc<dyn FindPublicKeyByIdTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct FindPublicKeyById {

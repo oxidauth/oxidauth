@@ -6,7 +6,10 @@ use oxidauth_kernel::{
         find_permission_by_parts::FindPermissionByParts,
         PermissionNotFoundError,
     },
-    user_permission_grants::{create_user_permission_grant::*, UserPermission},
+    user_permission_grants::create_user_permission_grant::{
+        CreateUserPermission, CreateUserPermissionGrant,
+        CreateUserPermissionGrantTrait, UserPermission,
+    },
     users::find_user_by_id::FindUserById,
 };
 use oxidauth_repository::{
@@ -42,38 +45,35 @@ where
 }
 
 #[async_trait]
-impl<'a, U, P, UP> Service<&'a CreateUserPermission>
+impl<U, P, UP> CreateUserPermissionGrantTrait
     for CreateUserPermissionGrantUseCase<U, P, UP>
 where
     U: SelectUserByIdQuery,
     P: SelectPermissionByPartsQuery,
     UP: InsertUserPermissionGrantQuery,
 {
-    type Response = UserPermission;
-    type Error = BoxedError;
-
     #[tracing::instrument(
         name = "create_user_permission_grant_usecase",
         skip(self)
     )]
-    async fn call(
+    async fn create_user_permission_grant(
         &self,
-        req: &'a CreateUserPermission,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &CreateUserPermission,
+    ) -> Result<UserPermission, BoxedError> {
         let user = self
             .users
             .call(&FindUserById {
-                user_id: req.user_id,
+                user_id: params.user_id,
             })
             .await?;
 
         let permission = self
             .permissions
             .call(&FindPermissionByParts {
-                permission: req.permission.clone(),
+                permission: params.permission.clone(),
             })
             .await?
-            .ok_or_else(|| PermissionNotFoundError::new(&req.permission))?;
+            .ok_or_else(|| PermissionNotFoundError::new(&params.permission))?;
 
         let grant = self
             .user_permission_grants

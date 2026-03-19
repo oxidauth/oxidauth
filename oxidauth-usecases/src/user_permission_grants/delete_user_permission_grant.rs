@@ -6,8 +6,10 @@ use oxidauth_kernel::{
         find_permission_by_parts::FindPermissionByParts,
         PermissionNotFoundError,
     },
-    service::Service,
-    user_permission_grants::{delete_user_permission_grant::*, UserPermission},
+    user_permission_grants::delete_user_permission_grant::{
+        DeleteUserPermission, DeleteUserPermissionGrant,
+        DeleteUserPermissionGrantTrait, UserPermission,
+    },
     users::find_user_by_id::FindUserById,
 };
 use oxidauth_repository::{
@@ -43,38 +45,35 @@ where
 }
 
 #[async_trait]
-impl<'a, U, P, UP> Service<&'a DeleteUserPermission>
+impl<U, P, UP> DeleteUserPermissionGrantTrait
     for DeleteUserPermissionGrantUseCase<U, P, UP>
 where
     U: SelectUserByIdQuery,
     P: SelectPermissionByPartsQuery,
     UP: DeleteUserPermissionGrantQuery,
 {
-    type Response = UserPermission;
-    type Error = BoxedError;
-
     #[tracing::instrument(
         name = "delete_user_permission_grant_usecase",
         skip(self)
     )]
-    async fn call(
+    async fn delete_user_permission_grant(
         &self,
-        req: &'a DeleteUserPermission,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &DeleteUserPermission,
+    ) -> Result<UserPermission, BoxedError> {
         let user = self
             .users
             .call(&FindUserById {
-                user_id: req.user_id,
+                user_id: params.user_id,
             })
             .await?;
 
         let permission = self
             .permissions
             .call(&FindPermissionByParts {
-                permission: req.permission.clone(),
+                permission: params.permission.clone(),
             })
             .await?
-            .ok_or_else(|| PermissionNotFoundError::new(&req.permission))?;
+            .ok_or_else(|| PermissionNotFoundError::new(&params.permission))?;
 
         let grant = self
             .user_permission_grants

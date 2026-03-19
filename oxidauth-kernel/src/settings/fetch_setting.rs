@@ -1,19 +1,22 @@
 use core::fmt;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 
-use crate::dev_prelude::{BoxedError, Service};
+use crate::dev_prelude::BoxedError;
 
 use super::Setting;
 
-pub type FetchSettingService = Arc<
-    dyn for<'a> Service<
-        &'a FetchSettingParams,
-        Response = Setting,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FetchSettingTrait: Send + Sync + 'static {
+    async fn fetch_setting(
+        &self,
+        params: &FetchSettingParams,
+    ) -> Result<Setting, BoxedError>;
+}
+
+pub type FetchSettingService = Arc<dyn FetchSettingTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct FetchSettingParams {

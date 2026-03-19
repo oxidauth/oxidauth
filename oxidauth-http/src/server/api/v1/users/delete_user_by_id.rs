@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided DeleteUserByIdService");
 
-    let result = service.call(&params).await;
+    let result = service.delete_user_by_id(&params).await;
 
     match result {
         Ok(user) => {

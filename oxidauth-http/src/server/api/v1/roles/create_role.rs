@@ -52,7 +52,7 @@ pub async fn handle(
     info!("provided CreateRoleService");
 
     let result = service
-        .call(&params.role)
+        .create_role(&params.role)
         .await;
 
     match result {

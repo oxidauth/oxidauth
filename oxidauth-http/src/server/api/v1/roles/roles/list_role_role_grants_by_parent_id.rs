@@ -53,7 +53,7 @@ pub async fn handle(
 
     info!("provided ListRoleRoleGrantsByParentIdService");
 
-    let result = service.call(&params).await;
+    let result = service.list_role_role_grants_by_parent_id(&params).await;
 
     match result {
         Ok(roles) => {

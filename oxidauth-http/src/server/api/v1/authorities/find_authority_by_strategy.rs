@@ -53,7 +53,7 @@ pub async fn handle(
 
     info!("provided FindAuthorityByStrategyService");
 
-    let result = service.call(&params).await;
+    let result = service.find_authority_by_strategy(&params).await;
 
     match result {
         Ok(authority) => {

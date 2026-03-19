@@ -1,20 +1,18 @@
-use std::sync::Arc;
+use crate::dev_prelude::*;
 
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
-pub use crate::service::Service;
-use crate::{auth::authenticate::AuthenticateResponse, error::BoxedError};
+use crate::auth::authenticate::AuthenticateResponse;
 
 pub use super::RefreshToken;
 
-pub type ExchangeRefreshTokenService = Arc<
-    dyn for<'a> Service<
-        &'a ExchangeRefreshToken,
-        Response = AuthenticateResponse,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait ExchangeRefreshTokenTrait: Send + Sync + 'static {
+    async fn exchange_refresh_token(
+        &self,
+        params: &ExchangeRefreshToken,
+    ) -> Result<AuthenticateResponse, BoxedError>;
+}
+
+pub type ExchangeRefreshTokenService = Arc<dyn ExchangeRefreshTokenTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExchangeRefreshToken {

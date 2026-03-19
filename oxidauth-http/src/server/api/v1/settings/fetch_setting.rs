@@ -33,7 +33,7 @@ pub async fn handle(
 
     let params = FetchSettingParams { key: params.key };
 
-    let result = service.call(&params).await;
+    let result = service.fetch_setting(&params).await;
 
     match result {
         Ok(setting) => {

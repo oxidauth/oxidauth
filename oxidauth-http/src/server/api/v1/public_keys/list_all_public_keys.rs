@@ -26,7 +26,7 @@ pub async fn handle(
 
     info!("provided ListAllPublicKeysService");
 
-    let result = service.call(&params).await;
+    let result = service.list_all_public_keys(&params).await;
 
     match result {
         Ok(public_keys) => {

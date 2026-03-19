@@ -28,7 +28,7 @@ pub async fn handle(
 
     info!("provided RegisterService");
 
-    let result = service.call(&params).await;
+    let result = service.register(&params).await;
 
     match result {
         Ok(response) => {

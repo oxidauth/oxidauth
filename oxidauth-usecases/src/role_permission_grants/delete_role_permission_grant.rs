@@ -6,7 +6,10 @@ use oxidauth_kernel::{
         find_permission_by_parts::FindPermissionByParts,
         PermissionNotFoundError,
     },
-    role_permission_grants::delete_role_permission_grant::*,
+    role_permission_grants::delete_role_permission_grant::{
+        DeleteRolePermissionGrant, DeleteRolePermissionGrantTrait,
+        RolePermission,
+    },
     roles::find_role_by_id::FindRoleById,
 };
 use oxidauth_repository::{
@@ -42,43 +45,40 @@ where
 }
 
 #[async_trait]
-impl<'a, T, R, P> Service<&'a DeleteRolePermissionGrant>
+impl<T, R, P> DeleteRolePermissionGrantTrait
     for DeleteRolePermissionGrantUseCase<T, R, P>
 where
     T: DeleteRolePermissionGrantQuery,
     R: SelectRoleByIdQuery,
     P: SelectPermissionByPartsQuery,
 {
-    type Response = RolePermission;
-    type Error = BoxedError;
-
     #[tracing::instrument(
         name = "delete_role_permission_grant_usecase",
         skip(self)
     )]
-    async fn call(
+    async fn delete_role_permission_grant(
         &self,
-        req: &'a DeleteRolePermissionGrant,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &DeleteRolePermissionGrant,
+    ) -> Result<RolePermission, BoxedError> {
         self.roles
             .call(&FindRoleById {
-                role_id: req.role_id,
+                role_id: params.role_id,
             })
             .await?;
 
         let permission = self
             .permissions
             .call(&FindPermissionByParts {
-                permission: req.permission.to_owned(),
+                permission: params.permission.to_owned(),
             })
             .await?
-            .ok_or_else(|| PermissionNotFoundError::new(&req.permission))?;
+            .ok_or_else(|| PermissionNotFoundError::new(&params.permission))?;
 
         let grant = self
             .role_permission_grants
             .call(
                 &DeleteRolePermissionGrantParams {
-                    role_id: req.role_id,
+                    role_id: params.role_id,
                     permission_id: permission.id,
                 },
             )

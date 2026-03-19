@@ -56,7 +56,7 @@ pub async fn handle(
     info!("provided DeleteInvitationService");
 
     let result = service
-        .call(&params.invitation)
+        .delete_invitation(&params.invitation)
         .await;
 
     match result {

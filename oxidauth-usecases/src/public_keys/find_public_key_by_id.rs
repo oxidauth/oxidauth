@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    error::BoxedError, public_keys::find_public_key_by_id::*, service::Service,
+    error::BoxedError, public_keys::find_public_key_by_id::*,
 };
 use oxidauth_repository::public_keys::select_public_key_by_id::SelectPublicKeyByIdQuery;
 
@@ -22,18 +22,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FindPublicKeyById> for FindPublicKeyByIdUseCase<T>
+impl<T> FindPublicKeyByIdTrait for FindPublicKeyByIdUseCase<T>
 where
     T: SelectPublicKeyByIdQuery,
 {
-    type Response = PublicKey;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "find_public_key_by_id_usecase", skip(self))]
-    async fn call(
+    async fn find_public_key_by_id(
         &self,
-        req: &'a FindPublicKeyById,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &FindPublicKeyById,
+    ) -> Result<PublicKey, BoxedError> {
         self.public_keys
             .call(req)
             .await

@@ -1,19 +1,21 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use crate::error::BoxedError;
-pub use crate::service::Service;
 
 pub use super::{Authority, AuthorityStrategy};
 
-pub type FindAuthorityByStrategyService = Arc<
-    dyn for<'a> Service<
-        &'a FindAuthorityByStrategy,
-        Response = Authority,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FindAuthorityByStrategyTrait: Send + Sync + 'static {
+    async fn find_authority_by_strategy(
+        &self,
+        params: &FindAuthorityByStrategy,
+    ) -> Result<Authority, BoxedError>;
+}
+
+pub type FindAuthorityByStrategyService = Arc<dyn FindAuthorityByStrategyTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindAuthorityByStrategy {

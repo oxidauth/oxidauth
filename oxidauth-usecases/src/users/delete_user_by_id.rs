@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 
 use oxidauth_kernel::{
-    error::BoxedError, service::Service, users::delete_user_by_id::*,
+    error::BoxedError,
+    users::delete_user_by_id::{DeleteUserById, DeleteUserByIdTrait, User},
 };
 use oxidauth_repository::users::delete_user_by_id_query::DeleteUserByIdQuery;
 
@@ -22,18 +23,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a DeleteUserById> for DeleteUserByIdUseCase<T>
+impl<T> DeleteUserByIdTrait for DeleteUserByIdUseCase<T>
 where
     T: DeleteUserByIdQuery,
 {
-    type Response = User;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "delete_user_by_id_usecase", skip(self))]
-    async fn call(
+    async fn delete_user_by_id(
         &self,
-        req: &'a DeleteUserById,
-    ) -> Result<Self::Response, Self::Error> {
-        self.users.call(req).await
+        params: &DeleteUserById,
+    ) -> Result<User, BoxedError> {
+        self.users.call(params).await
     }
 }

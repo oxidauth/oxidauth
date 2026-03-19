@@ -2,13 +2,15 @@ use crate::dev_prelude::*;
 
 pub use super::PublicKey;
 
-pub type DeletePublicKeyService = Arc<
-    dyn for<'a> Service<
-        &'a DeletePublicKey,
-        Response = PublicKey,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeletePublicKeyTrait: Send + Sync + 'static {
+    async fn delete_public_key(
+        &self,
+        params: &DeletePublicKey,
+    ) -> Result<PublicKey, BoxedError>;
+}
+
+pub type DeletePublicKeyService = Arc<dyn DeletePublicKeyTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct DeletePublicKey {

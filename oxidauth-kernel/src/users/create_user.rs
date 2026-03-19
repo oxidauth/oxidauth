@@ -1,26 +1,22 @@
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::error::BoxedError;
-pub use crate::service::Service;
 
 pub use super::{User, UserKind, UserStatus};
 
-pub type CreateUserService = Arc<
-    dyn for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>,
->;
-
-pub trait CreateUserTrait:
-    for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
-{
+#[async_trait]
+pub trait CreateUserTrait: Send + Sync + 'static {
+    async fn create_user(
+        &self,
+        params: &CreateUser,
+    ) -> Result<User, BoxedError>;
 }
 
-impl<T> CreateUserTrait for T where
-    T: for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
-{
-}
+pub type CreateUserService = Arc<dyn CreateUserTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUser {

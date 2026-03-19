@@ -1,7 +1,12 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use oxidauth_kernel::{authorities::create_authority::*, error::BoxedError};
+use oxidauth_kernel::{
+    authorities::create_authority::{
+        Authority, AuthorityStatus, CreateAuthority, CreateAuthorityTrait,
+    },
+    error::BoxedError,
+};
 use oxidauth_repository::authorities::insert_authority::InsertAuthorityQuery;
 
 pub struct CreateAuthorityUseCase<T>
@@ -21,18 +26,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a mut CreateAuthority> for CreateAuthorityUseCase<T>
+impl<T> CreateAuthorityTrait for CreateAuthorityUseCase<T>
 where
     T: InsertAuthorityQuery,
 {
-    type Response = Authority;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_authority_usecase", skip(self))]
-    async fn call(
+    async fn create_authority(
         &self,
-        req: &'a mut CreateAuthority,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &mut CreateAuthority,
+    ) -> Result<Authority, BoxedError> {
         if req.client_key.is_none() {
             req.client_key
                 .replace(Uuid::new_v4());

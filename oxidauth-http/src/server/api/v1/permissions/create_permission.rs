@@ -50,7 +50,7 @@ pub async fn handle(
 
     info!("provided CreatePermissionService");
 
-    let result = service.call(&params).await;
+    let result = service.create_permission(&params).await;
 
     match result {
         Ok(permission) => {

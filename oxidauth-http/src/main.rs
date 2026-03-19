@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     ));
 
     bootstrap
-        .call(&BootstrapParams)
+        .bootstrap(&BootstrapParams)
         .await?;
 
     info!("starting server...");

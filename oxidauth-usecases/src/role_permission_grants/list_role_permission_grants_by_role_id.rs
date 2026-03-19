@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use oxidauth_kernel::{
     error::BoxedError,
-    role_permission_grants::list_role_permission_grants_by_role_id::*,
+    role_permission_grants::list_role_permission_grants_by_role_id::{
+        ListRolePermissionGrantsByRoleId,
+        ListRolePermissionGrantsByRoleIdTrait, RolePermission,
+    },
 };
 use oxidauth_repository::role_permission_grants::select_role_permission_grants_by_role_id::SelectRolePermissionGrantsByRoleIdQuery;
 
@@ -25,24 +28,21 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a ListRolePermissionGrantsByRoleId>
+impl<T> ListRolePermissionGrantsByRoleIdTrait
     for ListRolePermissionGrantsByRoleIdUseCase<T>
 where
     T: SelectRolePermissionGrantsByRoleIdQuery,
 {
-    type Response = Vec<RolePermission>;
-    type Error = BoxedError;
-
     #[tracing::instrument(
         name = "list_role_permission_grants_by_role_id_usecase",
         skip(self)
     )]
-    async fn call(
+    async fn list_role_permission_grants_by_role_id(
         &self,
-        req: &'a ListRolePermissionGrantsByRoleId,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &ListRolePermissionGrantsByRoleId,
+    ) -> Result<Vec<RolePermission>, BoxedError> {
         self.role_permission_grants
-            .call(req)
+            .call(params)
             .await
     }
 }

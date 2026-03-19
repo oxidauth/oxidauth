@@ -1,22 +1,25 @@
+use async_trait::async_trait;
 use serde::Serialize;
 use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::{
-    dev_prelude::{BoxedError, Service},
+    dev_prelude::BoxedError,
     role_permission_grants::RolePermission,
     roles::Role,
     user_permission_grants::UserPermission,
     users::User,
 };
 
-pub type PermissionTreeService = Arc<
-    dyn for<'a> Service<
-        &'a PermissionSearch,
-        Response = PermissionsResponse,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait PermissionTreeTrait: Send + Sync + 'static {
+    async fn permission_tree(
+        &self,
+        params: &PermissionSearch,
+    ) -> Result<PermissionsResponse, BoxedError>;
+}
+
+pub type PermissionTreeService = Arc<dyn PermissionTreeTrait>;
 
 #[derive(Debug)]
 pub enum PermissionSearch {

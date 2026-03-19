@@ -41,7 +41,7 @@ pub async fn handle(
     info!("provided AcceptInvitationService");
 
     let result = service
-        .call(&AcceptInvitationParams {
+        .accept_invitation(&AcceptInvitationParams {
             invitation_id: path.invitation_id,
             user: body.user,
             user_authority: body.user_authority,

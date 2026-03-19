@@ -52,7 +52,7 @@ pub async fn handle(
 
     info!("provided FindUserAuthorityByUserIdAndAuthorityIdService");
 
-    let result = service.call(&params).await;
+    let result = service.find_user_authority_by_user_id_and_authority_id(&params).await;
 
     match result {
         Ok(user_authority) => {

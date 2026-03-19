@@ -30,7 +30,7 @@ pub async fn handle(
 
     info!("provided DeletePublicKeyService");
 
-    let result = service.call(&params).await;
+    let result = service.delete_public_key(&params).await;
 
     match result {
         Ok(public_key) => {

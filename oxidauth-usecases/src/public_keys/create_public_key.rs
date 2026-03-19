@@ -1,8 +1,7 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    public_keys::{create_public_key::CreatePublicKey, PublicKey},
-    service::Service,
+    public_keys::{create_public_key::{CreatePublicKey, CreatePublicKeyTrait}, PublicKey},
 };
 use oxidauth_repository::public_keys::insert_public_key::{
     InsertPublicKeyParams, InsertPublicKeyQuery,
@@ -27,18 +26,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a CreatePublicKey> for CreatePublicKeyUseCase<T>
+impl<T> CreatePublicKeyTrait for CreatePublicKeyUseCase<T>
 where
     T: InsertPublicKeyQuery,
 {
-    type Response = PublicKey;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "create_public_key_usecase", skip(self))]
-    async fn call(
+    async fn create_public_key(
         &self,
-        _params: &'a CreatePublicKey,
-    ) -> Result<Self::Response, Self::Error> {
+        _params: &CreatePublicKey,
+    ) -> Result<PublicKey, BoxedError> {
         let Base64KeyPair { public, private } = KeyPair::new()?.base64_encode();
 
         let params = InsertPublicKeyParams {

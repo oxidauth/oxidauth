@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use oxidauth_kernel::{
     error::BoxedError,
-    permissions::{find_permission_by_parts::*, PermissionNotFoundError},
+    permissions::{
+        find_permission_by_parts::{FindPermissionByParts, FindPermissionByPartsTrait, Permission},
+        PermissionNotFoundError,
+    },
 };
 use oxidauth_repository::permissions::select_permission_by_parts::SelectPermissionByPartsQuery;
 
@@ -23,22 +26,18 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FindPermissionByParts>
-    for FindPermissionByPartsUseCase<T>
+impl<T> FindPermissionByPartsTrait for FindPermissionByPartsUseCase<T>
 where
     T: SelectPermissionByPartsQuery,
 {
-    type Response = Permission;
-    type Error = BoxedError;
-
     #[tracing::instrument(
         name = "find_permission_by_parts_usecase",
         skip(self)
     )]
-    async fn call(
+    async fn find_permission_by_parts(
         &self,
-        params: &'a FindPermissionByParts,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &FindPermissionByParts,
+    ) -> Result<Permission, BoxedError> {
         let permission = self
             .permissions
             .call(params)

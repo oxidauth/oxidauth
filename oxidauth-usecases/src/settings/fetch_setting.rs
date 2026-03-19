@@ -1,9 +1,8 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    service::Service,
     settings::{
-        fetch_setting::{FetchSettingParams, SettingNotFoundError},
+        fetch_setting::{FetchSettingParams, FetchSettingTrait, SettingNotFoundError},
         Setting,
     },
 };
@@ -26,18 +25,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a FetchSettingParams> for FetchSettingUseCase<T>
+impl<T> FetchSettingTrait for FetchSettingUseCase<T>
 where
     T: SelectSettingByKey,
 {
-    type Response = Setting;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "fetch_setting_usecase", skip(self))]
-    async fn call(
+    async fn fetch_setting(
         &self,
-        params: &'a FetchSettingParams,
-    ) -> Result<Self::Response, Self::Error> {
+        params: &FetchSettingParams,
+    ) -> Result<Setting, BoxedError> {
         let setting = self
             .select_setting
             .call(params)

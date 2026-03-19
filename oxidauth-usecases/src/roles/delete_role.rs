@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
-use oxidauth_kernel::{error::BoxedError, roles::delete_role::*};
+use oxidauth_kernel::error::BoxedError;
+use oxidauth_kernel::roles::delete_role::{DeleteRole, DeleteRoleTrait, Role};
 use oxidauth_repository::roles::delete_role::DeleteRoleQuery;
 
 pub struct DeleteRoleUseCase<T>
@@ -20,18 +21,15 @@ where
 }
 
 #[async_trait]
-impl<'a, T> Service<&'a DeleteRole> for DeleteRoleUseCase<T>
+impl<T> DeleteRoleTrait for DeleteRoleUseCase<T>
 where
     T: DeleteRoleQuery,
 {
-    type Response = Role;
-    type Error = BoxedError;
-
     #[tracing::instrument(name = "delete_role_usecase", skip(self))]
-    async fn call(
+    async fn delete_role(
         &self,
-        req: &'a DeleteRole,
-    ) -> Result<Self::Response, Self::Error> {
+        req: &DeleteRole,
+    ) -> Result<Role, BoxedError> {
         self.roles.call(req).await
     }
 }

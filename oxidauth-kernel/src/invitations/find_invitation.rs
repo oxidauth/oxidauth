@@ -1,19 +1,22 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::dev_prelude::{BoxedError, Service};
+use crate::error::BoxedError;
 
 use super::Invitation;
 
-pub type FindInvitationService = Arc<
-    dyn for<'a> Service<
-        &'a FindInvitationParams,
-        Response = Invitation,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FindInvitationTrait: Send + Sync + 'static {
+    async fn find_invitation(
+        &self,
+        params: &FindInvitationParams,
+    ) -> Result<Invitation, BoxedError>;
+}
+
+pub type FindInvitationService = Arc<dyn FindInvitationTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FindInvitationParams {
