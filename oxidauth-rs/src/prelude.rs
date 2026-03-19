@@ -6,3 +6,10 @@ pub use oxidauth_kernel::{
         Jwt,
     },
 };
+
+pub use crate::client::{
+    Client as OxidAuthClient,
+    ClientError as OxidAuthClientError,
+    ClientTrait as OxidAuthClientTrait,
+    *,
+};
