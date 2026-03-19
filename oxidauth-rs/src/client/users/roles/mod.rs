@@ -5,7 +5,7 @@ pub mod list_user_roles_by_user_id;
 use super::*;
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
-use crate::users::roles::{
+pub use crate::users::roles::{
     create_user_role::CreateUserRoleTrait,
     delete_user_role::DeleteUserRoleTrait,
     list_user_roles_by_user_id::ListUserRolesByUserIdTrait,

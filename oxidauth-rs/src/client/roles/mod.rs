@@ -19,7 +19,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::roles::{
+pub use crate::roles::{
     create_role::CreateRoleTrait,
     delete_role::DeleteRoleTrait,
     find_role_by_id::FindRoleByIdTrait,

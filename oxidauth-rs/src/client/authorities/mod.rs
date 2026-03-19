@@ -16,7 +16,7 @@ use super::{
     fmt,
     handle_response,
 };
-use crate::authorities::{
+pub use crate::authorities::{
     create_authority::CreateAuthorityTrait,
     delete_authority::DeleteAuthorityTrait,
     find_authority_by_id::FindAuthorityByIdTrait,
