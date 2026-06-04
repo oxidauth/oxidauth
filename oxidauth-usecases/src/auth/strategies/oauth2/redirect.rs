@@ -62,28 +62,33 @@ where
             OAuthFlavors::Google => {
                 let mut redirect_url = oauth_params.redirect_url;
 
-                let redirect_url = redirect_url
+                let combined_redirect_url = redirect_url
                     .query_pairs_mut()
-                    .append_pair("login_hint", &params.email)
                     .append_pair("response_type", "code")
                     .append_pair("include_granted_scopes", "true")
                     .append_pair("state", state_hash.as_str())
                     .finish();
 
-                redirect_url.to_owned()
+                combined_redirect_url.to_owned()
             },
             OAuthFlavors::Microsoft => {
                 let mut redirect_url = oauth_params.redirect_url;
 
-                let redirect_url = redirect_url
+                let combined_redirect_url = redirect_url
                     .query_pairs_mut()
-                    .append_pair("login_hint", &params.email)
                     .append_pair("response_type", "code")
                     .append_pair("response_mode", "query")
                     .append_pair("state", state_hash.as_str())
                     .finish();
 
-                redirect_url.to_owned()
+                if let Some(email) = params.email.clone() {
+                    combined_redirect_url
+                        .query_pairs_mut()
+                        .append_pair("login_hint", &email)
+                        .finish();
+                };
+
+                combined_redirect_url.to_owned()
             },
         };
 
