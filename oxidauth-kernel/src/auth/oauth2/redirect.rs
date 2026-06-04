@@ -17,7 +17,7 @@ pub type Oauth2RedirectService = Arc<
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Oauth2RedirectParams {
     pub client_key: Uuid,
-    pub email: String,
+    pub email: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,11 +35,7 @@ impl fmt::Display for ParseOauth2RedirectUrlError {
         use ParseOauth2RedirectUrlError::*;
 
         match self {
-            Unknown(value) => write!(
-                f,
-                "unable to create redirect_url: {}",
-                value
-            ),
+            Unknown(value) => write!(f, "unable to create redirect_url: {}", value),
         }
     }
 }
