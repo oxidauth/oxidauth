@@ -81,10 +81,10 @@ where
                     .append_pair("state", state_hash.as_str())
                     .finish();
 
-                if let Some(email) = params.email.clone() {
+                if let Some(email) = &params.email {
                     combined_redirect_url
                         .query_pairs_mut()
-                        .append_pair("login_hint", &email)
+                        .append_pair("login_hint", email)
                         .finish();
                 };
 
