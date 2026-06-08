@@ -1,6 +1,8 @@
 pub mod authenticator;
+pub mod forgot_password;
 pub mod helpers;
 pub mod registrar;
+pub mod reset_password;
 pub mod user_authority_from_request;
 pub mod user_identifier_from_request;
 
@@ -27,9 +29,7 @@ impl AuthorityParams {
     }
 
     pub fn as_json_value(&self) -> Result<JsonValue, BoxedError> {
-        Ok(JsonValue::new(
-            serde_json::to_value(self)?,
-        ))
+        Ok(JsonValue::new(serde_json::to_value(self)?))
     }
 }
 
