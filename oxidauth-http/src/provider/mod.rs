@@ -78,6 +78,24 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<Oauth2RedirectService>(oauth2_redirect_service);
     }
 
+    {
+        use oxidauth_kernel::auth::username_password::forgot_password::ForgotPasswordService;
+        use oxidauth_usecases::auth::strategies::username_password::forgot_password::ForgotPasswordUseCase;
+
+        let forgot_password_service = Arc::new(ForgotPasswordUseCase::new(db.clone()));
+
+        provider.store::<ForgotPasswordService>(forgot_password_service);
+    }
+
+    {
+        use oxidauth_kernel::auth::username_password::reset_password::ResetPasswordService;
+        use oxidauth_usecases::auth::strategies::username_password::reset_password::ResetPasswordUseCase;
+
+        let reset_password_service = Arc::new(ResetPasswordUseCase::new(db.clone()));
+
+        provider.store::<ResetPasswordService>(reset_password_service);
+    }
+
     let create_totp_secret_service = {
         use oxidauth_kernel::totp_secrets::create_totp_secret::CreateTotpSecretService;
         use oxidauth_usecases::totp_secrets::create_totp_secret::CreateTotpSecretUseCase;
