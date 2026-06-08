@@ -3,6 +3,7 @@ pub mod authenticate_or_register;
 pub mod oauth2;
 pub mod register;
 pub mod tree;
+pub mod username_password;
 
 use async_trait::async_trait;
 use serde::Deserialize;
