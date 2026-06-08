@@ -36,7 +36,32 @@ _Description_
 
 If totp code is valid, this route resets the user password (with salt and pepper same as original password creation).
 
+### File Structure
+
+#### New handler & router files added http
+
+- oxidauth-http/src/server/api/v1/auth/username_password folder
+- oxidauth-http/src/server/api/v1/auth/username_password/forgot_password.rs
+- oxidauth-http/src/server/api/v1/auth/username_password/reset_password.rs
+
+#### New type files added to Kernel
+
+- oxidauth-kernel/src/auth/username_password folder
+- oxidauth-kernel/src/auth/username_password/forgot_password.rs
+- oxidauth-kernel/src/auth/username_password/reset_password.rs
+
+#### New UseCase files added
+
+- oxidauth-usecases/src/auth/strategies/username_password folder
+- oxidauth-usecases/src/auth/strategies/username_password/forgot_password.rs
+- oxidauth-usecases/src/auth/strategies/username_password/reset_password.rs
+
+#### Provider references
+
+- username_password_forgot_password_service
+- username_password_reset_password_service
+
 ### Discussion points
 
-- Is it correct for oxidauth to have its own password reset page that all clients use, or should the flow be totally API request based?
-- Is it possible and secure to embed the totp code in a "magic link" style url that can be easily handed to the client and on to the user?
+- @George - review general file structure, knowing that not everything is fleshed out yet so errors will exist
+- @George - Is it correct for the Navi API to receive the forgot password request, check that the user exists in Navi, and then request the totp code for the user by id? If no user is found in Navi, no point in reaching out to oxidauth. And inversely, if a user is found in Navi, it seems like Navi should send the user's id to oxidauth. That way Navi is responsible for sending the email (can be branded to Navi's needs) and oxidauth is only responsible for generating the code, resetting refresh tokens, etc..
