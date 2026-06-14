@@ -93,7 +93,6 @@ where
             return Err("Failed to find authority by client key".into());
         };
 
-        // todo - get user authority by username & authority id
         let user_authority_res = self
             .select_user_authority
             .call(
