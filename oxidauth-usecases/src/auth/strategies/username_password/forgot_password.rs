@@ -15,6 +15,8 @@ use oxidauth_repository::{
     totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery,
 };
 
+use crate::dev_prelude::epoch;
+
 pub struct ForgotPasswordUseCase<D, S>
 where
     D: DeleteRefreshTokenByUserIdQuery,
@@ -56,10 +58,7 @@ where
             })
             .await?;
 
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|_| "time is before 1970")?
-            .as_secs() as i64;
+        let now = epoch()?;
 
         let code = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
