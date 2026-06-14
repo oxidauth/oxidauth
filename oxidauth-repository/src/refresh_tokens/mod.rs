@@ -1,4 +1,5 @@
-pub mod delete_refresh_token;
+pub mod delete_refresh_token_by_id;
+pub mod delete_refresh_token_by_user_id;
 pub mod insert_refresh_token;
 pub mod select_refresh_token_by_id;
 

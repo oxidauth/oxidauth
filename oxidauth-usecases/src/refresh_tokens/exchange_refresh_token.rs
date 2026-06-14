@@ -11,7 +11,8 @@ use oxidauth_kernel::jwt::{DurationDirection, Jwt, epoch_from_now, epoch_from_ti
 use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 use oxidauth_kernel::refresh_tokens::create_refresh_token::CreateRefreshToken;
 use oxidauth_kernel::refresh_tokens::{
-    delete_refresh_token::DeleteRefreshToken, find_refresh_token_by_id::FindRefreshTokenById,
+    delete_refresh_token_by_id::DeleteRefreshTokenById,
+    find_refresh_token_by_id::FindRefreshTokenById,
 };
 use oxidauth_kernel::user_authorities::find_user_authority_by_user_id_and_authority_id::FindUserAuthorityByUserIdAndAuthorityId;
 use oxidauth_kernel::{error::BoxedError, refresh_tokens::exchange_refresh_token::*};
@@ -19,7 +20,8 @@ use oxidauth_repository::auth::tree::PermissionTreeQuery;
 use oxidauth_repository::authorities::select_authority_by_id::SelectAuthorityByIdQuery;
 use oxidauth_repository::private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery;
 use oxidauth_repository::refresh_tokens::{
-    delete_refresh_token::DeleteRefreshTokenQuery, insert_refresh_token::InsertRefreshTokenQuery,
+    delete_refresh_token_by_id::DeleteRefreshTokenByIdQuery,
+    insert_refresh_token::InsertRefreshTokenQuery,
     select_refresh_token_by_id::SelectRefreshTokenByIdQuery,
 };
 use oxidauth_repository::user_authorities::select_user_authority_by_user_id_and_authority_id::SelectUserAuthorityByUserIdAndAuthorityIdQuery;
@@ -32,7 +34,7 @@ where
     A: SelectAuthorityByIdQuery,
     P: PermissionTreeQuery,
     K: SelectMostRecentPrivateKeyQuery,
-    D: DeleteRefreshTokenQuery,
+    D: DeleteRefreshTokenByIdQuery,
 {
     refresh_tokens: T,
     insert_refresh_tokens: I,
@@ -51,7 +53,7 @@ where
     A: SelectAuthorityByIdQuery,
     P: PermissionTreeQuery,
     K: SelectMostRecentPrivateKeyQuery,
-    D: DeleteRefreshTokenQuery,
+    D: DeleteRefreshTokenByIdQuery,
 {
     pub fn new(
         refresh_tokens: T,
@@ -84,7 +86,7 @@ where
     A: SelectAuthorityByIdQuery,
     P: PermissionTreeQuery,
     K: SelectMostRecentPrivateKeyQuery,
-    D: DeleteRefreshTokenQuery,
+    D: DeleteRefreshTokenByIdQuery,
 {
     type Response = AuthenticateResponse;
     type Error = BoxedError;
@@ -108,7 +110,7 @@ where
 
         if expires_at.timestamp() < now as i64 {
             self.delete_refresh_tokens
-                .call(&DeleteRefreshToken {
+                .call(&DeleteRefreshTokenById {
                     refresh_token_id: req.refresh_token,
                 })
                 .await?;
@@ -188,7 +190,7 @@ where
             .await?;
 
         self.delete_refresh_tokens
-            .call(&DeleteRefreshToken {
+            .call(&DeleteRefreshTokenById {
                 refresh_token_id: req.refresh_token,
             })
             .await?;

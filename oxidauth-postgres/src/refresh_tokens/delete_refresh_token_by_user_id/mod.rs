@@ -1,23 +1,23 @@
-use oxidauth_repository::refresh_tokens::delete_refresh_token::*;
+use oxidauth_repository::refresh_tokens::delete_refresh_token_by_user_id::*;
 
 use crate::prelude::*;
 
 use super::*;
 
 #[async_trait]
-impl<'a> Service<&'a DeleteRefreshToken> for Database {
+impl<'a> Service<&'a DeleteRefreshTokenByUserId> for Database {
     type Response = RefreshToken;
     type Error = BoxedError;
 
-    #[tracing::instrument(name = "delete_refresh_token_query", skip(self))]
+    #[tracing::instrument(name = "delete_refresh_token_by_user_id_query", skip(self))]
     async fn call(
         &self,
-        params: &'a DeleteRefreshToken,
+        params: &'a DeleteRefreshTokenByUserId,
     ) -> Result<RefreshToken, BoxedError> {
         let result = sqlx::query_as::<_, PgRefreshToken>(include_str!(
-            "./delete_refresh_token.sql"
+            "./delete_refresh_token_by_user_id.sql"
         ))
-        .bind(params.refresh_token_id)
+        .bind(params.user_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -33,5 +33,5 @@ mod tests {
 
     #[ignore]
     #[sqlx::test]
-    async fn it_should_delete_a_refresh_token_successfully(_pool: PgPool) {}
+    async fn it_should_delete_a_refresh_token_by_user_id_successfully(_pool: PgPool) {}
 }

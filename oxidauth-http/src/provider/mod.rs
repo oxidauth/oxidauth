@@ -82,18 +82,23 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         use oxidauth_kernel::auth::username_password::forgot_password::ForgotPasswordService;
         use oxidauth_usecases::auth::strategies::username_password::forgot_password::ForgotPasswordUseCase;
 
-        let forgot_password_service = Arc::new(ForgotPasswordUseCase::new(db.clone()));
+        let forgot_password_service = Arc::new(ForgotPasswordUseCase::new(db.clone(), db.clone()));
 
         provider.store::<ForgotPasswordService>(forgot_password_service);
     }
 
     {
-        use oxidauth_kernel::auth::username_password::reset_password::ResetPasswordService;
-        use oxidauth_usecases::auth::strategies::username_password::reset_password::ResetPasswordUseCase;
+        use oxidauth_kernel::auth::username_password::update_password::UpdatePasswordService;
+        use oxidauth_usecases::auth::strategies::username_password::update_password::UpdatePasswordUseCase;
 
-        let reset_password_service = Arc::new(ResetPasswordUseCase::new(db.clone()));
+        let update_password_service = Arc::new(UpdatePasswordUseCase::new(
+            db.clone(),
+            db.clone(),
+            db.clone(),
+            db.clone(),
+        ));
 
-        provider.store::<ResetPasswordService>(reset_password_service);
+        provider.store::<UpdatePasswordService>(update_password_service);
     }
 
     let create_totp_secret_service = {

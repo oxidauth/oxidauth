@@ -2,7 +2,7 @@ pub mod authenticator;
 pub mod forgot_password;
 pub mod helpers;
 pub mod registrar;
-pub mod reset_password;
+pub mod update_password;
 pub mod user_authority_from_request;
 pub mod user_identifier_from_request;
 
