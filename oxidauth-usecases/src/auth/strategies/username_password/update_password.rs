@@ -136,14 +136,12 @@ where
 
         let password_salt = authority_params.password_salt;
 
-        // TODO: Salt & Pepper new password
         let password_pepper = std::env::var("OXIDAUTH_USERNAME_PASSWORD_PEPPER")?;
 
         let password = raw_password_hash(&params.password, &password_salt, &password_pepper);
 
         let password_hash = hash_password(password).map_err(|err| err.to_string())?;
 
-        // TODO: Set new password on user
         let new_password_params = UserAuthorityParams { password_hash };
 
         let new_password_value = serde_json::to_value(new_password_params)?;
