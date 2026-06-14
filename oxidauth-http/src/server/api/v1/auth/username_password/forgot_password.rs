@@ -1,25 +1,22 @@
-use axum::{Json, extract::State, response::Response};
-use tracing::{error, info};
+use axum::{Json, extract::State, response::IntoResponse};
 
 use oxidauth_kernel::{
-    JsonValue,
     auth::username_password::forgot_password::{
-        ForgotPasswordInfo, ForgotPasswordParams, ForgotPasswordResponse, ForgotPasswordService,
+        ForgotPasswordParams, ForgotPasswordResponse, ForgotPasswordService,
     },
+    error::IntoOxidAuthError,
 };
 
-use crate::provider::Provider;
+use crate::{provider::Provider, response::Response};
 
 #[tracing::instrument(name = "username_password_forgot_password_handler", skip(provider))]
 pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<ForgotPasswordParams>,
-) -> Response {
+) -> impl IntoResponse {
     let service = provider.fetch::<ForgotPasswordService>();
 
-    let result = service
-        .call(&ForgotPasswordInfo { id: params.id })
-        .await;
+    let result = service.call(&params).await;
 
     match result {
         Ok(res) => Response::success().payload(ForgotPasswordResponse { code: res.code }),

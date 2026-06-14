@@ -24,9 +24,9 @@ _Description_
 
 This route triggers an email send if the email in the request exists in the database. No success or failure response is posted as a security measure to stop account searches by email lists. Email sent will contain a totp code with language that the code expires in 15 min.
 
-#### 2. POST `/auth/username_password/reset_password`
+#### 2. POST `/auth/username_password/update_password`
 
-Handler file: /src/auth/username_password/reset_password
+Handler file: /src/auth/username_password/update_password
 
 Req fields: [New Password, New Password Conf, totp code]
 
@@ -42,24 +42,24 @@ If totp code is valid, this route resets the user password (with salt and pepper
 
 - oxidauth-http/src/server/api/v1/auth/username_password folder
 - oxidauth-http/src/server/api/v1/auth/username_password/forgot_password.rs
-- oxidauth-http/src/server/api/v1/auth/username_password/reset_password.rs
+- oxidauth-http/src/server/api/v1/auth/username_password/update_password.rs
 
 #### New type files added to Kernel
 
 - oxidauth-kernel/src/auth/username_password folder
 - oxidauth-kernel/src/auth/username_password/forgot_password.rs
-- oxidauth-kernel/src/auth/username_password/reset_password.rs
+- oxidauth-kernel/src/auth/username_password/update_password.rs
 
 #### New UseCase files added
 
 - oxidauth-usecases/src/auth/strategies/username_password folder
 - oxidauth-usecases/src/auth/strategies/username_password/forgot_password.rs
-- oxidauth-usecases/src/auth/strategies/username_password/reset_password.rs
+- oxidauth-usecases/src/auth/strategies/username_password/update_password.rs
 
 #### Provider references
 
 - username_password_forgot_password_service
-- username_password_reset_password_service
+- username_password_update_password_service
 
 ### Discussion points
 

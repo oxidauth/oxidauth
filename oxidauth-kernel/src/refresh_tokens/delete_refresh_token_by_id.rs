@@ -8,15 +8,11 @@ pub use crate::service::Service;
 
 pub use super::RefreshToken;
 
-pub type DeleteRefreshTokenService = Arc<
-    dyn for<'a> Service<
-        &'a DeleteRefreshToken,
-        Response = RefreshToken,
-        Error = BoxedError,
-    >,
+pub type DeleteRefreshTokenByIdService = Arc<
+    dyn for<'a> Service<&'a DeleteRefreshTokenById, Response = RefreshToken, Error = BoxedError>,
 >;
 
 #[derive(Debug, Deserialize)]
-pub struct DeleteRefreshToken {
+pub struct DeleteRefreshTokenById {
     pub refresh_token_id: Uuid,
 }
