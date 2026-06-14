@@ -24,7 +24,7 @@ use oxidauth_repository::{
     },
 };
 
-use crate::auth::strategies::username_password::{AuthorityParams, UserAuthorityParams};
+use crate::{auth::strategies::username_password::{AuthorityParams, UserAuthorityParams}, dev_prelude::epoch};
 
 use super::helpers::{hash_password, raw_password_hash};
 
@@ -114,19 +114,15 @@ where
             })
             .await?;
 
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|_| "time is before 1970")?;
+        let now = epoch()?;
 
         let valid = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
             .period(600)
-            .timestamp(now.as_secs() as i64)
+            .timestamp(now)
             .finalize()
             .unwrap()
             .is_valid(&params.code);
-
-        info!("code validated. Result: {}", valid);
 
         if !valid {
             return Err("invalid code".into());

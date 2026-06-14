@@ -34,7 +34,7 @@ use oxidauth_repository::{
     users::select_user_by_id_query::SelectUserByIdQuery,
 };
 
-use crate::{auth::strategies::*, bootstrap::TOTP_VALIDATE_PERMISSION};
+use crate::{auth::strategies::*, bootstrap::TOTP_VALIDATE_PERMISSION, dev_prelude::epoch};
 
 pub struct AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
@@ -180,14 +180,12 @@ where
                     })
                     .await?;
 
-                let now = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .map_err(|_| "time is before 1970")?;
+                let now = epoch()?;
 
                 let code = TOTPBuilder::new()
                     .ascii_key(&secret_by_user_id.secret)
                     .period(totp_ttl.as_secs() as u32)
-                    .timestamp(now.as_secs() as i64)
+                    .timestamp(now)
                     .finalize()
                     .map_err(|err| format!("error generating totp: {:?}", err))?
                     .generate();

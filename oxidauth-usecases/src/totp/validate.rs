@@ -12,7 +12,7 @@ use oxidauth_kernel::{
         find_authority_by_client_key::FindAuthorityByClientKey,
     },
     error::BoxedError,
-    jwt::{DurationDirection, Jwt, epoch_from_now},
+    jwt::{DurationDirection, Jwt},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     refresh_tokens::create_refresh_token::CreateRefreshToken,
     service::Service,
@@ -28,6 +28,8 @@ use oxidauth_repository::{
     refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery,
     totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery,
 };
+
+use crate::dev_prelude::{epoch, epoch_from_now};
 
 pub struct ValidateTOTPUseCase<T, K, P, A, R>
 where
@@ -100,7 +102,7 @@ where
             })?;
 
         let totp_ttl = match authority.settings.totp {
-            TotpSettings::Enabled { totp_ttl, .. } => totp_ttl,
+            TotpSettings::Enabled { totp_ttl, .. } => totp_ttl.as_secs() as u32,
             TotpSettings::Disabled => {
                 return Err("totp_ttl missing because totp is disabled".into());
             },
@@ -115,14 +117,12 @@ where
             .call(&secret_params)
             .await?;
 
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|_| "time is before 1970")?;
+        let now = epoch()?;
 
         let valid = TOTPBuilder::new()
             .ascii_key(&secret_by_user_id.secret)
-            .period(totp_ttl.as_secs() as u32)
-            .timestamp(now.as_secs() as i64)
+            .period(totp_ttl)
+            .timestamp(now)
             .finalize()
             .unwrap()
             .is_valid(&req.code);
