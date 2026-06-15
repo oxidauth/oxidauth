@@ -3,7 +3,6 @@ use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use oxidauth_kernel::{
     auth::tree::PermissionSearch,
@@ -12,13 +11,13 @@ use oxidauth_kernel::{
         find_authority_by_client_key::FindAuthorityByClientKey,
     },
     error::BoxedError,
-    jwt::{DurationDirection, Jwt},
+    jwt::{DurationDirection, Jwt, epoch_from_now},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
     refresh_tokens::create_refresh_token::CreateRefreshToken,
     service::Service,
-    totp::{validate::ValidateTOTP, TOTPValidationRes},
+    totp::{TOTPValidationRes, validate::ValidateTOTP},
     totp_secrets::{
-        find_totp_secret_by_user_id::FindTOTPSecretByUserId, TOTPSecret,
+        TOTPSecret, find_totp_secret_by_user_id::FindTOTPSecretByUserId
     },
 };
 use oxidauth_repository::{
@@ -29,7 +28,7 @@ use oxidauth_repository::{
     totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery,
 };
 
-use crate::dev_prelude::{epoch, epoch_from_now};
+use crate::dev_prelude::epoch;
 
 pub struct ValidateTOTPUseCase<T, K, P, A, R>
 where
