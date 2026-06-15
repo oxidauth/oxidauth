@@ -1562,7 +1562,7 @@ version = "0.4.0"
 
 [[package]]
 name = "oxidauth-http"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "axum",
  "axum-extra",
