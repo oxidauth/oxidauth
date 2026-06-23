@@ -193,7 +193,7 @@ where
                     email: profile.email.clone(),
                     given_name: profile.given_name.clone(),
                     family_name: profile.family_name.clone(),
-                    user_id: auth.user_id.to_string(),
+                    user_id: auth.user_id,
                 });
             },
             Err(err) => {
@@ -226,7 +226,7 @@ where
                         email: profile.email.clone(),
                         given_name: profile.given_name,
                         family_name: profile.family_name,
-                        user_id: result.user_id.to_string(),
+                        user_id: result.user_id,
                     };
 
                     return Ok(res);

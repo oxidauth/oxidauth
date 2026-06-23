@@ -108,7 +108,7 @@ fn gen_redirect_url(
     email: String,
     given_name: Option<String>,
     family_name: Option<String>,
-    user_id: String,
+    user_id: Uuid,
 ) -> Result<Url, url::ParseError> {
     let mut path = format!(
         "/auth/sso/login/{}?email={}&user_id={}",
