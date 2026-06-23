@@ -26,7 +26,7 @@ pub struct AuthenticateOrRegisterResponse {
     pub email: String,
     pub given_name: Option<String>,
     pub family_name: Option<String>,
-    pub user_id: String,
+    pub user_id: Uuid,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
