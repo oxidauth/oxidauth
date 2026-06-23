@@ -106,14 +106,22 @@ fn gen_redirect_url(
     base: Url,
     refresh_token: Uuid,
     email: String,
-    given_name: String,
-    family_name: String,
-    user_id: Uuid,
+    given_name: Option<String>,
+    family_name: Option<String>,
+    user_id: String,
 ) -> Result<Url, url::ParseError> {
-    let path = format!(
-        "/auth/sso/login/{}?email={}&given_name={}&family_name={}&user_id={}",
-        refresh_token, email, given_name, family_name, user_id,
+    let mut path = format!(
+        "/auth/sso/login/{}?email={}&user_id={}",
+        refresh_token, email, user_id,
     );
+
+    if let Some(given_name) = given_name {
+        path = format!("{}&given_name={}", path, given_name)
+    }
+
+    if let Some(family_name) = family_name {
+        path = format!("{}&family_name={}", path, family_name)
+    }
 
     base.join(&path)
 }

@@ -31,9 +31,9 @@ pub struct MicrosoftExchangeTokenRes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MicrosoftProfile {
-    pub display_name: String,
-    pub given_name: String,
-    pub surname: String,
+    pub display_name: Option<String>,
+    pub given_name: Option<String>,
+    pub surname: Option<String>,
     pub id: String,
     pub mail: String,
 }
