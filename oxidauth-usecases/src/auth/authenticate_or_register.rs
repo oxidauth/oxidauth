@@ -193,7 +193,7 @@ where
                     email: profile.email.clone(),
                     given_name: profile.given_name.clone(),
                     family_name: profile.family_name.clone(),
-                    user_id: auth.user_id,
+                    user_id: auth.user_id.to_string(),
                 });
             },
             Err(err) => {
@@ -202,8 +202,8 @@ where
                     .contains("user authority not found:")
                 {
                     let reg_params = Oauth2RegisterParams {
-                        first_name: Some(profile.given_name.clone()),
-                        last_name: Some(profile.family_name.clone()),
+                        first_name: profile.given_name.clone(),
+                        last_name: profile.family_name.clone(),
                         email: Some(profile.email.clone()),
                         username: profile.email.clone(),
                         kind: Some(UserKind::Human),
@@ -226,7 +226,7 @@ where
                         email: profile.email.clone(),
                         given_name: profile.given_name,
                         family_name: profile.family_name,
-                        user_id: result.user_id,
+                        user_id: result.user_id.to_string(),
                     };
 
                     return Ok(res);

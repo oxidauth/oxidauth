@@ -28,11 +28,11 @@ pub struct GoogleExchangeTokenRes {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleProfile {
-    pub name: String,
-    pub given_name: String,
-    pub family_name: String,
-    pub picture: String,
-    pub id: String,
+    pub name: Option<String>,
+    pub given_name: Option<String>,
+    pub family_name: Option<String>,
+    pub picture: Option<String>,
+    pub id: Option<String>,
     pub email: String,
     pub verified_email: bool,
 }

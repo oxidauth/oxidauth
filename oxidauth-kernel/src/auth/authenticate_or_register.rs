@@ -24,9 +24,9 @@ pub struct AuthenticateOrRegisterResponse {
     pub refresh_token: Uuid,
     pub client_base: Url,
     pub email: String,
-    pub given_name: String,
-    pub family_name: String,
-    pub user_id: Uuid,
+    pub given_name: Option<String>,
+    pub family_name: Option<String>,
+    pub user_id: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -81,6 +81,6 @@ pub struct OAuth2AuthenticatePathParams {
 #[derive(Debug, Clone, Deserialize)]
 pub struct OAuth2Profile {
     pub email: String,
-    pub given_name: String,
-    pub family_name: String,
+    pub given_name: Option<String>,
+    pub family_name: Option<String>,
 }
