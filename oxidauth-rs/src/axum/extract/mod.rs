@@ -1,5 +1,6 @@
 pub use axum::extract::FromRef;
 use axum::{
+    RequestPartsExt,
     extract::FromRequestParts,
     http::{
         self,
