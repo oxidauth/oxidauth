@@ -1,7 +1,5 @@
 use async_trait::async_trait;
 use boringauth::oath::TOTPBuilder;
-use std::time::{SystemTime, UNIX_EPOCH};
-use tracing::info;
 
 use oxidauth_kernel::{
     JsonValue,

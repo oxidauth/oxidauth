@@ -5,7 +5,6 @@ use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
 use oxidauth_kernel::{authorities::NbfOffset, jwt::DurationDirection};
 use reqwest::Client;
-use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
 
 pub use oxidauth_kernel::{
