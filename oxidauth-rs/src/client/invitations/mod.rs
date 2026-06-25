@@ -5,8 +5,10 @@ pub mod find_invitation;
 pub use oxidauth_kernel::invitations::*;
 
 use super::fmt;
+
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 pub use crate::{
     Client,
     invitations::{

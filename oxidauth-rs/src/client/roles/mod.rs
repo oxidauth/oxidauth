@@ -10,9 +10,12 @@ pub mod list_all_roles;
 pub mod update_role;
 
 pub use oxidauth_kernel::roles::Role;
+pub use permissions::RolePermissionsTrait;
+pub use roles::RoleRoleGrantsTrait;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,

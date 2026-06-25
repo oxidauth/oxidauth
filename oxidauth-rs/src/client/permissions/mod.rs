@@ -5,12 +5,14 @@ pub mod list_all_permissions;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,
     fmt,
     handle_response,
 };
+
 pub use crate::client::permissions::{
     create_permission::CreatePermissionTrait,
     delete_permission::DeletePermissionTrait,

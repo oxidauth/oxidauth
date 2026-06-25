@@ -10,12 +10,14 @@ pub use oxidauth_kernel::authorities::create_authority::*;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,
     fmt,
     handle_response,
 };
+
 pub use crate::authorities::{
     create_authority::CreateAuthorityTrait,
     delete_authority::DeleteAuthorityTrait,

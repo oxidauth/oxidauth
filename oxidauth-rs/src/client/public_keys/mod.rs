@@ -5,6 +5,7 @@ pub mod list_all_public_keys;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,

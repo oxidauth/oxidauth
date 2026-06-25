@@ -10,30 +10,38 @@ pub mod roles;
 pub mod update_user;
 
 pub use oxidauth_kernel::users::*;
+pub use authorities::UserAuthoritiesTrait;
+pub use permissions::UserPermissionsTrait;
+pub use roles::UserRolesTrait;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,
     fmt,
     handle_response,
 };
+
 pub use crate::users::{
     create_user::CreateUserTrait,
     delete_user::DeleteUserTrait,
     find_user_by_id::FindUserByIdTrait,
+    find_users_by_ids::FindUsersByIdsTrait,
     find_user_by_username::FindUserByUsernameTrait,
     list_all_users::ListAllUsersTrait,
+    update_user::UpdateUserTrait,
 };
 
 pub trait UsersTrait:
     ListAllUsersTrait
     + FindUserByIdTrait
+    + FindUsersByIdsTrait
     + FindUserByUsernameTrait
-    + FindUserByIdTrait
     + DeleteUserTrait
     + CreateUserTrait
+    + UpdateUserTrait
 {
 }
 

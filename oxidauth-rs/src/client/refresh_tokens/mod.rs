@@ -2,6 +2,7 @@ mod exchange_refresh_token;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,
