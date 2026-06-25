@@ -39,6 +39,7 @@ use uuid::Uuid;
 
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
+
 pub use crate::{
     auth::AuthTrait,
     authorities::AuthoritiesTrait,

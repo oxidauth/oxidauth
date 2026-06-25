@@ -5,6 +5,7 @@ pub mod username_password;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
+
 use super::{
     Client,
     Resource,
