@@ -3,9 +3,9 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
-use oxidauth_kernel::{authorities::NbfOffset, jwt::DurationDirection};
+use oxidauth_kernel::{authorities::NbfOffset, jwt::DurationDirection, users::UserStatus};
 use reqwest::Client;
-use tracing::info;
+use tracing::{error, info};
 
 pub use oxidauth_kernel::{
     auth::{
@@ -125,6 +125,29 @@ where
             .call(&user_authority_params)
             .await?;
 
+        let user = self
+            .user_by_id
+            .call(&FindUserById {
+                user_id: user_authority.user_id,
+            })
+            .await?;
+
+        match user.status {
+            UserStatus::Enabled => info!("user is enabled: user_id: {}", user.id),
+            UserStatus::Invited => {
+                error!("user is invited but not yet enabled: user_id: {}", user.id);
+
+                return Err(
+                    format!("user is invited but not yet enabled: user_id: {}", user.id).into(),
+                );
+            },
+            UserStatus::Disabled => {
+                error!("user is disabled");
+
+                return Err(format!("user is disabled: user_id: {}", user.id).into());
+            },
+        }
+
         let _ = authenticator
             .authenticate(params.params.clone(), &authority, &user_authority)
             .await?;
@@ -153,13 +176,6 @@ where
                 webhook,
                 webhook_key,
             } => {
-                let user = self
-                    .user_by_id
-                    .call(&FindUserById {
-                        user_id: user_authority.user_id,
-                    })
-                    .await?;
-
                 info!("login requires 2FA");
 
                 jwt_builder = jwt_builder
