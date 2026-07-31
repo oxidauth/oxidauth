@@ -36,7 +36,7 @@ pub use crate::client::{
          roles::{
              CreateRoleRoleGrantTrait as _,
              DeleteRoleRoleGrantTrait as _,
-             ListRoleRoleGrantsByParentIdTrait as _,
+              ListRoleRoleGrantsByChildIdTrait as _,
          },
      },
      settings::*,

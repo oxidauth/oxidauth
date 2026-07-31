@@ -406,13 +406,13 @@ pub async fn setup() -> Result<Provider, BoxedError> {
         provider.store::<DeleteRoleRoleGrantService>(delete_role_role_grant_service);
     }
     {
-        use oxidauth_kernel::role_role_grants::list_role_role_grants_by_parent_id::ListRoleRoleGrantsByParentIdService;
-        use oxidauth_usecases::role_role_grants::list_role_role_grants_by_parent_id::ListRoleRoleGrantsByParentIdUseCase;
+        use oxidauth_kernel::role_role_grants::list_role_role_grants_by_child_id::ListRoleRoleGrantsByChildIdService;
+        use oxidauth_usecases::role_role_grants::list_role_role_grants_by_child_id::ListRoleRoleGrantsByChildIdUseCase;
 
-        let list_role_role_grants_by_parent_id_service =
-            Arc::new(ListRoleRoleGrantsByParentIdUseCase::new(db.clone()));
-        provider.store::<ListRoleRoleGrantsByParentIdService>(
-            list_role_role_grants_by_parent_id_service,
+        let list_role_role_grants_by_child_id_service =
+            Arc::new(ListRoleRoleGrantsByChildIdUseCase::new(db.clone()));
+        provider.store::<ListRoleRoleGrantsByChildIdService>(
+            list_role_role_grants_by_child_id_service,
         );
     }
 

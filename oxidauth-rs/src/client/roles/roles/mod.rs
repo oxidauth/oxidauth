@@ -1,6 +1,6 @@
 pub mod create_role_role_grant;
 pub mod delete_role_role_grant;
-pub mod list_role_role_grants_by_parent_id;
+pub mod list_role_role_grants_by_child_id;
 
 pub use super::*;
 
@@ -10,11 +10,11 @@ use crate::mock::ClientMock;
 pub use crate::roles::roles::{
     create_role_role_grant::CreateRoleRoleGrantTrait,
     delete_role_role_grant::DeleteRoleRoleGrantTrait,
-    list_role_role_grants_by_parent_id::ListRoleRoleGrantsByParentIdTrait,
+    list_role_role_grants_by_child_id::ListRoleRoleGrantsByChildIdTrait,
 };
 
 pub trait RoleRoleGrantsTrait:
-    ListRoleRoleGrantsByParentIdTrait
+    ListRoleRoleGrantsByChildIdTrait
     + DeleteRoleRoleGrantTrait
     + CreateRoleRoleGrantTrait
 {

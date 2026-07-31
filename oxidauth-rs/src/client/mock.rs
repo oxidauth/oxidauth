@@ -98,7 +98,7 @@ use oxidauth_http::server::api::v1::roles::permissions::create_role_permission_g
 // Role Role Grants
 use oxidauth_http::server::api::v1::roles::roles::create_role_role_grant::{CreateRoleRoleGrantReq, CreateRoleRoleGrantRes};
     use oxidauth_http::server::api::v1::roles::roles::delete_role_role_grant::{DeleteRoleRoleGrantReq, DeleteRoleRoleGrantRes};
-    use oxidauth_http::server::api::v1::roles::roles::list_role_role_grants_by_parent_id::{ListRoleRoleGrantsByParentIdReq, ListRoleRoleGrantsByParentIdRes};
+    use oxidauth_http::server::api::v1::roles::roles::list_role_role_grants_by_child_id::{ListRoleRoleGrantsByChildIdReq, ListRoleRoleGrantsByChildIdRes};
 
 // Public Keys
 use oxidauth_http::server::api::v1::public_keys::create_public_key::CreatePublicKeyRes;
@@ -482,12 +482,12 @@ pub struct ClientMock {
                 + Sync,
         >,
     >,
-    pub list_role_role_grants_by_parent_id_fn: Option<
+    pub list_role_role_grants_by_child_id_fn: Option<
         Arc<
             dyn Fn(
-                    ListRoleRoleGrantsByParentIdReq,
+                    ListRoleRoleGrantsByChildIdReq,
                 )
-                    -> Result<ListRoleRoleGrantsByParentIdRes, BoxedError>
+                    -> Result<ListRoleRoleGrantsByChildIdRes, BoxedError>
                 + Send
                 + Sync,
         >,
