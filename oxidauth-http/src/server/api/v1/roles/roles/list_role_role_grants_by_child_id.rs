@@ -3,7 +3,7 @@ use axum::{
     response::IntoResponse,
 };
 use oxidauth_kernel::error::IntoOxidAuthError;
-use oxidauth_kernel::role_role_grants::list_role_role_grants_by_parent_id::*;
+use oxidauth_kernel::role_role_grants::list_role_role_grants_by_child_id::*;
 use oxidauth_permission::parse_and_validate;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
@@ -16,22 +16,22 @@ use crate::response::Response;
 
 use super::PERMISSION;
 
-pub type ListRoleRoleGrantsByParentIdReq = ListRoleRoleGrantsByParentId;
+pub type ListRoleRoleGrantsByChildIdReq = ListRoleRoleGrantsByChildId;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListRoleRoleGrantsByParentIdRes {
+pub struct ListRoleRoleGrantsByChildIdRes {
     pub roles: Vec<RoleRoleGrantDetail>,
 }
 
 #[tracing::instrument(
-    name = "list_role_role_grants_by_parent_id_handler",
+    name = "list_role_role_grants_by_child_id_handler",
     skip(provider)
 )]
 pub async fn handle(
     State(provider): State<Provider>,
     ExtractJwt(jwt): ExtractJwt,
     ExtractEntitlements(permissions): ExtractEntitlements,
-    Path(params): Path<ListRoleRoleGrantsByParentIdReq>,
+    Path(params): Path<ListRoleRoleGrantsByChildIdReq>,
 ) -> impl IntoResponse {
     match parse_and_validate(PERMISSION, &permissions) {
         Ok(true) => info!(
@@ -49,25 +49,25 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<ListRoleRoleGrantsByParentIdService>();
+    let service = provider.fetch::<ListRoleRoleGrantsByChildIdService>();
 
-    info!("provided ListRoleRoleGrantsByParentIdService");
+    info!("provided ListRoleRoleGrantsByChildIdService");
 
     let result = service.call(&params).await;
 
     match result {
         Ok(roles) => {
             info!(
-                message = "successfully listed role role grants by parent_id",
+                message = "successfully listed role role grants by child_id",
                 roles = ?roles,
             );
 
             Response::success()
-                .payload(ListRoleRoleGrantsByParentIdRes { roles })
+                .payload(ListRoleRoleGrantsByChildIdRes { roles })
         },
         Err(err) => {
             info!(
-                message = "failed to list role role grants by parent_id",
+                message = "failed to list role role grants by child_id",
                 err = ?err,
             );
 

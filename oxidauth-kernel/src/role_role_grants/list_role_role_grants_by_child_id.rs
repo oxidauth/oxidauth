@@ -10,15 +10,15 @@ pub use crate::service::Service;
 pub use super::RoleRoleGrant;
 pub use super::RoleRoleGrantDetail;
 
-pub type ListRoleRoleGrantsByParentIdService = Arc<
+pub type ListRoleRoleGrantsByChildIdService = Arc<
     dyn for<'a> Service<
-        &'a ListRoleRoleGrantsByParentId,
+        &'a ListRoleRoleGrantsByChildId,
         Response = Vec<RoleRoleGrantDetail>,
         Error = BoxedError,
     >,
 >;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ListRoleRoleGrantsByParentId {
-    pub parent_id: Uuid,
+pub struct ListRoleRoleGrantsByChildId {
+    pub child_id: Uuid,
 }
