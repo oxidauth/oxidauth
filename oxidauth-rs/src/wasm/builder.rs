@@ -1,8 +1,8 @@
-use super::{OxidauthClient, OxidauthClientConfig};
+use super::{Config, OxidauthClient};
 
 pub struct OxidauthClientBuilder {
     host: Option<String>,
-    config: Option<OxidauthClientConfig>,
+    config: Option<Config>,
 }
 
 impl OxidauthClientBuilder {
@@ -18,12 +18,20 @@ impl OxidauthClientBuilder {
         self
     }
 
-    pub fn config(mut self, config: OxidauthClientConfig) -> Self {
+    pub fn config(mut self, config: Config) -> Self {
         self.config = Some(config);
         self
     }
 
     pub fn build(self) -> Result<OxidauthClient, String> {
-        Ok(OxidauthClient::new(self.host, self.config))
+        let Some(host) = self.host else {
+            return Err("OxidauthClient requires a host".into());
+        };
+
+        let Some(config) = self.config else {
+            return Err("OxidauthClient requires a config".into());
+        };
+
+        Ok(OxidauthClient::new(host, config))
     }
 }
