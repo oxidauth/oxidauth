@@ -5,32 +5,14 @@ use chrono::Utc;
 use oxidauth_http::{
     response::Response,
     server::api::v1::{
-        auth::authenticate::{
-            AuthenticateReq,
-            AuthenticateRes,
-        },
+        auth::authenticate::{AuthenticateReq, AuthenticateRes},
         public_keys::list_all_public_keys::ListAllPublicKeysRes,
-        refresh_tokens::exchange::{
-            ExchangeRefreshTokenReq,
-            ExchangeRefreshTokenRes,
-        },
+        refresh_tokens::exchange::{ExchangeRefreshTokenReq, ExchangeRefreshTokenRes},
     },
 };
-use oxidauth_kernel::{
-    JsonValue,
-    Password,
-    base64::*,
-    jwt::Jwt,
-    public_keys::PublicKey,
-};
-use reqwest::{
-    Method,
-    header::HeaderMap,
-};
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use oxidauth_kernel::{JsonValue, base64::*, jwt::Jwt, public_keys::PublicKey};
+use reqwest::{Method, header::HeaderMap};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::RwLock;
 use tracing::info;
@@ -48,16 +30,10 @@ pub use crate::{
     invitations::InvitationsTrait,
     public_keys::PublicKeysTrait,
     refresh_tokens::RefreshTokensTrait,
-    roles::{
-        RolesTrait,
-        permissions::RolePermissionsTrait,
-        roles::RoleRoleGrantsTrait,
-    },
+    roles::{RolesTrait, permissions::RolePermissionsTrait, roles::RoleRoleGrantsTrait},
     settings::SettingsTrait,
     users::{
-        UsersTrait,
-        authorities::UserAuthoritiesTrait,
-        permissions::UserPermissionsTrait,
+        UsersTrait, authorities::UserAuthoritiesTrait, permissions::UserPermissionsTrait,
         roles::UserRolesTrait,
     },
 };
@@ -106,19 +82,15 @@ pub struct Client {
     pub mock_jwt: Option<Jwt>,
 }
 
-impl ClientTrait for Client {
-}
+impl ClientTrait for Client {}
 
 #[cfg(feature = "mock")]
-impl ClientTrait for ClientMock {
-}
+impl ClientTrait for ClientMock {}
 
 #[derive(Debug, Clone)]
 pub struct Config {
     base_url: Url,
     client_key: Uuid,
-    username: String,
-    password: Password,
 }
 
 #[derive(Debug, Default)]
@@ -130,29 +102,16 @@ pub struct State {
 }
 
 impl Client {
-    pub fn new(
-        base_url: &Url,
-        client_key: Uuid,
-        username: &str,
-        password: &str,
-    ) -> Result<Self, ClientError> {
+    pub fn new(base_url: &Url, client_key: Uuid) -> Result<Self, ClientError> {
         let base_url = base_url
             .join("/api/v1")
-            .map_err(|err| {
-                ClientError::new(
-                    ClientErrorKind::UrlParseError,
-                    Some(Box::new(err)),
-                )
-            })?;
-
+            .map_err(|err| ClientError::new(ClientErrorKind::UrlParseError, Some(Box::new(err))))?;
 
         #[cfg(feature = "mock")]
         return Ok(Self {
             config: Config {
                 base_url,
                 client_key,
-                username: username.to_owned(),
-                password: Password::new(password.to_owned()),
             },
             state: Arc::new(RwLock::new(State::default())),
             mock_jwt: None,
@@ -163,8 +122,6 @@ impl Client {
             config: Config {
                 base_url,
                 client_key,
-                username: username.to_owned(),
-                password: Password::new(password.to_owned()),
             },
             state: Arc::new(RwLock::new(State::default())),
         })
@@ -173,19 +130,9 @@ impl Client {
     #[cfg(feature = "mock")]
     pub fn test_client(mock_jwt: Jwt) -> Result<Self, ClientError> {
         let base_url = Url::parse("http://base_url.com/")
-            .map_err(|err| {
-                ClientError::new(
-                    ClientErrorKind::UrlParseError,
-                    Some(Box::new(err)),
-                )
-            })?
+            .map_err(|err| ClientError::new(ClientErrorKind::UrlParseError, Some(Box::new(err))))?
             .join("/api/v1")
-            .map_err(|err| {
-                ClientError::new(
-                    ClientErrorKind::UrlParseError,
-                    Some(Box::new(err)),
-                )
-            })?;
+            .map_err(|err| ClientError::new(ClientErrorKind::UrlParseError, Some(Box::new(err))))?;
 
         Ok(Self {
             config: Config {
@@ -208,10 +155,7 @@ impl Client {
         let jwt = state
             .raw_jwt
             .as_deref()
-            .ok_or(ClientError::new(
-                ClientErrorKind::NoJwtFound,
-                None,
-            ))?;
+            .ok_or(ClientError::new(ClientErrorKind::NoJwtFound, None))?;
 
         Ok(jwt.to_string())
     }
@@ -225,40 +169,36 @@ impl Client {
         let jwt = state
             .jwt
             .clone()
-            .ok_or(ClientError::new(
-                ClientErrorKind::NoJwtFound,
-                None,
-            ))?;
+            .ok_or(ClientError::new(ClientErrorKind::NoJwtFound, None))?;
 
         Ok(jwt)
     }
 
+    pub async fn authenticate(&self, username: &str, password: &str) -> Result<bool, ClientError> {
+        self.auth(username, password)
+            .await
+    }
+
     #[tracing::instrument(level = "debug", skip(self))]
     async fn get_public_keys(&self) -> Result<Vec<PublicKey>, ClientError> {
-        let public_keys: Response<ListAllPublicKeysRes> =
-            reqwest::Client::new()
-                .get(format!(
-                    "{}/public_keys",
-                    self.config.base_url
-                ))
-                .send()
-                .await
-                .map_err(|err| {
-                    ClientError::new(
-                        ClientErrorKind::Other("unable to fetch public keys"),
-                        Some(Box::new(err)),
-                    )
-                })?
-                .json()
-                .await
-                .map_err(|err| {
-                    ClientError::new(
-                        ClientErrorKind::Other(
-                            "unable to deserialize public keys",
-                        ),
-                        Some(Box::new(err)),
-                    )
-                })?;
+        let public_keys: Response<ListAllPublicKeysRes> = reqwest::Client::new()
+            .get(format!("{}/public_keys", self.config.base_url))
+            .send()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to fetch public keys"),
+                    Some(Box::new(err)),
+                )
+            })?
+            .json()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to deserialize public keys"),
+                    Some(Box::new(err)),
+                )
+            })?;
 
         let public_keys: Vec<PublicKey> = match public_keys {
             Response {
@@ -270,7 +210,7 @@ impl Client {
                 return Err(ClientError::new(
                     ClientErrorKind::Other("failed to deserialize public keys"),
                     None,
-                ))
+                ));
             },
         };
 
@@ -285,7 +225,7 @@ impl Client {
     }
 
     #[tracing::instrument(skip(self))]
-    async fn auth(&self) -> Result<bool, ClientError> {
+    async fn auth(&self, username: &str, password: &str) -> Result<bool, ClientError> {
         let mut state = self.state.write().await;
 
         let public_keys = self.get_public_keys().await?;
@@ -294,18 +234,15 @@ impl Client {
         let json = AuthenticateReq {
             client_key: self.config.client_key,
             params: JsonValue::new(json!({
-                "username": self.config.username,
-                "password": self.config.password,
+                "username": username,
+                "password": password,
             })),
         };
 
         info!(message = "authenticating", params = ?json);
 
         let response: Response<AuthenticateRes> = reqwest::Client::new()
-            .post(format!(
-                "{}/auth/authenticate",
-                self.config.base_url
-            ))
+            .post(format!("{}/auth/authenticate", self.config.base_url))
             .json(&json)
             .send()
             .await
@@ -319,9 +256,7 @@ impl Client {
             .await
             .map_err(|err| {
                 ClientError::new(
-                    ClientErrorKind::Other(
-                        "unable to deserialize authenticate",
-                    ),
+                    ClientErrorKind::Other("unable to deserialize authenticate"),
                     Some(Box::new(err)),
                 )
             })?;
@@ -333,15 +268,9 @@ impl Client {
                 ..
             } => {
                 let jwt =
-                    Jwt::decode_with_public_keys(&payload.jwt, &public_keys)
-                        .map_err(|_| {
-                            ClientError::new(
-                                ClientErrorKind::Other(
-                                    "failed to validate jwt",
-                                ),
-                                None,
-                            )
-                        })?;
+                    Jwt::decode_with_public_keys(&payload.jwt, &public_keys).map_err(|_| {
+                        ClientError::new(ClientErrorKind::Other("failed to validate jwt"), None)
+                    })?;
 
                 state.raw_jwt = Some(payload.jwt.clone());
                 state.jwt = Some(jwt);
@@ -351,9 +280,7 @@ impl Client {
                     .parse()
                     .map_err(|err| {
                         ClientError::new(
-                            ClientErrorKind::Other(
-                                "unable to create bearer token",
-                            ),
+                            ClientErrorKind::Other("unable to create bearer token"),
                             Some(Box::new(err)),
                         )
                     })?;
@@ -366,9 +293,7 @@ impl Client {
                     .build()
                     .map_err(|err| {
                         ClientError::new(
-                            ClientErrorKind::Other(
-                                "unable to build client in auth",
-                            ),
+                            ClientErrorKind::Other("unable to build client in auth"),
                             Some(Box::new(err)),
                         )
                     })?;
@@ -380,9 +305,7 @@ impl Client {
             } => {
                 let errors = serde_json::to_string(&errors).map_err(|err| {
                     ClientError::new(
-                        ClientErrorKind::Other(
-                            "unable to serialize authenticate errors",
-                        ),
+                        ClientErrorKind::Other("unable to serialize authenticate errors"),
                         Some(Box::new(err)),
                     )
                 })?;
@@ -396,7 +319,7 @@ impl Client {
                 return Err(ClientError::new(
                     ClientErrorKind::Other("failed authenticate response"),
                     None,
-                ))
+                ));
             },
         }
 
@@ -411,42 +334,32 @@ impl Client {
 
         let Some(refresh_token) = state.refresh_token else {
             return Err(ClientError::new(
-                ClientErrorKind::Other(
-                    "can't refresh -- no refresh token found",
-                ),
+                ClientErrorKind::Other("can't refresh -- no refresh token found"),
                 None,
             ));
         };
 
         let req = ExchangeRefreshTokenReq { refresh_token };
 
-        let response: Response<ExchangeRefreshTokenRes> =
-            reqwest::Client::new()
-                .post(format!(
-                    "{}/refresh_tokens",
-                    self.config.base_url
-                ))
-                .json(&req)
-                .send()
-                .await
-                .map_err(|err| {
-                    ClientError::new(
-                        ClientErrorKind::Other(
-                            "unable to make request for new refresh token",
-                        ),
-                        Some(Box::new(err)),
-                    )
-                })?
-                .json()
-                .await
-                .map_err(|err| {
-                    ClientError::new(
-                        ClientErrorKind::Other(
-                            "unable to make request for new refresh token",
-                        ),
-                        Some(Box::new(err)),
-                    )
-                })?;
+        let response: Response<ExchangeRefreshTokenRes> = reqwest::Client::new()
+            .post(format!("{}/refresh_tokens", self.config.base_url))
+            .json(&req)
+            .send()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to make request for new refresh token"),
+                    Some(Box::new(err)),
+                )
+            })?
+            .json()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to make request for new refresh token"),
+                    Some(Box::new(err)),
+                )
+            })?;
 
         match response {
             Response {
@@ -462,8 +375,7 @@ impl Client {
                         Err(_) => continue,
                     };
 
-                    if let Ok(decoded_jwt) = Jwt::decode(&payload.jwt, &decoded)
-                    {
+                    if let Ok(decoded_jwt) = Jwt::decode(&payload.jwt, &decoded) {
                         jwt = Some(decoded_jwt);
 
                         break;
@@ -479,9 +391,7 @@ impl Client {
                             .parse()
                             .map_err(|err| {
                                 ClientError::new(
-                                    ClientErrorKind::Other(
-                                        "unable to create bearer token",
-                                    ),
+                                    ClientErrorKind::Other("unable to create bearer token"),
                                     Some(Box::new(err)),
                                 )
                             })?;
@@ -494,9 +404,7 @@ impl Client {
                             .build()
                             .map_err(|err| {
                                 ClientError::new(
-                                    ClientErrorKind::Other(
-                                        "unable to build client in auth",
-                                    ),
+                                    ClientErrorKind::Other("unable to build client in auth"),
                                     Some(Box::new(err)),
                                 )
                             })?;
@@ -509,12 +417,7 @@ impl Client {
                     },
                 }
             },
-            _ => {
-                return Err(ClientError::new(
-                    ClientErrorKind::Other(""),
-                    None,
-                ))
-            },
+            _ => return Err(ClientError::new(ClientErrorKind::Other(""), None)),
         }
 
         Ok(true)
@@ -541,13 +444,8 @@ impl Client {
     async fn authenticate_if_needed(&self) -> Result<bool, ClientError> {
         match self.check_auth_state().await {
             AuthState::Valid => Ok(true),
-            AuthState::Auth => self.auth().await,
-            AuthState::Refresh => {
-                match self.refresh().await {
-                    Ok(res) => Ok(res),
-                    Err(_) => self.auth().await,
-                }
-            },
+            AuthState::Auth => Ok(false),
+            AuthState::Refresh => self.refresh().await,
         }
     }
 
@@ -569,10 +467,7 @@ impl Client {
 
         let client = &state.client;
 
-        let url = format!(
-            "{}{}",
-            self.config.base_url, url
-        );
+        let url = format!("{}{}", self.config.base_url, url);
 
         let res = client
             .request(method, url)
@@ -601,11 +496,7 @@ impl Client {
         Ok(res)
     }
 
-    pub async fn get<Req, Res>(
-        &self,
-        url: &str,
-        payload: Req,
-    ) -> Result<Res, ClientError>
+    pub async fn get<Req, Res>(&self, url: &str, payload: Req) -> Result<Res, ClientError>
     where
         Req: Serialize + std::fmt::Debug,
         Res: for<'a> Deserialize<'a>,
@@ -614,11 +505,7 @@ impl Client {
             .await
     }
 
-    pub async fn put<Req, Res>(
-        &self,
-        url: &str,
-        payload: Req,
-    ) -> Result<Res, ClientError>
+    pub async fn put<Req, Res>(&self, url: &str, payload: Req) -> Result<Res, ClientError>
     where
         Req: Serialize + std::fmt::Debug,
         Res: for<'a> Deserialize<'a>,
@@ -627,11 +514,7 @@ impl Client {
             .await
     }
 
-    pub async fn post<Req, Res>(
-        &self,
-        url: &str,
-        payload: Req,
-    ) -> Result<Res, ClientError>
+    pub async fn post<Req, Res>(&self, url: &str, payload: Req) -> Result<Res, ClientError>
     where
         Req: Serialize + std::fmt::Debug,
         Res: for<'a> Deserialize<'a>,
@@ -640,11 +523,7 @@ impl Client {
             .await
     }
 
-    pub async fn delete<Req, Res>(
-        &self,
-        url: &str,
-        payload: Req,
-    ) -> Result<Res, ClientError>
+    pub async fn delete<Req, Res>(&self, url: &str, payload: Req) -> Result<Res, ClientError>
     where
         Req: Serialize + std::fmt::Debug,
         Res: for<'a> Deserialize<'a>,
@@ -734,22 +613,13 @@ impl fmt::Display for ClientError {
 
         match self.kind {
             NoJwtFound => {
-                write!(
-                    f,
-                    "no jwt found when calling get_jwt"
-                )
+                write!(f, "no jwt found when calling get_jwt")
             },
             AuthError => {
-                write!(
-                    f,
-                    "encountered an error authenticating"
-                )
+                write!(f, "encountered an error authenticating")
             },
             RefreshError => {
-                write!(
-                    f,
-                    "encountered an error while refreshing token"
-                )
+                write!(f, "encountered an error while refreshing token")
             },
             EmptyPayload(resource, method) => {
                 write!(
@@ -759,16 +629,10 @@ impl fmt::Display for ClientError {
                 )
             },
             APIResponseError => {
-                write!(
-                    f,
-                    "error reported when making a request to the API"
-                )
+                write!(f, "error reported when making a request to the API")
             },
             UrlParseError => {
-                write!(
-                    f,
-                    "encountered an error while parsing url"
-                )
+                write!(f, "encountered an error while parsing url")
             },
             Other(reason) => write!(f, "error: {}", reason),
         }
@@ -808,12 +672,7 @@ where
 
     let payload = response
         .payload
-        .ok_or_else(|| {
-            ClientError::new(
-                ClientErrorKind::EmptyPayload(resource, method),
-                None,
-            )
-        })?;
+        .ok_or_else(|| ClientError::new(ClientErrorKind::EmptyPayload(resource, method), None))?;
 
     Ok(payload)
 }
