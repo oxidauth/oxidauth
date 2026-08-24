@@ -47,6 +47,7 @@ pub mod public_keys;
 pub mod refresh_tokens;
 pub mod roles;
 pub mod settings;
+pub mod totp;
 pub mod users;
 
 #[cfg(feature = "mock")]
@@ -158,6 +159,14 @@ impl Client {
             .ok_or(ClientError::new(ClientErrorKind::NoJwtFound, None))?;
 
         Ok(jwt.to_string())
+    }
+
+    #[cfg(feature = "wasm")]
+    pub fn store_jwt_to_local_storage(&self, jwt: &str) -> bool() {
+        match gloo_storage::Storage::local().set_item("jwt", jwt) {
+            Ok(()) => true,
+            Err(_) => false,
+        }
     }
 
     pub async fn get_jwt_decoded(&self) -> Result<Jwt, ClientError> {
@@ -275,6 +284,9 @@ impl Client {
                 state.raw_jwt = Some(payload.jwt.clone());
                 state.jwt = Some(jwt);
                 state.refresh_token = Some(payload.refresh_token);
+
+                #[cfg(feature = "wasm")]
+                store_jwt_to_local_storage(state.jwt);
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()
