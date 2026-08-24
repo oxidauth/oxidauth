@@ -5,7 +5,7 @@ pub use oxidauth_http::{
         register::{AuthorityStrategy, RegisterReq, RegisterRes},
     },
 };
-use oxidauth_kernel::{auth::oauth2::redirect::Oauth2RedirectParams, error::BoxedError};
+pub use oxidauth_kernel::{auth::oauth2::redirect::Oauth2RedirectParams, error::BoxedError};
 
 pub use oxidauth_usecases::auth::strategies::*;
 

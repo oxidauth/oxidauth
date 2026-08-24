@@ -1,11 +1,7 @@
 use async_trait::async_trait;
 pub use oxidauth_http::{
     response::Response,
-    server::api::v1::auth::register::{
-        AuthorityStrategy,
-        RegisterReq,
-        RegisterRes,
-    },
+    server::api::v1::auth::register::{AuthorityStrategy, RegisterReq, RegisterRes},
 };
 use oxidauth_kernel::error::BoxedError;
 

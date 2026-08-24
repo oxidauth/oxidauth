@@ -1,9 +1,7 @@
 use async_trait::async_trait;
-use oxidauth_http::{
-    response::Response,
-    server::api::v1::totp::validate::{ValidateTOTPReq, ValidateTOTPRes},
-};
 
+use oxidauth_http::response::Response;
+pub use oxidauth_http::server::api::v1::totp::validate::{ValidateTOTPReq, ValidateTOTPRes};
 use oxidauth_kernel::error::BoxedError;
 
 const RESOURCE: Resource = Resource::Totp;
