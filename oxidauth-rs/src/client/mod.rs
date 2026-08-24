@@ -19,6 +19,9 @@ use tracing::info;
 use url::Url;
 use uuid::Uuid;
 
+#[cfg(feature = "wasm")]
+use gloo_storage::{LocalStorage, Storage};
+
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
 
@@ -162,8 +165,8 @@ impl Client {
     }
 
     #[cfg(feature = "wasm")]
-    pub fn store_jwt_to_local_storage(&self, jwt: &str) -> bool() {
-        match gloo_storage::Storage::local().set_item("jwt", jwt) {
+    pub fn store_jwt_to_local_storage(&self, jwt: &str) -> bool {
+        match LocalStorage::set("jwt", jwt) {
             Ok(()) => true,
             Err(_) => false,
         }
@@ -286,7 +289,7 @@ impl Client {
                 state.refresh_token = Some(payload.refresh_token);
 
                 #[cfg(feature = "wasm")]
-                store_jwt_to_local_storage(state.jwt);
+                self.store_jwt_to_local_storage(&payload.jwt);
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()
