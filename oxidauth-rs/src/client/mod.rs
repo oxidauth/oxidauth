@@ -20,8 +20,6 @@ use url::Url;
 use uuid::Uuid;
 
 #[cfg(feature = "wasm")]
-use gloo_storage::{LocalStorage, Storage};
-
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
 
@@ -164,14 +162,6 @@ impl Client {
         Ok(jwt.to_string())
     }
 
-    #[cfg(feature = "wasm")]
-    pub fn store_jwt_to_local_storage(&self, jwt: &str) -> bool {
-        match LocalStorage::set("jwt", jwt) {
-            Ok(()) => true,
-            Err(_) => false,
-        }
-    }
-
     pub async fn get_jwt_decoded(&self) -> Result<Jwt, ClientError> {
         self.authenticate_if_needed()
             .await?;
@@ -287,9 +277,6 @@ impl Client {
                 state.raw_jwt = Some(payload.jwt.clone());
                 state.jwt = Some(jwt);
                 state.refresh_token = Some(payload.refresh_token);
-
-                #[cfg(feature = "wasm")]
-                self.store_jwt_to_local_storage(&payload.jwt);
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()

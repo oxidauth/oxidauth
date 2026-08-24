@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use oxidauth_permission::{parse::parse, validate, PermissionParseErr, Token};
+use oxidauth_permission::{PermissionParseErr, Token, parse::parse, validate};
 
 #[async_trait]
 pub trait Service<Request>: Send + Sync + 'static {
@@ -62,10 +62,7 @@ where
             .map(|s| s.to_string())
             .collect();
 
-        match validate(
-            &self.permissions,
-            &permissions,
-        ) {
+        match validate(&self.permissions, &permissions) {
             Ok(true) => self
                 .service
                 .call(req)
@@ -99,10 +96,7 @@ mod tests {
         type Response = ();
         type Error = ();
 
-        async fn call(
-            &self,
-            _req: MockServiceParams,
-        ) -> Result<Self::Response, Self::Error> {
+        async fn call(&self, _req: MockServiceParams) -> Result<Self::Response, Self::Error> {
             Ok(())
         }
     }
@@ -117,9 +111,8 @@ mod tests {
     async fn it_should_allow_call_with_good_permissions() {
         let inner = MockService;
 
-        let can_middleware = CanLayer::new("oxidauth:users:read").expect(
-            "should be able to parse a valid static set of permissions",
-        );
+        let can_middleware = CanLayer::new("oxidauth:users:read")
+            .expect("should be able to parse a valid static set of permissions");
 
         let service = can_middleware.layer(inner);
 
@@ -137,9 +130,8 @@ mod tests {
     async fn it_should_return_unauthorized_with_bad_permissions() {
         let inner = MockService;
 
-        let can_middleware = CanLayer::new("oxidauth:users:read").expect(
-            "should be able to parse a valid static set of permissions",
-        );
+        let can_middleware = CanLayer::new("oxidauth:users:read")
+            .expect("should be able to parse a valid static set of permissions");
 
         let service = can_middleware.layer(inner);
 

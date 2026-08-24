@@ -120,11 +120,7 @@ mod tests {
     fn test_compare() {
         use Token::*;
 
-        assert_compare!(
-            false,
-            [],
-            [Single, Colon, Double, Colon, Double]
-        );
+        assert_compare!(false, [], [Single, Colon, Double, Colon, Double]);
 
         assert_compare!(
             true,

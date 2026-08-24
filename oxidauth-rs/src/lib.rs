@@ -2,9 +2,6 @@ pub mod axum;
 pub mod client;
 pub mod prelude;
 
-#[cfg(feature = "wasm")]
-pub mod wasm;
-
 #[cfg(feature = "mock")]
 pub use client::mock::ClientMock as OxidAuthClientMock;
 
