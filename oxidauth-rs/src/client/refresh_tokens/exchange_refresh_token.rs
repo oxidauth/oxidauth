@@ -1,9 +1,5 @@
 use async_trait::async_trait;
 use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
-    ExchangeRefreshTokenReq,
-    ExchangeRefreshTokenRes,
-};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
