@@ -1628,8 +1628,6 @@ dependencies = [
  "axum",
  "axum-extra",
  "chrono",
- "gloo-storage",
- "gloo-timers",
  "mockall",
  "oxidauth-http",
  "oxidauth-kernel",
@@ -1642,7 +1640,6 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "wasm-bindgen-futures",
 ]
 
 [[package]]

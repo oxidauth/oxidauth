@@ -25,25 +25,13 @@ chrono = { version = "0.4.38", features = ["serde"] }
 reqwest = { version = "0.12.5", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
-
 tracing = "0.1.40"
 url = { version = "2.5.2", features = ["serde"] }
 uuid = { version = "1.8.0", features = ["serde", "v4"] }
 mockall = "0.14.0"
-
 tokio = { version = "1.40.0", features = ["macros", "rt"] }
-
-axum = { version = "0.8.8", optional = true }
-axum-extra = { version = "0.12.5", optional = true, features = ["typed-header"] }
-
-gloo-storage = { version = "0.4.0", optional = true }
-gloo-timers = { version = "0.3", optional = true }
-# tokio_with_wasm = { version = "0.10.1", features = ["macros", "rt"], optional = true }
-
-wasm-bindgen-futures = {version = "0.4.71", optional = true }
+axum = { version = "0.8.8" }
+axum-extra = { version = "0.12.5", features = ["typed-header"] }
 
 [features]
-default = ["server"]
-mock = ["server"]
-server = ["axum", "axum-extra"]
-wasm = ["gloo-storage", "gloo-timers", "wasm-bindgen-futures"]
+mock = []

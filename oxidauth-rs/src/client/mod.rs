@@ -14,16 +14,10 @@ use oxidauth_kernel::{JsonValue, base64::*, jwt::Jwt, public_keys::PublicKey};
 use reqwest::{Method, header::HeaderMap};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-
-#[cfg(not(feature = "wasm"))]
 use tokio::{spawn, sync::RwLock, time::sleep};
-
 use tracing::info;
 use url::Url;
 use uuid::Uuid;
-
-#[cfg(feature = "wasm")]
-use wasm_bindgen_futures::spawn_local as spawn;
 
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
