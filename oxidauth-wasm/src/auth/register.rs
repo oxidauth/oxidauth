@@ -1,5 +1,6 @@
 use crate::response::Response;
 use async_trait::async_trait;
+use log::info;
 
 use super::*;
 
@@ -41,7 +42,11 @@ impl RegisterTrait for Client {
     where
         T: Into<RegisterReq> + fmt::Debug,
     {
+        info!("start register call");
+
         let params = params.into();
+
+        info!("register params {:#?}", params);
 
         let result = self
             .post("/auth/register", params)
@@ -51,11 +56,12 @@ impl RegisterTrait for Client {
             return Err("register call failed".to_string());
         };
 
-        let Ok(role_res) = handle_response(RESOURCE, METHOD, resp) else {
+        let Ok(register_res) = handle_response(RESOURCE, METHOD, resp) else {
             return Err("register call failed".to_string());
         };
 
-        Ok(role_res)
+        info!("Register res {:#?}", register_res);
+        Ok(register_res)
     }
 }
 
