@@ -1,5 +1,5 @@
 pub use std::fmt;
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use chrono::Utc;
 use oxidauth_http::{
@@ -14,7 +14,7 @@ use oxidauth_kernel::{JsonValue, base64::*, jwt::Jwt, public_keys::PublicKey};
 use reqwest::{Method, header::HeaderMap};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tokio::sync::RwLock;
+use tokio::{spawn, sync::RwLock, time::sleep};
 use tracing::info;
 use url::Url;
 use uuid::Uuid;
@@ -23,6 +23,7 @@ use uuid::Uuid;
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
 
+use crate::prelude::ExchangeRefreshTokenTrait;
 pub use crate::{
     auth::AuthTrait,
     authorities::AuthoritiesTrait,
@@ -120,13 +121,25 @@ impl Client {
         });
 
         #[cfg(not(feature = "mock"))]
-        Ok(Self {
+        let client = Self {
             config: Config {
                 base_url,
                 client_key,
             },
             state: Arc::new(RwLock::new(State::default())),
-        })
+        };
+
+        #[cfg(not(feature = "mock"))]
+        // start automatic refresh token exchange
+        let _client = client.clone();
+        spawn(async move {
+            _client
+                .timed_refresh_token_exchange()
+                .await
+        });
+
+        #[cfg(not(feature = "mock"))]
+        Ok(client)
     }
 
     #[cfg(feature = "mock")]
@@ -146,6 +159,85 @@ impl Client {
             state: Arc::new(RwLock::new(State::default())),
             mock_jwt: Some(mock_jwt),
         })
+    }
+
+    pub async fn timed_refresh_token_exchange(&self) -> () {
+        info!("starting timed refresh loop");
+
+        loop {
+            info!("top of timed refresh loop");
+            let state = self.state.read().await;
+            let Ok(public_keys) = self.get_public_keys().await else {
+                ClientError::new(ClientErrorKind::Other("could not get public keys"), None);
+                return;
+            };
+
+            // get jwt
+            let Some(jwt) = state.jwt.clone() else {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to fetch JWT from state"),
+                    None,
+                );
+                return;
+            };
+
+            info!(
+                "!! #1 - JWT exp {} - now: {}",
+                jwt.exp,
+                Utc::now().timestamp()
+            );
+
+            let ten_seconds_from_now = Utc::now().timestamp() as usize + 30;
+
+            if jwt.exp < ten_seconds_from_now {
+                info!("found exp within 10 secs - refreshing tokens");
+
+                let Some(refresh_token) = state.refresh_token else {
+                    ClientError::new(
+                        ClientErrorKind::Other("unable to fetch refresh token from state"),
+                        None,
+                    );
+                    return;
+                };
+
+                drop(state);
+
+                info!("exchanging token");
+
+                let Ok(res) = self
+                    .exchange_refresh_token(ExchangeRefreshTokenReq { refresh_token })
+                    .await
+                else {
+                    info!("failed to exchange token");
+                    ClientError::new(ClientErrorKind::Other("failed to exchange token"), None);
+                    return;
+                };
+
+                info!("exchange token complete");
+
+                let Ok(jwt) = Jwt::decode_with_public_keys(&res.jwt, &public_keys).map_err(|_| {
+                    info!("failed to validate jwt");
+                    ClientError::new(ClientErrorKind::Other("failed to validate jwt"), None)
+                }) else {
+                    info!("failed to decode jwt");
+                    ClientError::new(ClientErrorKind::Other("failed to decode jwt"), None);
+                    return;
+                };
+
+                let mut state = self.state.write().await;
+
+                info!("writing new tokens to state");
+                info!("!! #2 - JWT exp {}", jwt.exp);
+
+                state.raw_jwt = Some(res.jwt.clone());
+                state.jwt = Some(jwt);
+                state.refresh_token = Some(res.refresh_token);
+
+                drop(state);
+            }
+
+            sleep(Duration::from_secs(30)).await;
+        }
     }
 
     pub async fn get_jwt(&self) -> Result<String, ClientError> {
