@@ -15,11 +15,11 @@ use reqwest::{Method, header::HeaderMap};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[cfg(not(feature = "wasm"))]
+// #[cfg(not(feature = "wasm"))]
 use tokio::{spawn, sync::RwLock, time::sleep};
 
-#[cfg(feature = "wasm")]
-use tokio_with_wasm::{spawn, sync::RwLock, time::sleep};
+// #[cfg(feature = "wasm")]
+// use tokio_with_wasm::alias as tokio;
 
 use tracing::info;
 use url::Url;
@@ -137,6 +137,8 @@ impl Client {
         // start automatic refresh token exchange
         #[cfg(not(feature = "mock"))]
         let _client = client.clone();
+
+        #[cfg(not(feature = "mock"))]
         spawn(async move {
             _client
                 .timed_refresh_token_exchange()
@@ -166,7 +168,7 @@ impl Client {
         })
     }
 
-    pub async fn timed_refresh_token_exchange(&self) -> () {
+    pub async fn timed_refresh_token_exchange(&self) {
         info!("starting timed refresh loop");
 
         loop {
@@ -192,7 +194,7 @@ impl Client {
                 Utc::now().timestamp()
             );
 
-            let ten_seconds_from_now = Utc::now().timestamp() as usize + 30;
+            let ten_seconds_from_now = Utc::now().timestamp() as usize + 10;
 
             if jwt.exp < ten_seconds_from_now {
                 info!("found exp within 10 secs - refreshing tokens");
@@ -241,7 +243,7 @@ impl Client {
                 drop(state);
             }
 
-            sleep(Duration::from_secs(30)).await;
+            sleep(Duration::from_secs(2)).await;
         }
     }
 
