@@ -14,12 +14,17 @@ use oxidauth_kernel::{JsonValue, base64::*, jwt::Jwt, public_keys::PublicKey};
 use reqwest::{Method, header::HeaderMap};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+
+#[cfg(not(feature = "wasm"))]
 use tokio::{spawn, sync::RwLock, time::sleep};
+
+#[cfg(feature = "wasm")]
+use tokio_with_wasm::{spawn, sync::RwLock, time::sleep};
+
 use tracing::info;
 use url::Url;
 use uuid::Uuid;
 
-#[cfg(feature = "wasm")]
 #[cfg(feature = "mock")]
 use crate::mock::ClientMock;
 
@@ -129,8 +134,8 @@ impl Client {
             state: Arc::new(RwLock::new(State::default())),
         };
 
-        #[cfg(not(feature = "mock"))]
         // start automatic refresh token exchange
+        #[cfg(not(feature = "mock"))]
         let _client = client.clone();
         spawn(async move {
             _client
