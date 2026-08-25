@@ -226,9 +226,9 @@ impl Client {
 
                 let mut state = self.state.write().await;
 
-                info!("writing new tokens to state");
                 info!("!! #2 - JWT exp {}", jwt.exp);
 
+                info!("writing new tokens to state");
                 state.raw_jwt = Some(res.jwt.clone());
                 state.jwt = Some(jwt);
                 state.refresh_token = Some(res.refresh_token);
