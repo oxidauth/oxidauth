@@ -595,9 +595,13 @@ impl Client {
 
         let url = format!("{}{}", self.config.base_url, url);
 
-        let res = client
-            .request(method, url)
-            .json(&payload)
+        let mut req = client.request(method.clone(), url);
+
+        if method != Method::GET {
+            req = req.json(&payload);
+        }
+
+        let res = req
             .send()
             .await
             .map_err(|err| {
