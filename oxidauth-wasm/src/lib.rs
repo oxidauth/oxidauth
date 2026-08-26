@@ -10,6 +10,7 @@ pub use std::fmt;
 use std::{error::Error, sync::Arc, time::Duration};
 
 use chrono::Utc;
+use gloo_storage::{LocalStorage, Storage};
 use log::info;
 use reqwest::{Method, header::HeaderMap};
 use serde::{Deserialize, Serialize};
@@ -342,6 +343,8 @@ impl Client {
                 state.raw_jwt = Some(payload.jwt.clone());
                 // state.jwt = Some(jwt);
                 state.refresh_token = Some(payload.refresh_token);
+
+                let _ = LocalStorage::set("navi_jwt", payload.jwt.clone());
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()

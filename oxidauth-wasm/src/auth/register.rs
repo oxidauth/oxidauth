@@ -61,6 +61,7 @@ impl RegisterTrait for Client {
         };
 
         info!("Register res {:#?}", register_res);
+
         Ok(register_res)
     }
 }
