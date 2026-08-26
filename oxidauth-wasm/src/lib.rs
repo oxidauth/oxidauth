@@ -214,6 +214,38 @@ impl Client {
                 // state.jwt = Some(jwt);
                 state.refresh_token = Some(res.refresh_token);
 
+                let Ok(bearer) = format!("Bearer {}", res.jwt.clone())
+                    .parse()
+                    .map_err(|err| {
+                        ClientError::new(
+                            ClientErrorKind::Other("unable to create bearer token"),
+                            Some(Box::new(err)),
+                        )
+                    })
+                else {
+                    return;
+                };
+
+                let mut headers = HeaderMap::new();
+                headers.insert("Authorization", bearer);
+
+                let Ok(client) = reqwest::Client::builder()
+                    .default_headers(headers)
+                    .build()
+                    .map_err(|err| {
+                        ClientError::new(
+                            ClientErrorKind::Other("unable to build client in auth"),
+                            Some(Box::new(err)),
+                        )
+                    })
+                else {
+                    return;
+                };
+
+                state.client = client;
+
+                let _ = LocalStorage::set("navi_jwt", res.jwt.clone());
+
                 drop(state);
             }
 
