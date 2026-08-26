@@ -190,7 +190,8 @@ impl Client {
                     ClientErrorKind::Other("unable to decode jwt to get exp time"),
                     None,
                 );
-                return;
+
+                continue;
             };
 
             info!(
@@ -209,7 +210,8 @@ impl Client {
                         ClientErrorKind::Other("unable to fetch refresh token from state"),
                         None,
                     );
-                    return;
+
+                    continue;
                 };
 
                 drop(state);
@@ -222,7 +224,8 @@ impl Client {
                 else {
                     info!("failed to exchange token");
                     ClientError::new(ClientErrorKind::Other("failed to exchange token"), None);
-                    return;
+
+                    continue;
                 };
 
                 info!("exchange token complete");
@@ -255,7 +258,7 @@ impl Client {
                         )
                     })
                 else {
-                    return;
+                    continue;
                 };
 
                 let mut headers = HeaderMap::new();
@@ -271,7 +274,7 @@ impl Client {
                         )
                     })
                 else {
-                    return;
+                    continue;
                 };
 
                 state.client = client;
