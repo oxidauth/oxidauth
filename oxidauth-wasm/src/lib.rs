@@ -234,8 +234,13 @@ impl Client {
         Ok(jwt.to_string())
     }
 
-    pub async fn authenticate(&self, username: &str, password: &str) -> Result<bool, ClientError> {
-        self.auth(self.config.client_key, username, password)
+    pub async fn authenticate(
+        &self,
+        client_key: Uuid,
+        username: &str,
+        password: &str,
+    ) -> Result<bool, ClientError> {
+        self.auth(client_key, username, password)
             .await
     }
 
