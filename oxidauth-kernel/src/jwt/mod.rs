@@ -68,7 +68,11 @@ impl Jwt {
 
             match res {
                 Ok(jwt) => return Ok(jwt),
-                Err(_) => continue,
+                Err(err) => {
+                    info!("decode jwt with public key failed {:?}", err);
+
+                    continue;
+                },
             }
         }
 
