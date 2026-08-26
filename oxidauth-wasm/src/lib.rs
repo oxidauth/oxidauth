@@ -602,7 +602,7 @@ impl Client {
             .await
             .map_err(|err| {
                 ClientError::new(
-                    ClientErrorKind::Other("http request failed"),
+                    ClientErrorKind::OtherString(err.to_string()),
                     Some(Box::new(err)),
                 )
             })?;
@@ -729,13 +729,14 @@ pub enum ClientErrorKind {
     APIResponseError,
     UrlParseError,
     Other(&'static str),
+    OtherString(String),
 }
 
 impl fmt::Display for ClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use ClientErrorKind::*;
 
-        match self.kind {
+        match &self.kind {
             NoJwtFound => {
                 write!(f, "no jwt found when calling get_jwt")
             },
@@ -759,6 +760,7 @@ impl fmt::Display for ClientError {
                 write!(f, "encountered an error while parsing url")
             },
             Other(reason) => write!(f, "error: {}", reason),
+            OtherString(reason) => write!(f, "error: {}", reason),
         }
     }
 }
