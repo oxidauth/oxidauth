@@ -242,15 +242,23 @@ impl Client {
 
                 info!("exchanging token");
 
-                let Ok(res) = self
+                let res = match self
                     .exchange_refresh_token(ExchangeRefreshTokenReq { refresh_token })
                     .await
-                else {
-                    let err =
-                        ClientError::new(ClientErrorKind::Other("failed to exchange token"), None);
-                    info!("failed to exchange token :: {}", err);
+                {
+                    Ok(res) => res,
+                    Err(err) => {
+                        let err = ClientError::new(
+                            ClientErrorKind::OtherString(format!(
+                                "failed to exchange token {}",
+                                err
+                            )),
+                            None,
+                        );
+                        info!("failed to exchange token :: {}", err);
 
-                    continue;
+                        continue;
+                    },
                 };
 
                 info!("exchange token complete");
