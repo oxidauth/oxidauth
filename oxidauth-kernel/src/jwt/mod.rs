@@ -6,14 +6,14 @@ use std::time::{self, Duration, SystemTime, UNIX_EPOCH};
 
 use crate::base64::BASE64_STANDARD;
 use base64::Engine;
+use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
-use flate2::Compression;
 use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData,
-    Validation,
+    Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
 };
 use serde::de::{self, Visitor};
+use tracing::info;
 
 use crate::public_keys::PublicKey;
 use crate::{base64, dev_prelude::*};
@@ -47,12 +47,7 @@ impl Jwt {
     pub fn encode(&self, key: &[u8]) -> Result<String, JwtError> {
         let key = EncodingKey::from_rsa_pem(key).map_err(JwtError::new)?;
 
-        let result = encode(
-            &Header::new(Algorithm::RS256),
-            self,
-            &key,
-        )
-        .map_err(JwtError::new)?;
+        let result = encode(&Header::new(Algorithm::RS256), self, &key).map_err(JwtError::new)?;
 
         Ok(result)
     }
@@ -60,20 +55,14 @@ impl Jwt {
     pub fn decode(token: &str, key: &[u8]) -> Result<Jwt, JwtError> {
         let key = DecodingKey::from_rsa_pem(key).map_err(JwtError::new)?;
 
-        let result: TokenData<Jwt> = decode(
-            token,
-            &key,
-            &Validation::new(Algorithm::RS256),
-        )
-        .map_err(JwtError::new)?;
+        let result: TokenData<Jwt> =
+            decode(token, &key, &Validation::new(Algorithm::RS256)).map_err(JwtError::new)?;
 
         Ok(result.claims)
     }
 
-    pub fn decode_with_public_keys(
-        token: &str,
-        keys: &[PublicKey],
-    ) -> Result<Jwt, JwtError> {
+    pub fn decode_with_public_keys(token: &str, keys: &[PublicKey]) -> Result<Jwt, JwtError> {
+        info!("decode_with_public_keys :: public keys {:?}", &keys);
         for key in keys {
             let res = Jwt::decode(token, key.public_key.as_ref());
 
@@ -104,11 +93,7 @@ impl JwtError {
 
 impl fmt::Display for JwtError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "JwtError: {}",
-            self.message
-        )
+        write!(f, "JwtError: {}", self.message)
     }
 }
 
@@ -217,10 +202,7 @@ impl JwtBuilder {
         encoding: EntitlementsEncoding,
         entitlements: &[String],
     ) -> Self {
-        self.entitlements = Some(Entitlements::encode(
-            encoding,
-            entitlements,
-        ));
+        self.entitlements = Some(Entitlements::encode(encoding, entitlements));
 
         self
     }
@@ -252,10 +234,7 @@ impl Entitlements {
         let result = match encoding {
             EntitlementsEncoding::Txt => Entitlements::Txt(entitlements),
             EntitlementsEncoding::Gz => {
-                let mut encoder = GzEncoder::new(
-                    Vec::new(),
-                    Compression::best(),
-                );
+                let mut encoder = GzEncoder::new(Vec::new(), Compression::best());
 
                 encoder
                     .write_all(entitlements.as_bytes())
@@ -277,17 +256,12 @@ impl Entitlements {
     pub fn decode(encoded: &str) -> Result<Self, JwtError> {
         let Some((prefix, entitlemments)) = encoded.split_once(' ') else {
             return Err(JwtError {
-                message: format!(
-                    "malformed encoded: {}",
-                    encoded
-                ),
+                message: format!("malformed encoded: {}", encoded),
             });
         };
 
         match prefix {
-            TXT_PREFIX => Ok(Self::Txt(
-                entitlemments.to_string(),
-            )),
+            TXT_PREFIX => Ok(Self::Txt(entitlemments.to_string())),
             GZ_PREFIX => {
                 let data = BASE64_STANDARD
                     .decode(entitlemments)
@@ -303,10 +277,7 @@ impl Entitlements {
                 Ok(Self::Gz(decoded))
             },
             _ => Err(JwtError {
-                message: format!(
-                    "unknown entitlements prefix: {}",
-                    prefix
-                ),
+                message: format!("unknown entitlements prefix: {}", prefix),
             }),
         }
     }

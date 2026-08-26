@@ -48,7 +48,7 @@ async fn decode_jwt(
     client: OxidAuthClient,
 ) -> Result<ExtractJwt, http::StatusCode> {
     info!(
-        "OXIDAUTH EXTRACT -- DECODE_JWT: PARTS: {:#?}, CLIENT: {:#?}",
+        "OXIDAUTH EXTRACT -- DECODE_JWT: PARTS: {:?}, CLIENT: {:?}",
         parts, client
     );
 
