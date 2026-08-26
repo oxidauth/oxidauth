@@ -1,5 +1,5 @@
 use base64::{self, Engine};
-use serde::Deserialize;
+use log::info;
 
 // Question: Is key the public key? --> no
 // What is used to sign the JWT?
@@ -22,24 +22,28 @@ use serde::Deserialize;
 
 pub fn get_jwt_exp_no_decode(raw_jwt: Option<String>) -> Option<usize> {
     let Some(jwt) = raw_jwt else {
+        info!("no jwt - probably not authed");
         return None;
     };
 
+    info!("getting jwt parts");
     let parts: Vec<&str> = jwt.split('.').collect();
 
     if parts.len() < 2 {
-        // Err("Invalid JWT structure".into());
+        info!("invalid jwt length");
         return None;
     }
 
     // Decode the payload part (second element) using URL-safe base64 without padding
     let Ok(decoded_bytes) = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(parts[1])
     else {
+        info!("unable to decode jwt bytes");
         return None;
     };
 
     // Parse JSON payload
     let Ok(exp_epoch) = serde_json::from_slice(&decoded_bytes) else {
+        info!("unable to serde_json decode exp_epoch from decoded jwt");
         return None;
     };
 

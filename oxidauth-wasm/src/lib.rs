@@ -189,6 +189,12 @@ impl Client {
             //     return;
             // };
 
+            if state.raw_jwt.is_none() {
+                info!("no jwt found yet -- probably haven't authenticated");
+
+                continue;
+            }
+
             let Some(jwt_exp) = get_jwt_exp_no_decode(state.raw_jwt.clone()) else {
                 let err = ClientError::new(
                     ClientErrorKind::Other("unable to decode jwt to get exp time"),

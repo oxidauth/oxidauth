@@ -167,11 +167,18 @@ impl Client {
 
         loop {
             info!("top of timed refresh loop");
+            sleep(Duration::from_secs(2)).await;
+
             let state = self.state.read().await;
             let Ok(public_keys) = self.get_public_keys().await else {
                 ClientError::new(ClientErrorKind::Other("could not get public keys"), None);
                 return;
             };
+
+            if state.jwt.clone().is_none() {
+                info!("no jwt - probably not authed");
+                continue;
+            }
 
             // get jwt
             let Some(jwt) = state.jwt.clone() else {
@@ -236,8 +243,6 @@ impl Client {
 
                 drop(state);
             }
-
-            sleep(Duration::from_secs(2)).await;
         }
     }
 

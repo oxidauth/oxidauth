@@ -29,6 +29,11 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let client = OxidAuthClient::from_ref(state);
 
+        info!(
+            "OXIDAUTH from_request_parts: PARTS: {:#?}, client: {:#?}",
+            parts, client
+        );
+
         #[cfg(feature = "mock")]
         if let Some(jwt) = client.mock_jwt {
             return Ok(ExtractJwt(jwt));
