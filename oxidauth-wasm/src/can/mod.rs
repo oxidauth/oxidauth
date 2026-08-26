@@ -29,11 +29,16 @@ impl CanTrait for Client {
     {
         let params = params.into();
 
-        let result = self
-            .get(&format!("/can/{}", params.permission), None::<CanReq>)
-            .await;
+        // let endpoint_string = format!("/can/{}", params.permission);
 
-        let Ok(resp) = result else {
+        // let result = self
+        //     .get(&endpoint_string, None::<()>)
+        //     .await;
+
+        let Ok(resp): Result<Response<bool>, _> = self
+            .get(&format!("/can/{}", params.permission), None::<CanReq>)
+            .await
+        else {
             return Err("can call failed".to_string());
         };
 
@@ -43,7 +48,7 @@ impl CanTrait for Client {
             return Err("can call failed".to_string());
         };
 
-        res
+        Ok(res)
     }
 }
 
