@@ -43,7 +43,10 @@ pub fn get_jwt_exp_no_decode(raw_jwt: Option<String>) -> Option<usize> {
 
     // Parse JSON payload
     let Ok(exp_epoch) = serde_json::from_slice(&decoded_bytes) else {
-        info!("unable to serde_json decode exp_epoch from decoded jwt");
+        info!(
+            "unable to serde_json decode exp_epoch from decoded jwt. Bytes example: {:?}",
+            decoded_bytes
+        );
         return None;
     };
 
