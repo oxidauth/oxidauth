@@ -190,10 +190,11 @@ impl Client {
             // };
 
             let Some(jwt_exp) = get_jwt_exp_no_decode(state.raw_jwt.clone()) else {
-                ClientError::new(
+                let err = ClientError::new(
                     ClientErrorKind::Other("unable to decode jwt to get exp time"),
                     None,
                 );
+                info!("get_jwt_exp_no_decode error :: {}", err);
 
                 continue;
             };
@@ -210,10 +211,11 @@ impl Client {
                 info!("found exp within 10 secs - refreshing tokens");
 
                 let Some(refresh_token) = state.refresh_token else {
-                    ClientError::new(
+                    let err = ClientError::new(
                         ClientErrorKind::Other("unable to fetch refresh token from state"),
                         None,
                     );
+                    info!("state.refresh_token error :: {}", err);
 
                     continue;
                 };
@@ -226,8 +228,9 @@ impl Client {
                     .exchange_refresh_token(ExchangeRefreshTokenReq { refresh_token })
                     .await
                 else {
-                    info!("failed to exchange token");
-                    ClientError::new(ClientErrorKind::Other("failed to exchange token"), None);
+                    let err =
+                        ClientError::new(ClientErrorKind::Other("failed to exchange token"), None);
+                    info!("failed to exchange token :: {}", err);
 
                     continue;
                 };
@@ -256,12 +259,14 @@ impl Client {
                 let Ok(bearer) = format!("Bearer {}", res.jwt.clone())
                     .parse()
                     .map_err(|err| {
-                        ClientError::new(
+                        let err = ClientError::new(
                             ClientErrorKind::Other("unable to create bearer token"),
                             Some(Box::new(err)),
-                        )
+                        );
+                        info!("bearer token error :: {}", err);
                     })
                 else {
+                    info!("not ok bearer");
                     continue;
                 };
 
