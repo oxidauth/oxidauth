@@ -5,14 +5,24 @@ use super::*;
 #[async_trait(?Send)]
 #[async_trait]
 pub trait AuthenticateTrait {
-    async fn authenticate(&self, username: &str, password: &str) -> Result<bool, String>;
+    async fn authenticate(
+        &self,
+        client_key: Uuid,
+        username: &str,
+        password: &str,
+    ) -> Result<bool, String>;
 }
 
 #[async_trait(?Send)]
 #[async_trait]
 impl AuthenticateTrait for Client {
-    async fn authenticate(&self, username: &str, password: &str) -> Result<bool, String> {
-        self.auth(username, password)
+    async fn authenticate(
+        &self,
+        client_key: Uuid,
+        username: &str,
+        password: &str,
+    ) -> Result<bool, String> {
+        self.auth(client_key, username, password)
             .await
             .map_err(|_| "authentication failed".to_string())
     }

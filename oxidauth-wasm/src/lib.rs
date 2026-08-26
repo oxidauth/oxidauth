@@ -235,7 +235,7 @@ impl Client {
     }
 
     pub async fn authenticate(&self, username: &str, password: &str) -> Result<bool, ClientError> {
-        self.auth(username, password)
+        self.auth(self.config.client_key, username, password)
             .await
     }
 
@@ -283,14 +283,19 @@ impl Client {
         Ok(public_keys)
     }
 
-    async fn auth(&self, username: &str, password: &str) -> Result<bool, ClientError> {
+    async fn auth(
+        &self,
+        client_key: Uuid,
+        username: &str,
+        password: &str,
+    ) -> Result<bool, ClientError> {
         let mut state = self.state.write().await;
 
         // let public_keys = self.get_public_keys().await?;
 
         // authenticate
         let json = AuthenticateReq {
-            client_key: self.config.client_key,
+            client_key,
             params: json!({
                 "username": username,
                 "password": password,
