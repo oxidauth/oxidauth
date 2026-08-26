@@ -90,13 +90,45 @@ impl Client {
             mock_jwt: None,
         });
 
+        let raw_jwt: Option<String> = LocalStorage::get("OXIDAUTH_TOKEN").ok();
+        let refresh_token = LocalStorage::get("OXIDAUTH_REFRESH_TOKEN").ok();
+
+        let mut headers = HeaderMap::new();
+
+        if let Some(jwt_token) = &raw_jwt {
+            let bearer = format!("Bearer {}", jwt_token)
+                .parse()
+                .map_err(|err| {
+                    ClientError::new(
+                        ClientErrorKind::Other("unable to create bearer token"),
+                        Some(Box::new(err)),
+                    )
+                })?;
+
+            headers.insert("Authorization", bearer);
+        }
+
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to build client in auth"),
+                    Some(Box::new(err)),
+                )
+            })?;
+
         #[cfg(not(feature = "mock"))]
         let client = Self {
             config: Config {
                 base_url,
                 client_key,
             },
-            state: Arc::new(RwLock::new(State::default())),
+            state: Arc::new(RwLock::new(State {
+                client,
+                raw_jwt,
+                refresh_token,
+            })),
         };
 
         // start automatic refresh token exchange
@@ -244,7 +276,8 @@ impl Client {
 
                 state.client = client;
 
-                let _ = LocalStorage::set("navi_jwt", res.jwt.clone());
+                let _ = LocalStorage::set("OXIDAUTH_TOKEN", res.jwt.clone());
+                let _ = LocalStorage::set("OXIDAUTH_REFRESH_TOKEN", res.refresh_token);
 
                 drop(state);
             }
@@ -376,7 +409,8 @@ impl Client {
                 // state.jwt = Some(jwt);
                 state.refresh_token = Some(payload.refresh_token);
 
-                let _ = LocalStorage::set("navi_jwt", payload.jwt.clone());
+                let _ = LocalStorage::set("OXIDAUTH_TOKEN", payload.jwt.clone());
+                let _ = LocalStorage::set("OXIDAUTH_REFRESH_TOKEN", payload.refresh_token);
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()
