@@ -33,12 +33,16 @@ pub fn get_jwt_exp(raw_jwt: &Option<String>, public_keys: &[PublicKey]) -> Resul
         };
 
         // Get the exp (expires_at) timestamp
-        let exp_epoch = claims
+        let Some(exp_epoch) = claims
             .expires_at
-            .map(|exp| exp.as_secs());
+            .map(|exp| exp.as_secs().into())
+        else {
+            return Err("unable to fetch exp from jwt".to_string());
+        };
+
         info!("this is the token expires at value {:?}", exp_epoch);
         // exp_epoch
-        // return exp_epoch
+        return Ok(exp_epoch);
     }
 
     return Err("unable to verify jwt for exp claim".to_string());
