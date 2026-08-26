@@ -2,27 +2,18 @@ pub use axum::extract::FromRef;
 use axum::{
     RequestPartsExt,
     extract::FromRequestParts,
-    http::{
-        self,
-        request::Parts,
-    },
+    http::{self, request::Parts},
 };
 use axum_extra::{
     TypedHeader,
-    headers::{
-        Authorization,
-        authorization::Bearer,
-    },
+    headers::{Authorization, authorization::Bearer},
 };
 use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::jwt::Jwt;
-use tracing::error;
+use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::{
-    OxidAuthClient,
-    client::public_keys::list_all_public_keys::ListAllPublicKeysTrait,
-};
+use crate::{OxidAuthClient, client::public_keys::list_all_public_keys::ListAllPublicKeysTrait};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ExtractJwt(pub Jwt);
@@ -34,17 +25,8 @@ where
 {
     type Rejection = http::StatusCode;
 
-    #[tracing::instrument(
-        name = "oxidauth extract jwt",
-        level = "trace",
-        skip_all,
-        ret,
-        err
-    )]
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
+    #[tracing::instrument(name = "oxidauth extract jwt", level = "trace", skip_all, ret, err)]
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let client = OxidAuthClient::from_ref(state);
 
         #[cfg(feature = "mock")]
@@ -60,6 +42,11 @@ async fn decode_jwt(
     parts: &mut Parts,
     client: OxidAuthClient,
 ) -> Result<ExtractJwt, http::StatusCode> {
+    info!(
+        "OXIDAUTH EXTRACT -- DECODE_JWT: PARTS: {:#?}, CLIENT: {:#?}",
+        parts, client
+    );
+
     let TypedHeader(Authorization(bearer)) = parts
         .extract::<TypedHeader<Authorization<Bearer>>>()
         .await
@@ -78,12 +65,11 @@ async fn decode_jwt(
             http::StatusCode::UNAUTHORIZED
         })?;
 
-    let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys)
-        .map_err(|err| {
-            error!(msg = "error decoding public keys", err = ?err);
+    let jwt = Jwt::decode_with_public_keys(bearer.token(), &public_keys).map_err(|err| {
+        error!(msg = "error decoding public keys", err = ?err);
 
-            http::StatusCode::UNAUTHORIZED
-        })?;
+        http::StatusCode::UNAUTHORIZED
+    })?;
 
     Ok(ExtractJwt(jwt))
 }
@@ -105,21 +91,16 @@ where
         ret,
         err
     )]
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
-        let ExtractJwt(jwt) =
-            ExtractJwt::from_request_parts(parts, state).await?;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        info!("IN ExtractEntitlements -- from_request_parts");
+        let ExtractJwt(jwt) = ExtractJwt::from_request_parts(parts, state).await?;
 
         let permissions = jwt
             .entitlements
             .and_then(|entitlements| entitlements.as_vec())
             .unwrap_or_default();
 
-        Ok(ExtractEntitlements(
-            permissions,
-        ))
+        Ok(ExtractEntitlements(permissions))
     }
 }
 
@@ -140,12 +121,8 @@ where
         ret,
         err
     )]
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
-        let ExtractJwt(jwt) =
-            ExtractJwt::from_request_parts(parts, state).await?;
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let ExtractJwt(jwt) = ExtractJwt::from_request_parts(parts, state).await?;
 
         let Some(user_id) = jwt.sub else {
             error!("error getting sub from jwt");
