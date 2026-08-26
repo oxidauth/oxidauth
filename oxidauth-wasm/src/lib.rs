@@ -32,7 +32,7 @@ pub use crate::{
     refresh_tokens::RefreshTokensTrait,
 };
 use crate::{
-    jwt::{get_jwt_exp, get_jwt_exp_no_decode},
+    jwt::get_jwt_exp,
     public_keys::{ListAllPublicKeysRes, PublicKey},
     refresh_tokens::{ExchangeRefreshTokenReq, ExchangeRefreshTokenRes, ExchangeRefreshTokenTrait},
     response::Response,
@@ -209,7 +209,7 @@ impl Client {
                 Err(err) => {
                     let err = ClientError::new(
                         ClientErrorKind::Other("unable to decode jwt to get exp time"),
-                        Some(err.into()),
+                        None,
                     );
                     info!("get_jwt_exp_no_decode error :: {:?}", err);
 
@@ -579,15 +579,29 @@ impl Client {
     async fn check_auth_state(&self) -> AuthState {
         let state = self.state.read().await;
 
-        // let Some(ref _jwt) = state.raw_jwt else {
-        //     return AuthState::Auth;
-        // };
+        let public_keys = match self.get_public_keys().await {
+            Ok(keys) => keys,
+            Err(err) => {
+                info!("could not get public keys error :: {:?}", err);
+
+                return AuthState::Refresh;
+            },
+        };
+
+        let jwt_exp = match get_jwt_exp(&state.raw_jwt, &public_keys) {
+            Ok(exp) => exp,
+            Err(err) => {
+                let err = ClientError::new(
+                    ClientErrorKind::Other("unable to decode jwt to get exp time"),
+                    None,
+                );
+                info!("get_jwt_exp_no_decode error :: {:?}", err);
+
+                return AuthState::Refresh;
+            },
+        };
 
         let now = Utc::now().timestamp() as usize;
-
-        let Some(jwt_exp) = get_jwt_exp_no_decode(state.raw_jwt.clone()) else {
-            return AuthState::Auth;
-        };
 
         if now > jwt_exp {
             return AuthState::Refresh;
