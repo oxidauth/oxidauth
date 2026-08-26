@@ -169,6 +169,8 @@ impl Client {
         info!("starting timed refresh loop");
 
         loop {
+            sleep(Duration::from_secs(2)).await;
+
             info!("top of timed refresh loop");
             let state = self.state.read().await;
             // let Ok(public_keys) = self.get_public_keys().await else {
@@ -284,8 +286,6 @@ impl Client {
 
                 drop(state);
             }
-
-            sleep(Duration::from_secs(2)).await;
         }
     }
 
