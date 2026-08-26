@@ -7,17 +7,18 @@ pub mod response;
 pub mod totp;
 
 pub use std::fmt;
-use std::{error::Error, sync::Arc, time::Duration};
+use std::{error::Error, sync::Arc};
 
 use chrono::Utc;
 use gloo_storage::{LocalStorage, Storage};
+use gloo_timers::future::TimeoutFuture;
 use log::info;
 use reqwest::{Method, header::HeaderMap};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use auth::{AuthenticateReq, AuthenticateRes};
-use tokio::{sync::RwLock, time::sleep};
+use tokio::sync::RwLock;
 use wasm_bindgen_futures::spawn_local;
 
 use url::Url;
@@ -169,9 +170,10 @@ impl Client {
         info!("starting timed refresh loop");
 
         loop {
-            sleep(Duration::from_secs(2)).await;
-
             info!("top of timed refresh loop");
+
+            TimeoutFuture::new(2_000).await;
+
             let state = self.state.read().await;
             // let Ok(public_keys) = self.get_public_keys().await else {
             //     ClientError::new(ClientErrorKind::Other("could not get public keys"), None);
