@@ -32,7 +32,7 @@ pub use crate::{
     refresh_tokens::RefreshTokensTrait,
 };
 use crate::{
-    jwt::get_jwt_exp_no_decode,
+    jwt::{get_jwt_exp, get_jwt_exp_no_decode},
     public_keys::{ListAllPublicKeysRes, PublicKey},
     refresh_tokens::{ExchangeRefreshTokenReq, ExchangeRefreshTokenRes, ExchangeRefreshTokenTrait},
     response::Response,
@@ -195,14 +195,26 @@ impl Client {
                 continue;
             }
 
-            let Some(jwt_exp) = get_jwt_exp_no_decode(state.raw_jwt.clone()) else {
-                let err = ClientError::new(
-                    ClientErrorKind::Other("unable to decode jwt to get exp time"),
-                    None,
-                );
-                info!("get_jwt_exp_no_decode error :: {}", err);
+            let public_keys = match self.get_public_keys().await {
+                Ok(keys) => keys,
+                Err(err) => {
+                    info!("could not get public keys error :: {:?}", err);
 
-                continue;
+                    continue;
+                },
+            };
+
+            let jwt_exp = match get_jwt_exp(&state.raw_jwt, &public_keys) {
+                Ok(exp) => exp,
+                Err(err) => {
+                    let err = ClientError::new(
+                        ClientErrorKind::Other("unable to decode jwt to get exp time"),
+                        Some(err.into()),
+                    );
+                    info!("get_jwt_exp_no_decode error :: {:?}", err);
+
+                    continue;
+                },
             };
 
             info!(

@@ -1,54 +1,43 @@
 use base64::{self, Engine};
+use jwt_simple::prelude::*;
 use log::info;
+
+use crate::public_keys::PublicKey;
 
 // Question: Is key the public key? --> no
 // What is used to sign the JWT?
 
-// pub fn get_jwt_exp(raw_jwt: Option<String>, key: Uuid) -> Option<usize> {
-//     let Some(token) = raw_jwt else {
-//         return None;
-//     };
-
-//     // Verify the token (returns JWTClaims<NoCustomClaims>)
-//     let decoded_claims = key
-//         .verify_token::<NoCustomClaims>(&token, None)
-//         .unwrap();
-
-//     // Get the exp (expires_at) timestamp
-//     let exp_epoch = decoded_claims.expires_at;
-
-//     exp_epoch
-// }
-
-pub fn get_jwt_exp_no_decode(raw_jwt: Option<String>) -> Option<usize> {
-    let Some(jwt) = raw_jwt else {
-        info!("no jwt - probably not authed");
-        return None;
+pub fn get_jwt_exp(raw_jwt: &Option<String>, public_keys: &[PublicKey]) -> Result<usize, String> {
+    let Some(token) = raw_jwt else {
+        return Err("no jwt".to_string());
     };
 
-    info!("getting jwt parts");
-    let parts: Vec<&str> = jwt.split('.').collect();
+    for key in public_keys.iter() {
+        // Verify the token (returns JWTClaims<NoCustomClaims>)
+        let public_key = match RS256PublicKey::from_pem(&key.public_key) {
+            Ok(key) => key,
+            Err(err) => {
+                info!("error getting public key {}", err);
 
-    if parts.len() < 2 {
-        info!("invalid jwt length");
-        return None;
+                continue;
+            },
+        };
+
+        let claims = match public_key.verify_token::<NoCustomClaims>(&token, None) {
+            Ok(claims) => claims,
+            Err(err) => {
+                info!("error verifying token {}", err);
+
+                continue;
+            },
+        };
+
+        // Get the exp (expires_at) timestamp
+        let exp_epoch = claims.expires_at;
+        info!("this is the token expires at value {}", exp_epoch);
+        // exp_epoch
+        // return exp_epoch
     }
 
-    // Decode the payload part (second element) using URL-safe base64 without padding
-    let Ok(decoded_bytes) = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(parts[1])
-    else {
-        info!("unable to decode jwt bytes");
-        return None;
-    };
-
-    // Parse JSON payload
-    let Ok(exp_epoch) = serde_json::from_slice(&decoded_bytes) else {
-        info!(
-            "unable to serde_json decode exp_epoch from decoded jwt. Bytes example: {:?}",
-            decoded_bytes
-        );
-        return None;
-    };
-
-    exp_epoch
+    return Err("unable to verify jwt for exp claim".to_string());
 }
