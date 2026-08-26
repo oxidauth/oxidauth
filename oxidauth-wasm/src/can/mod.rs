@@ -29,17 +29,20 @@ impl CanTrait for Client {
     {
         let params = params.into();
 
-        // let endpoint_string = format!("/can/{}", params.permission);
+        let url_string = format!("/can/{}", params.permission);
 
-        // let result = self
-        //     .get(&endpoint_string, None::<()>)
-        //     .await;
+        info!("can endpoint {}", url_string);
 
-        let Ok(resp): Result<Response<bool>, _> = self
-            .get(&format!("/can/{}", params.permission), None::<CanReq>)
+        let resp = match self
+            .get(&url_string, None::<CanReq>)
             .await
-        else {
-            return Err("can call failed".to_string());
+        {
+            Ok(resp) => resp,
+            Err(err) => {
+                info!("error checking permission: {err:?}");
+
+                return Err(err.to_string());
+            },
         };
 
         let can_res = handle_response(RESOURCE, METHOD, resp);
