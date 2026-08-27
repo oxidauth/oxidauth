@@ -8,7 +8,7 @@ impl Client {
         let params = params.into();
 
         let result = self
-            .post("/auth/oauth2/redirect", params)
+            .unauthenticated_post("/auth/oauth2/redirect", params)
             .await;
 
         let Ok(resp) = result else {

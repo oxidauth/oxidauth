@@ -680,6 +680,51 @@ impl Client {
         Ok(res)
     }
 
+    pub async fn unauthenticated_request<Req, Res>(
+        &self,
+        method: Method,
+        url: &str,
+        payload: Req,
+    ) -> Result<Res, ClientError>
+    where
+        Req: Serialize + std::fmt::Debug,
+        Res: for<'a> Deserialize<'a>,
+    {
+        let state = self.state.read().await;
+
+        let client = &state.client;
+
+        let url = format!("{}{}", self.config.base_url, url);
+
+        let mut req = client.request(method.clone(), url);
+
+        if method != Method::GET {
+            req = req.json(&payload);
+        }
+
+        let res = req
+            .send()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::OtherString(err.to_string()),
+                    Some(Box::new(err)),
+                )
+            })?;
+
+        let res = res
+            .json()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("failed to deserialize response"),
+                    Some(Box::new(err)),
+                )
+            })?;
+
+        Ok(res)
+    }
+
     pub async fn get<Req, Res>(&self, url: &str, payload: Req) -> Result<Res, ClientError>
     where
         Req: Serialize + std::fmt::Debug,
@@ -704,6 +749,19 @@ impl Client {
         Res: for<'a> Deserialize<'a>,
     {
         self.request(Method::POST, url, payload)
+            .await
+    }
+
+    pub async fn unauthenticated_post<Req, Res>(
+        &self,
+        url: &str,
+        payload: Req,
+    ) -> Result<Res, ClientError>
+    where
+        Req: Serialize + std::fmt::Debug,
+        Res: for<'a> Deserialize<'a>,
+    {
+        self.unauthenticated_request(Method::POST, url, payload)
             .await
     }
 
