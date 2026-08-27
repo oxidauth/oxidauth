@@ -712,21 +712,6 @@ impl Client {
 }
 
 #[derive(Debug)]
-pub struct ClientError {
-    pub kind: ClientErrorKind,
-    pub source: Option<Box<dyn std::error::Error + Sync + 'static>>,
-}
-
-impl ClientError {
-    pub fn new(
-        kind: ClientErrorKind,
-        source: Option<Box<dyn std::error::Error + Sync + 'static>>,
-    ) -> Self {
-        Self { kind, source }
-    }
-}
-
-#[derive(Debug)]
 enum AuthState {
     Auth,
     Refresh,
@@ -771,6 +756,21 @@ impl fmt::Display for Resource {
             UserPermissionGrant => write!(f, "user_permission_grant"),
             UserRole => write!(f, "user_role"),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct ClientError {
+    pub kind: ClientErrorKind,
+    pub source: Option<Box<dyn std::error::Error + Sync + 'static>>,
+}
+
+impl ClientError {
+    pub fn new(
+        kind: ClientErrorKind,
+        source: Option<Box<dyn std::error::Error + Sync + 'static>>,
+    ) -> Self {
+        Self { kind, source }
     }
 }
 
