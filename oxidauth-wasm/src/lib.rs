@@ -507,6 +507,7 @@ impl Client {
     }
 
     pub async fn refresh(&self) -> Result<bool, ClientError> {
+        info!("got to refresh");
         let mut state = self.state.write().await;
 
         // let public_keys = self.get_public_keys().await?;
@@ -517,6 +518,8 @@ impl Client {
                 None,
             ));
         };
+
+        info!("got token");
 
         let req = ExchangeRefreshTokenReq { refresh_token };
 
@@ -540,6 +543,8 @@ impl Client {
                 )
             })?;
 
+        info!("make request");
+
         match response {
             Response {
                 success: true,
@@ -561,8 +566,14 @@ impl Client {
                 //         break;
                 //     }
                 // }
+                //
 
+                info!("refresh - writing new tokens to state and local storage");
+                state.raw_jwt = Some(payload.jwt.clone());
                 state.refresh_token = Some(payload.refresh_token);
+
+                let _ = LocalStorage::set("OXIDAUTH_TOKEN", res.jwt.clone());
+                let _ = LocalStorage::set("OXIDAUTH_REFRESH_TOKEN", res.refresh_token);
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()
@@ -585,6 +596,8 @@ impl Client {
                             Some(Box::new(err)),
                         )
                     })?;
+
+                info!("refresh - exchange token complete");
             },
             _ => return Err(ClientError::new(ClientErrorKind::Other(""), None)),
         }
