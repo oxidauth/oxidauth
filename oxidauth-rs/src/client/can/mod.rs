@@ -25,10 +25,7 @@ impl CanTrait for Client {
         let params = params.into();
 
         let resp: Response<bool> = self
-            .get(
-                &format!("/can/{}", params.permission),
-                None::<CanReq>,
-            )
+            .get(&format!("/can/{}", params.permission), None::<CanReq>)
             .await?;
 
         let can_res = handle_response(RESOURCE, METHOD, resp)?;

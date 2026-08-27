@@ -330,10 +330,9 @@ impl Client {
 
         let jwt = state
             .raw_jwt
-            .as_deref()
             .ok_or(ClientError::new(ClientErrorKind::NoJwtFound, None))?;
 
-        Ok(jwt.to_string())
+        Ok(jwt)
     }
 
     pub async fn authenticate(
@@ -496,6 +495,12 @@ impl Client {
         }
 
         Ok(true)
+    }
+
+    pub async fn set_refresh_token(&self, refresh_token: Uuid) -> () {
+        let mut state = self.state.write().await;
+
+        state.refresh_token = Some(refresh_token);
     }
 
     pub async fn refresh(&self) -> Result<bool, ClientError> {
