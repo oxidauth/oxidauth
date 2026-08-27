@@ -502,6 +502,8 @@ impl Client {
         let mut state = self.state.write().await;
 
         state.refresh_token = Some(refresh_token);
+
+        let _ = LocalStorage::set("OXIDAUTH_REFRESH_TOKEN", res.refresh_token);
     }
 
     pub async fn refresh(&self) -> Result<bool, ClientError> {
