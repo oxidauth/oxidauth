@@ -330,6 +330,7 @@ impl Client {
 
         let jwt = state
             .raw_jwt
+            .clone()
             .ok_or(ClientError::new(ClientErrorKind::NoJwtFound, None))?;
 
         Ok(jwt)
