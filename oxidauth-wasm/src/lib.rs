@@ -570,10 +570,10 @@ impl Client {
 
                 info!("refresh - writing new tokens to state and local storage");
                 state.raw_jwt = Some(payload.jwt.clone());
-                state.refresh_token = Some(payload.refresh_token);
+                state.refresh_token = Some(payload.refresh_token.clone());
 
-                let _ = LocalStorage::set("OXIDAUTH_TOKEN", res.jwt.clone());
-                let _ = LocalStorage::set("OXIDAUTH_REFRESH_TOKEN", res.refresh_token);
+                let _ = LocalStorage::set("OXIDAUTH_TOKEN", payload.jwt.clone());
+                let _ = LocalStorage::set("OXIDAUTH_REFRESH_TOKEN", payload.refresh_token.clone());
 
                 let bearer = format!("Bearer {}", payload.jwt)
                     .parse()
