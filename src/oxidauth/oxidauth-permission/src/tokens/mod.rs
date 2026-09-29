@@ -46,7 +46,10 @@ pub fn validate_single(
 ) -> Result<bool, PermissionParseErr> {
     let parsed = parse::parse(permissions)?;
 
-    let passed = compare::compare( &parsed, challenge);
+    // `compare` matches the pattern (2nd arg) against the concrete set (1st
+    // arg). Challenges never carry globs (`WildcardChallenge`), so the granted
+    // permission we just parsed is the pattern side.
+    let passed = compare::compare(challenge, &parsed);
 
     Ok(passed)
 }

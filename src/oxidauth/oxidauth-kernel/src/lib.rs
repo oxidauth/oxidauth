@@ -86,20 +86,10 @@ impl Password {
 
 impl fmt::Debug for Password {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let res: String = self
-            .0
-            .chars()
-            .enumerate()
-            .map(|(i, ch)| {
-                if i == 0 {
-                    ch
-                } else {
-                    '*'
-                }
-            })
-            .collect();
-
-        f.debug_struct(&res).finish()
+        // `Debug` is what tracing spans record, so the mask stays constant:
+        // neither the length nor the first character may leak
+        f.debug_struct("******")
+            .finish()
     }
 }
 
