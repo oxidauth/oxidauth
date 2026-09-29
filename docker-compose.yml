@@ -13,6 +13,8 @@ services:
     environment:
       CARGO_TARGET_DIR: /home/rust/shared_target
       VIRTUAL_HOST: api.oxidauth.localhost
+      # TODO(plan 10): remove; plan-10 compose layout replaces this file (service env overrides env_file)
+      DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
     ports:
       - "80"
     env_file:

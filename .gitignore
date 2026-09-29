@@ -1,6 +1,35 @@
-target
+# Generated files
+target/
+**/target/
+dist/
 tmp/**
-**/target
-.DS_Store
+
+# Environment files
 .env
-.vscode
+*.env
+*.env.secrets
+*.env.development
+*.env.staging
+*.env.production
+!example.env
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipynb
+.project
+.settings
+
+# OS
+.DS_Store
+
+# Config
+!**/.gitkeep
+
+# Kubernetes (committed as .enc via crypt-keeper; see plan 12)
+**/values-staging.yaml
+**/values-production.yaml
+
+# Build artifacts
+*.log
