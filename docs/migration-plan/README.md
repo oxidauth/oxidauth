@@ -92,8 +92,8 @@ that does the work (repo changelog convention `changelogs/<id>-<slug>.md` still 
 | 03 | [Vendor xlib crates](03-vendor-xlib-crates.md) | `done` | 02 |
 | 04 | [Provider wiring: xlib provider + provider/ split](04-provider-wiring.md) | `done` | 03 |
 | 05 | [Postgres via database! macro](05-postgres-database-macro.md) | `done` | 04 |
-| 06 | [Telemetry via xlib + boot sequence](06-telemetry-boot-sequence.md) | `reviewed` | 04 |
-| 07 | [Split DTO crate: oxidauth-http ↔ oxidauth-api](07-split-http-dto-crate.md) | `reviewed` | 03, 04 |
+| 06 | [Telemetry via xlib + boot sequence](06-telemetry-boot-sequence.md) | `done` | 04 |
+| 07 | [Split DTO crate: oxidauth-http ↔ oxidauth-api](07-split-http-dto-crate.md) | `in-progress` | 03, 04 |
 | 08 | [Repository traits → Pg repositories](08-postgres-repository-structs.md) | `reviewed` | 05 |
 | 09 | [usecases → services layer](09-services-layer.md) | `reviewed` | 08 |
 | 10 | [Compose + dev environment](10-compose-dev-environment.md) | `reviewed` | 05, 06 |

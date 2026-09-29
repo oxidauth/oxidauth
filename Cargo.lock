@@ -1662,18 +1662,15 @@ dependencies = [
  "oxidauth-kernel",
  "oxidauth-permission",
  "oxidauth-postgres",
- "oxidauth-telemetry",
  "oxidauth-usecases",
  "provider",
  "rust_decimal",
  "serde",
  "serde_json",
+ "telemetry",
  "tokio",
  "tower-http 0.5.2",
  "tracing",
- "tracing-bunyan-formatter",
- "tracing-log 0.2.0",
- "tracing-subscriber",
  "url",
  "uuid",
 ]
@@ -1746,16 +1743,6 @@ dependencies = [
 [[package]]
 name = "oxidauth-seed"
 version = "0.4.0"
-
-[[package]]
-name = "oxidauth-telemetry"
-version = "0.4.0"
-dependencies = [
- "tracing",
- "tracing-bunyan-formatter",
- "tracing-log 0.2.0",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "oxidauth-usecases"

@@ -12,15 +12,19 @@ use server::Server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    println!("engaging oxidauth http server...");
+    let (environment, tracing_level) = telemetry::get_logging_envs()?;
 
-    let subscriber = oxidauth_telemetry::get_subscriber(
-        "oxidauth-http-api".into(),
-        "INFO".into(),
+    let subscriber = telemetry::get_subscriber(
+        "oxidauth-http",
+        env!("CARGO_PKG_VERSION"),
+        &environment,
+        &tracing_level,
         std::io::stdout,
     );
 
-    oxidauth_telemetry::init_subscriber(subscriber);
+    info!("starting oxidauth-http");
+
+    telemetry::init_subscriber(subscriber);
 
     let provider = provider::init().await?;
 

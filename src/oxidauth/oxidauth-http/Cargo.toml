@@ -13,8 +13,8 @@ oxidauth-kernel = { path = "../oxidauth-kernel" }
 oxidauth-usecases = { path = "../oxidauth-usecases" }
 oxidauth-postgres = { path = "../oxidauth-postgres" }
 oxidauth-permission = { path = "../oxidauth-permission" }
-oxidauth-telemetry = { path = "../../../oxidauth-telemetry" }
 provider = { version = "0.1.0", path = "../../xlib/provider" }
+telemetry = { version = "0.1.0", path = "../../xlib/telemetry" }
 
 axum = { version = "0.8.8", features = [
     "http1",
@@ -34,11 +34,5 @@ serde_json = "1.0.127"
 tokio = { version = "1.40.0", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["fs", "cors"] }
 tracing = "0.1.40"
-tracing-bunyan-formatter = "0.3.9"
-tracing-log = "0.2.0"
-tracing-subscriber = { version = "0.3.18", features = [
-    "registry",
-    "env-filter",
-] }
 url = { version = "2.5.2", features = ["serde"] }
 uuid = { version = "1.10.0", features = ["serde", "v4"] }
