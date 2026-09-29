@@ -3,6 +3,7 @@
 resolver = "2"
 
 members = [
+    "src/xlib/*",
     "src/oxidauth/*",
     "src/seedz",
     # telemetry stays at root until plan 06 removes it; listed explicitly

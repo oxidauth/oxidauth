@@ -88,9 +88,9 @@ that does the work (repo changelog convention `changelogs/<id>-<slug>.md` still 
 | #  | Plan | Status | Depends on |
 |----|------|--------|------------|
 | 01 | [Project root scaffolding](01-project-root-scaffolding.md) | `done` | — |
-| 02 | [Move crates into src/ layout](02-move-crates-into-src.md) | `in-progress` | 01 |
-| 03 | [Vendor xlib crates](03-vendor-xlib-crates.md) | `reviewed` | 02 |
-| 04 | [Provider wiring: xlib provider + provider/ split](04-provider-wiring.md) | `reviewed` | 03 |
+| 02 | [Move crates into src/ layout](02-move-crates-into-src.md) | `done` | 01 |
+| 03 | [Vendor xlib crates](03-vendor-xlib-crates.md) | `done` | 02 |
+| 04 | [Provider wiring: xlib provider + provider/ split](04-provider-wiring.md) | `in-progress` | 03 |
 | 05 | [Postgres via database! macro](05-postgres-database-macro.md) | `reviewed` | 04 |
 | 06 | [Telemetry via xlib + boot sequence](06-telemetry-boot-sequence.md) | `reviewed` | 04 |
 | 07 | [Split DTO crate: oxidauth-http ↔ oxidauth-api](07-split-http-dto-crate.md) | `reviewed` | 03, 04 |

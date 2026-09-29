@@ -1,6 +1,6 @@
 # 02 — Move crates into src/ layout
 
-**Status**: `in-progress` (impl done 2026-09-29; review loop pending — orchestrator flips to done at close)
+**Status**: `done` (2026-09-29: impl + review loop closed — D1/D2 fixed, N1/N2 reasoned skips; cargo check green, committed c9312e0)
 **Depends on**: 01
 **Risk**: medium — pure `git mv` + manifest edits; no code changes. The
 workspace must build identically before/after.
