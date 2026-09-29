@@ -13,7 +13,7 @@ oxidauth-kernel = { path = "../oxidauth-kernel" }
 oxidauth-usecases = { path = "../oxidauth-usecases" }
 oxidauth-postgres = { path = "../oxidauth-postgres" }
 oxidauth-permission = { path = "../oxidauth-permission" }
-oxidauth-telemetry = { path = "../oxidauth-telemetry" }
+oxidauth-telemetry = { path = "../../../oxidauth-telemetry" }
 
 axum = { version = "0.8.8", features = [
     "http1",

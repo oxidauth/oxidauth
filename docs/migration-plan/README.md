@@ -88,7 +88,7 @@ that does the work (repo changelog convention `changelogs/<id>-<slug>.md` still 
 | #  | Plan | Status | Depends on |
 |----|------|--------|------------|
 | 01 | [Project root scaffolding](01-project-root-scaffolding.md) | `done` | — |
-| 02 | [Move crates into src/ layout](02-move-crates-into-src.md) | `reviewed` | 01 |
+| 02 | [Move crates into src/ layout](02-move-crates-into-src.md) | `in-progress` | 01 |
 | 03 | [Vendor xlib crates](03-vendor-xlib-crates.md) | `reviewed` | 02 |
 | 04 | [Provider wiring: xlib provider + provider/ split](04-provider-wiring.md) | `reviewed` | 03 |
 | 05 | [Postgres via database! macro](05-postgres-database-macro.md) | `reviewed` | 04 |

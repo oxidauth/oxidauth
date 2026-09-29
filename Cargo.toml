@@ -3,20 +3,18 @@
 resolver = "2"
 
 members = [
-    "oxidauth-cli",
-    "oxidauth-http",
-    "oxidauth-import-export",
-    "oxidauth-kernel",
-    "oxidauth-permission",
-    "oxidauth-postgres",
-    "oxidauth-repository",
-    "oxidauth-rs",
-    "oxidauth-seed",
-    "oxidauth-usecases",
+    "src/oxidauth/*",
+    "src/seedz",
+    # telemetry stays at root until plan 06 removes it; listed explicitly
+    # because it does not match the src/oxidauth/* glob — removed in plan 06
     "oxidauth-telemetry",
 ]
 
-exclude = []
+exclude = [
+    # non-crate siblings inside the stack dir (cargo globs require manifests)
+    "src/oxidauth/hurl",
+    "src/oxidauth/helm",
+]
 
 [profile.dev.package.num-bigint-dig]
 opt-level = 3

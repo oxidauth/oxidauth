@@ -11,7 +11,7 @@ cp $CARGO_TARGET_DIR/aarch64-unknown-linux-gnu/release/oxidauth-http tmp/linux/a
 
 docker buildx create --name oxidauth-builder --use
 
-SEMVER_VERSION=$(cat oxidauth-http/Cargo.toml | grep version | head -1 | cut -d'"' -f 2 | tr -d '\n')
+SEMVER_VERSION=$(cat src/oxidauth/oxidauth-http/Cargo.toml | grep version | head -1 | cut -d'"' -f 2 | tr -d '\n')
 GIT_VERSION=$(git rev-parse --short HEAD)
 CROSS_CONTAINER_ENGINE_NO_BUILDKIT=1
 # PLATFORMS=linux/amd64
@@ -25,4 +25,4 @@ docker buildx build \
   -t $IMAGE:$GIT_VERSION \
   --push \
   --no-cache \
-  -f oxidauth-http/Dockerfile .
+  -f src/oxidauth/oxidauth-http/Dockerfile .
