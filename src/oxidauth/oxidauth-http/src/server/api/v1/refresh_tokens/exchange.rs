@@ -16,7 +16,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<ExchangeRefreshTokenReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<ExchangeRefreshTokenService>();
+    let service = provider.fetch_unchecked::<ExchangeRefreshTokenService>();
 
     info!("provided ExchangeRefreshTokenService");
 

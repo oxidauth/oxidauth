@@ -14,6 +14,7 @@ oxidauth-usecases = { path = "../oxidauth-usecases" }
 oxidauth-postgres = { path = "../oxidauth-postgres" }
 oxidauth-permission = { path = "../oxidauth-permission" }
 oxidauth-telemetry = { path = "../../../oxidauth-telemetry" }
+provider = { version = "0.1.0", path = "../../xlib/provider" }
 
 axum = { version = "0.8.8", features = [
     "http1",

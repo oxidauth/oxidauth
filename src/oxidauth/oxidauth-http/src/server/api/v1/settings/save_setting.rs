@@ -24,7 +24,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<SaveSettingReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<SaveSettingService>();
+    let service = provider.fetch_unchecked::<SaveSettingService>();
 
     info!("provided SaveSettingService");
 

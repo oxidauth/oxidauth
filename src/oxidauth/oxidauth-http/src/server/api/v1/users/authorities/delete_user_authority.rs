@@ -46,7 +46,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<DeleteUserAuthorityService>();
+    let service = provider.fetch_unchecked::<DeleteUserAuthorityService>();
 
     info!("provided DeleteUserAuthorityService");
 

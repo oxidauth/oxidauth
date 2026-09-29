@@ -31,7 +31,7 @@ pub async fn handle(
     Path(path_params): Path<PathParams>,
     Query(auth_response): Query<OAuth2AuthenticatePathParams>,
 ) -> Response {
-    let service = provider.fetch::<AuthenticateOrRegisterService>();
+    let service = provider.fetch_unchecked::<AuthenticateOrRegisterService>();
 
     let params = {
         let params = OAuth2AuthenticateParams {

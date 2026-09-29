@@ -4,10 +4,8 @@ use axum::{
     Json,
 };
 pub use oxidauth_kernel::invitations::accept_invitation::*;
-use oxidauth_kernel::{
-    auth::register::RegisterParams, error::IntoOxidAuthError,
-    provider::Provider, users::User,
-};
+use oxidauth_kernel::{auth::register::RegisterParams, error::IntoOxidAuthError, users::User};
+use provider::Provider;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use uuid::Uuid;
@@ -36,7 +34,7 @@ pub async fn handle(
     Path(path): Path<AcceptInvitationPathReq>,
     Json(body): Json<AcceptInvitationBodyReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<AcceptInvitationService>();
+    let service = provider.fetch_unchecked::<AcceptInvitationService>();
 
     info!("provided AcceptInvitationService");
 

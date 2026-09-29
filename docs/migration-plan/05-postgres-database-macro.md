@@ -1,6 +1,6 @@
 # 05 — Postgres via `database!` macro
 
-**Status**: `reviewed` (walkthrough 2026-09-29: approved as written — incl. MIGRATIONS_ENABLED fail-fast; rollout must set the env var)
+**Status**: `in-progress` (worker dispatched 2026-09-29)
 **Depends on**: 04
 **Risk**: medium — touches every query impl's pool access.
 

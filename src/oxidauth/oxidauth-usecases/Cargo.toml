@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 oxidauth-kernel = { path = "../oxidauth-kernel" }
 oxidauth-repository = { path = "../oxidauth-repository" }
+provider = { version = "0.1.0", path = "../../xlib/provider" }
 
 argon2 = "0.5.3"
 async-trait = "0.1.80"

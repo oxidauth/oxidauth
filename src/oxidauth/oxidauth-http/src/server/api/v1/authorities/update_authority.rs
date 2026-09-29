@@ -60,7 +60,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<UpdateAuthorityService>();
+    let service = provider.fetch_unchecked::<UpdateAuthorityService>();
 
     info!("provided UpdateAuthorityService");
 

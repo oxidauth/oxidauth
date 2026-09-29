@@ -57,7 +57,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<UpdateRoleService>();
+    let service = provider.fetch_unchecked::<UpdateRoleService>();
 
     info!("provided UpdateRoleService");
 

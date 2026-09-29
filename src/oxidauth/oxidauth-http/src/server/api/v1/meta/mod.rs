@@ -2,7 +2,7 @@ pub mod health;
 pub mod live;
 
 use axum::{routing::get, Router};
-use oxidauth_kernel::provider::Provider;
+use provider::Provider;
 
 pub fn router() -> Router<Provider> {
     Router::new()

@@ -22,7 +22,6 @@ use oxidauth_kernel::{
             FindPermissionByParts, FindPermissionByPartsService,
         },
     },
-    provider::Provider,
     public_keys::{
         PublicKey,
         create_public_key::{CreatePublicKey, CreatePublicKeyService},
@@ -65,6 +64,7 @@ use oxidauth_kernel::{
         },
     },
 };
+use provider::Provider;
 use tracing::{error, info};
 
 use crate::{
@@ -97,7 +97,7 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         params: &'a BootstrapParams,
     ) -> Result<Self::Response, Self::Error> {
         let setting = {
-            let fetch_setting = self.provider.fetch();
+            let fetch_setting = self.provider.fetch_unchecked();
 
             check_bootstrap_setting(fetch_setting).await?
         };
@@ -111,9 +111,9 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         info!("no bootstrap detected -- starting bootstrap");
 
         {
-            let list_all_public_keys = self.provider.fetch();
+            let list_all_public_keys = self.provider.fetch_unchecked();
 
-            let create_public_key = self.provider.fetch();
+            let create_public_key = self.provider.fetch_unchecked();
 
             first_or_create_public_key(
                 list_all_public_keys,
@@ -123,9 +123,9 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         }
 
         let permission = {
-            let permission_by_name = self.provider.fetch();
+            let permission_by_name = self.provider.fetch_unchecked();
 
-            let create_permission = self.provider.fetch();
+            let create_permission = self.provider.fetch_unchecked();
 
             first_or_create_permissions(
                 permission_by_name,
@@ -135,16 +135,16 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         };
 
         let role = {
-            let list_all_roles = self.provider.fetch();
+            let list_all_roles = self.provider.fetch_unchecked();
 
-            let create_role = self.provider.fetch();
+            let create_role = self.provider.fetch_unchecked();
 
             first_or_create_role(list_all_roles, create_role).await?
         };
 
         {
-            let list_role_permission_grants = self.provider.fetch();
-            let create_role_permission = self.provider.fetch();
+            let list_role_permission_grants = self.provider.fetch_unchecked();
+            let create_role_permission = self.provider.fetch_unchecked();
 
             add_admin_permission_to_admin_role(
                 list_role_permission_grants,
@@ -156,8 +156,8 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         }
 
         let authority = {
-            let authority_by_strategy = self.provider.fetch();
-            let create_authority = self.provider.fetch();
+            let authority_by_strategy = self.provider.fetch_unchecked();
+            let create_authority = self.provider.fetch_unchecked();
 
             first_or_create_authority(
                 authority_by_strategy,
@@ -167,8 +167,8 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         };
 
         let user = {
-            let find_user_by_username = self.provider.fetch();
-            let register_user = self.provider.fetch();
+            let find_user_by_username = self.provider.fetch_unchecked();
+            let register_user = self.provider.fetch_unchecked();
 
             first_or_register_user(
                 find_user_by_username,
@@ -179,8 +179,8 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         };
 
         {
-            let list_user_role = self.provider.fetch();
-            let create_user_role = self.provider.fetch();
+            let list_user_role = self.provider.fetch_unchecked();
+            let create_user_role = self.provider.fetch_unchecked();
 
             add_admin_role_to_admin_user(
                 list_user_role,
@@ -192,7 +192,7 @@ impl<'a> Service<&'a BootstrapParams> for SudoUserBootstrapUseCase {
         }
 
         {
-            let save_setting = self.provider.fetch();
+            let save_setting = self.provider.fetch_unchecked();
 
             save_bootstrap_setting(save_setting).await?;
         }

@@ -45,7 +45,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<CreateRolePermissionGrantService>();
+    let service = provider.fetch_unchecked::<CreateRolePermissionGrantService>();
 
     info!("provided CreateRolePermissionGrantService");
 

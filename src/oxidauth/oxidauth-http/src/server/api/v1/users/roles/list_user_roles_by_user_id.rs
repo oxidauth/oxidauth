@@ -49,7 +49,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<ListUserRoleGrantsByUserIdService>();
+    let service = provider.fetch_unchecked::<ListUserRoleGrantsByUserIdService>();
 
     info!("provided ListUserRoleGrantsByUserIdService");
 

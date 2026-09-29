@@ -23,7 +23,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<AuthenticateReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<AuthenticateService>();
+    let service = provider.fetch_unchecked::<AuthenticateService>();
 
     info!("provided AuthenticateService");
 

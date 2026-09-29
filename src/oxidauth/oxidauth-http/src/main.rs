@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
     oxidauth_telemetry::init_subscriber(subscriber);
 
-    let provider = provider::setup().await?;
+    let provider = provider::init().await?;
 
     let bootstrap: BootstrapService = Arc::new(SudoUserBootstrapUseCase::new(
         &provider,
@@ -33,7 +33,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         .await?;
 
     info!("starting server...");
-    let addr = "0.0.0.0:80".parse()?;
+    // container default is 80 (compose maps it); override (e.g. `PORT=3002`) when
+    // running on the host, where the developer machine's ports are taken.
+    let port = std::env::var("PORT").unwrap_or_else(|_| "80".to_string());
+    let addr = format!("0.0.0.0:{port}").parse()?;
 
     let server = Server::new(addr, provider);
 

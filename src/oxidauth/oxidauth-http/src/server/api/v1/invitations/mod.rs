@@ -7,7 +7,7 @@ use axum::{
     routing::{delete, get, post},
     Router,
 };
-use oxidauth_kernel::provider::Provider;
+use provider::Provider;
 
 pub fn router() -> Router<Provider> {
     Router::new()

@@ -45,7 +45,7 @@ where
         let provider = Provider::from_ref(state);
 
         let list_all_public_keys_service =
-            provider.fetch::<ListAllPublicKeysService>();
+            provider.fetch_unchecked::<ListAllPublicKeysService>();
 
         let public_keys = list_all_public_keys_service
             .call(&ListAllPublicKeys)

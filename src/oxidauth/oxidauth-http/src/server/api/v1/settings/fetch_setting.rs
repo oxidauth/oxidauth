@@ -27,7 +27,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<FetchSettingReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<FetchSettingService>();
+    let service = provider.fetch_unchecked::<FetchSettingService>();
 
     info!("provided FetchSettingService");
 

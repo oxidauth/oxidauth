@@ -26,7 +26,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<DeletePublicKeyReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<DeletePublicKeyService>();
+    let service = provider.fetch_unchecked::<DeletePublicKeyService>();
 
     info!("provided DeletePublicKeyService");
 

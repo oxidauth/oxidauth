@@ -46,7 +46,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<CreateUserService>();
+    let service = provider.fetch_unchecked::<CreateUserService>();
 
     info!("provided CreateUserService");
 

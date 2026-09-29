@@ -49,7 +49,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<ValidateTOTPService>();
+    let service = provider.fetch_unchecked::<ValidateTOTPService>();
 
     let user_id = match jwt.sub {
         Some(user_id) => user_id,

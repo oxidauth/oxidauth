@@ -44,7 +44,7 @@ pub async fn handle(
         Err(err) => return Response::fail().error(err.to_string()),
     }
 
-    let service = provider.fetch::<CreatePublicKeyService>();
+    let service = provider.fetch_unchecked::<CreatePublicKeyService>();
 
     info!("provided CreatePublicKeyService");
 

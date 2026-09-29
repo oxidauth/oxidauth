@@ -12,7 +12,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<UpdatePasswordParams>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<UpdatePasswordService>();
+    let service = provider.fetch_unchecked::<UpdatePasswordService>();
 
     let result = service.call(&params).await;
 

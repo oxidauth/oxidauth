@@ -22,7 +22,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<RegisterReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<RegisterService>();
+    let service = provider.fetch_unchecked::<RegisterService>();
 
     info!("provided RegisterService");
 

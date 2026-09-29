@@ -19,7 +19,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<Oauth2RedirectParams>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<Oauth2RedirectService>();
+    let service = provider.fetch_unchecked::<Oauth2RedirectService>();
 
     let result = service.call(&params).await;
 

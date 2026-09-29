@@ -14,7 +14,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Json(params): Json<ForgotPasswordParams>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<ForgotPasswordService>();
+    let service = provider.fetch_unchecked::<ForgotPasswordService>();
 
     let result = service.call(&params).await;
 

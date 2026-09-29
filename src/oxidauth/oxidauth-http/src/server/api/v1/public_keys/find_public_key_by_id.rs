@@ -22,7 +22,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<FindPublicKeyByIdReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<FindPublicKeyByIdService>();
+    let service = provider.fetch_unchecked::<FindPublicKeyByIdService>();
 
     info!("provided FindPublicKeyByIdService");
 

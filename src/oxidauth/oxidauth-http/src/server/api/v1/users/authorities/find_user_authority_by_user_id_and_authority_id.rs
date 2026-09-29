@@ -48,7 +48,7 @@ pub async fn handle(
     }
 
     let service =
-        provider.fetch::<FindUserAuthorityByUserIdAndAuthorityIdService>();
+        provider.fetch_unchecked::<FindUserAuthorityByUserIdAndAuthorityIdService>();
 
     info!("provided FindUserAuthorityByUserIdAndAuthorityIdService");
 

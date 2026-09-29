@@ -4,6 +4,7 @@ use std::{
     sync::Arc,
 };
 
+#[deprecated(since = "0.5.0", note = "use the provider crate (xlib)")]
 #[derive(Default, Clone)]
 pub struct Provider {
     bindings: HashMap<TypeId, Arc<dyn Any + Send + Sync + 'static>>,

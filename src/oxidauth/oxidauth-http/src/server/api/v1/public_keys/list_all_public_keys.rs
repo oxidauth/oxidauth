@@ -22,7 +22,7 @@ pub async fn handle(
     State(provider): State<Provider>,
     Path(params): Path<ListAllPublicKeysReq>,
 ) -> impl IntoResponse {
-    let service = provider.fetch::<ListAllPublicKeysService>();
+    let service = provider.fetch_unchecked::<ListAllPublicKeysService>();
 
     info!("provided ListAllPublicKeysService");
 
