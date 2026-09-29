@@ -18,7 +18,7 @@ impl<'a> Service<&'a FindAuthorityByClientKey> for Database {
         let result =
             sqlx::query_as::<_, PgAuthority>(include_str!("./select_authority_by_client_key.sql"))
                 .bind(params.client_key)
-                .fetch_one(&self.pool)
+                .fetch_one(&self.read_pool())
                 .await?;
 
         let authority = result.try_into()?;
@@ -27,11 +27,5 @@ impl<'a> Service<&'a FindAuthorityByClientKey> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_an_authority_by_client_key_successfully(_pool: PgPool) {}
-}
+

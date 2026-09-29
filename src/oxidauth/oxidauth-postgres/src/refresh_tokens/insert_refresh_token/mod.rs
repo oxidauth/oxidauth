@@ -21,7 +21,7 @@ impl<'a> Service<&'a CreateRefreshToken> for Database {
         .bind(params.user_id)
         .bind(params.authority_id)
         .bind(params.expires_at)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let refresh_token = result.into();
@@ -30,11 +30,5 @@ impl<'a> Service<&'a CreateRefreshToken> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_insert_a_refresh_token_successfully(_pool: PgPool) {}
-}
+

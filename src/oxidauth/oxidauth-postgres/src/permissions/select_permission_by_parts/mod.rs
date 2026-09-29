@@ -29,7 +29,7 @@ impl<'a> Service<&'a FindPermissionByParts> for Database {
         .bind(&permission.realm)
         .bind(&permission.resource)
         .bind(&permission.action)
-        .fetch_optional(&self.pool)
+        .fetch_optional(&self.read_pool())
         .await?;
 
         let permission = result.map(Into::into);
@@ -38,12 +38,5 @@ impl<'a> Service<&'a FindPermissionByParts> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_permission_by_parts_successfully(_pool: PgPool) {
-    }
-}
+

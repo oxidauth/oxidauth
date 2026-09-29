@@ -20,7 +20,8 @@ impl<'a> Service<&'a ListUserPermissionGrantsByUserId> for Database {
         &self,
         params: &'a ListUserPermissionGrantsByUserId,
     ) -> Result<Self::Response, Self::Error> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let user_permission_grants =
             select_user_permission_grants_by_user_id_query(
@@ -50,15 +51,5 @@ pub async fn select_user_permission_grants_by_user_id_query(
     Ok(user_permission_grants)
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_user_permission_grants_successfully(
-        _pool: PgPool,
-    ) {
-    }
-}

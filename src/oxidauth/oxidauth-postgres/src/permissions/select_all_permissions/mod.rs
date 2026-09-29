@@ -18,7 +18,7 @@ impl<'a> Service<&'a ListAllPermissions> for Database {
         let result = sqlx::query_as::<_, PgPermission>(include_str!(
             "./select_all_permissions.sql"
         ))
-        .fetch_all(&self.pool)
+        .fetch_all(&self.read_pool())
         .await?
         .into_iter()
         .map(Into::into)

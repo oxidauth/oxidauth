@@ -20,7 +20,8 @@ impl<'a> Service<&'a FindTOTPSecretByUserId> for Database {
         &self,
         params: &'a FindTOTPSecretByUserId,
     ) -> Result<TOTPSecret, BoxedError> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let result =
             select_totp_secret_by_user_id_query(&mut conn, params.user_id)
@@ -48,14 +49,5 @@ pub async fn select_totp_secret_by_user_id_query(
     Ok(result)
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_totp_secret_by_user_id_successfully(
-        _pool: PgPool,
-    ) {
-    }
-}
+

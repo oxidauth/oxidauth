@@ -22,7 +22,7 @@ impl<'a> Service<&'a DeleteUserAuthority> for Database {
         ))
         .bind(params.user_id)
         .bind(params.authority_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let user_authority = result.into();
@@ -31,12 +31,5 @@ impl<'a> Service<&'a DeleteUserAuthority> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_delete_a_user_authority_successfully(_pool: PgPool) {}
-}

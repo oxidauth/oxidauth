@@ -18,7 +18,7 @@ impl<'a> Service<&'a DeleteRefreshTokenByUserId> for Database {
             "./delete_refresh_token_by_user_id.sql"
         ))
         .bind(params.user_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let refresh_token = result.into();
@@ -27,11 +27,5 @@ impl<'a> Service<&'a DeleteRefreshTokenByUserId> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_delete_a_refresh_token_by_user_id_successfully(_pool: PgPool) {}
-}
+

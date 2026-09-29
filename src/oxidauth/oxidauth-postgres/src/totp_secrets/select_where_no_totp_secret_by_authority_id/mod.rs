@@ -15,7 +15,8 @@ impl SelectWhereNoTotpSecretByAuthorityIdQuery for Database {
         &self,
         params: &SelectWhereNoTotpSecretByAuthorityIdParams,
     ) -> Result<Vec<Uuid>, BoxedError> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         select_where_no_totp_secret_by_authority_id(
             &mut conn,

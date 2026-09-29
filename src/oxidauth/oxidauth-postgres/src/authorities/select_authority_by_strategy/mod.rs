@@ -21,7 +21,7 @@ impl<'a> Service<&'a FindAuthorityByStrategy> for Database {
             "./select_authority_by_strategy.sql"
         ))
         .bind(params.strategy.to_string())
-        .fetch_optional(&self.pool)
+        .fetch_optional(&self.read_pool())
         .await?;
 
         let authority = result
@@ -32,15 +32,5 @@ impl<'a> Service<&'a FindAuthorityByStrategy> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_an_authority_by_strategy_successfully(
-        _pool: PgPool,
-    ) {
-    }
-}

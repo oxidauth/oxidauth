@@ -31,7 +31,7 @@ impl<'a> Service<&'a UpdateAuthority> for Database {
             &params.settings,
         )?)
         .bind(&params.params)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let authority = result.try_into()?;
@@ -40,12 +40,5 @@ impl<'a> Service<&'a UpdateAuthority> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_update_an_authority_successfully(_pool: PgPool) {}
-}

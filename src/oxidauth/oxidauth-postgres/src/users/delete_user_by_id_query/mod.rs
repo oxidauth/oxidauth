@@ -18,7 +18,7 @@ impl<'a> Service<&'a DeleteUserById> for Database {
             "./delete_user_by_id_query.sql"
         ))
         .bind(user_id.user_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let user = result.try_into()?;
@@ -27,12 +27,5 @@ impl<'a> Service<&'a DeleteUserById> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_delete_a_user_by_id_successfully(_pool: PgPool) {}
-}

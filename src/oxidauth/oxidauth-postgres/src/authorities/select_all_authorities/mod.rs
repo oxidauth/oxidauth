@@ -17,7 +17,7 @@ impl<'a> Service<&'a ListAllAuthorities> for Database {
         let result = sqlx::query_as::<_, PgAuthority>(include_str!(
             "./select_all_authorities.sql"
         ))
-        .fetch_all(&self.pool)
+        .fetch_all(&self.read_pool())
         .await?;
 
         let authorities = result
@@ -29,12 +29,5 @@ impl<'a> Service<&'a ListAllAuthorities> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_all_authorities_successfully(_pool: PgPool) {}
-}

@@ -18,7 +18,7 @@ impl<'a> Service<&'a FindPublicKeyById> for Database {
             include_str!("./select_public_key_by_id.sql"),
         )
         .bind(public_key_id.public_key_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.read_pool())
         .await?
         .try_into()?;
 
@@ -26,12 +26,5 @@ impl<'a> Service<&'a FindPublicKeyById> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_public_key_by_id_successfully(_pool: PgPool) {}
-}

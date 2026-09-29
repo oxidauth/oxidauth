@@ -23,7 +23,7 @@ impl<'a> Service<&'a FindInvitationParams> for Database {
             "./select_invitation_by_id_query.sql"
         ))
         .bind(params.invitation_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.read_pool())
         .await?;
 
         let invitation = result.into();

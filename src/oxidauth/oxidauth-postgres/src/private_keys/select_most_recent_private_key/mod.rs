@@ -21,7 +21,7 @@ impl<'a> Service<&'a FindMostRecentPrivateKey> for Database {
         let result = sqlx::query_as::<_, PgPrivateKey>(include_str!(
             "./select_most_recent_private_key.sql"
         ))
-        .fetch_one(&self.pool)
+        .fetch_one(&self.read_pool())
         .await?;
 
         let private_key = result.into();
@@ -30,14 +30,5 @@ impl<'a> Service<&'a FindMostRecentPrivateKey> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_most_recent_private_key_successfully(
-        _pool: PgPool,
-    ) {
-    }
-}
+

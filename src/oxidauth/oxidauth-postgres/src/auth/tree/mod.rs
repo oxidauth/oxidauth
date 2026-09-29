@@ -23,7 +23,8 @@ impl<'a> Service<&'a PermissionSearch> for Database {
         &self,
         params: &'a PermissionSearch,
     ) -> Result<Self::Response, Self::Error> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         permissions_as_tree(&mut conn, params).await
     }

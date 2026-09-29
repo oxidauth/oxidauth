@@ -24,7 +24,7 @@ impl<'a> Service<&'a InsertInvitationParams> for Database {
         .bind(params.id)
         .bind(params.user_id)
         .bind(params.expires_at)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let invitation = result.into();

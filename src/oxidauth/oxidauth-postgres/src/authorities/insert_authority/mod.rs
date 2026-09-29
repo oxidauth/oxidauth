@@ -36,7 +36,7 @@ impl<'a> Service<&'a CreateAuthority> for Database {
                 .clone()
                 .inner_value(),
         )
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let authority = result.try_into()?;
@@ -45,11 +45,5 @@ impl<'a> Service<&'a CreateAuthority> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_insert_an_authority_successfully(_pool: PgPool) {}
-}
+

@@ -17,7 +17,7 @@ impl<'a> Service<&'a ListAllUsers> for Database {
         let result = sqlx::query_as::<_, UserRow>(include_str!(
             "./select_all_users_query.sql"
         ))
-        .fetch_all(&self.pool)
+        .fetch_all(&self.read_pool())
         .await?;
 
         let users = result
@@ -29,12 +29,5 @@ impl<'a> Service<&'a ListAllUsers> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_users_successfully(_pool: PgPool) {}
-}

@@ -28,7 +28,7 @@ impl InsertUserAuthorityQuery for Database {
         .bind(params.authority_id)
         .bind(&params.user_identifier)
         .bind(params.params.inner_value())
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let user_authority = row.into();
@@ -37,11 +37,5 @@ impl InsertUserAuthorityQuery for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_be_able_to_insert_a_new_user_authority(_pool: PgPool) {}
-}
+

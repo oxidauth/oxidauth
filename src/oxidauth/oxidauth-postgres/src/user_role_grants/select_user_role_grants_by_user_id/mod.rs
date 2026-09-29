@@ -19,7 +19,8 @@ impl<'a> Service<&'a ListUserRoleGrantsByUserId> for Database {
         &self,
         params: &'a ListUserRoleGrantsByUserId,
     ) -> Result<Self::Response, Self::Error> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let user_role_grants =
             select_user_role_grants_by_user_id_query(&mut conn, params.user_id)
@@ -46,12 +47,5 @@ pub async fn select_user_role_grants_by_user_id_query(
     Ok(user_role_grants)
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_user_role_grants_successfully(_pool: PgPool) {}
-}

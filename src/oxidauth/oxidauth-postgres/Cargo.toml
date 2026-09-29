@@ -13,6 +13,7 @@ readme = "README.md"
 [dependencies]
 oxidauth-repository = { path = "../oxidauth-repository" }
 oxidauth-kernel = { path = "../oxidauth-kernel" }
+postgres = { version = "0.1.0", path = "../../xlib/postgres" }
 
 async-recursion = "1.1.1"
 async-trait = "0.1.82"

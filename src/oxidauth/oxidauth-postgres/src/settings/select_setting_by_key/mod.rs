@@ -23,7 +23,7 @@ impl<'a> Service<&'a FetchSettingParams> for Database {
             "./select_setting_by_key.sql"
         ))
         .bind(&params.key)
-        .fetch_optional(&self.pool)
+        .fetch_optional(&self.read_pool())
         .await?;
 
         let setting = result.map(Into::into);

@@ -21,7 +21,7 @@ impl<'a> Service<&'a InsertPublicKeyParams> for Database {
         .bind(params.id)
         .bind(&params.private_key)
         .bind(&params.public_key)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let public_key = result.try_into()?;
@@ -30,12 +30,5 @@ impl<'a> Service<&'a InsertPublicKeyParams> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore = "not done yet"]
-    #[sqlx::test]
-    async fn it_should_a_public_key_successfully(_pool: PgPool) {}
-}

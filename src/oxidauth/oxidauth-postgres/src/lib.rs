@@ -1,5 +1,18 @@
-use sqlx::PgPool;
-use std::{env, error::Error};
+//! Postgres database for the stack.
+//!
+//! The `database!` macro from the vendored `postgres` crate generates the
+//! `Database` type (write + read pools), `DatabaseBuilder`, the `PingTrait`
+//! impl, and re-exports `PgError`, `Ping`, `PingTrait`, and `mock` at this
+//! crate root.
+//!
+//! Env vars:
+//! - `DATABASE_URL` (required): write pool
+//! - `READ_DATABASE_URL` (optional): read pool, falls back to `DATABASE_URL`
+//! - `MIGRATIONS_ENABLED` (required): `"true"` runs migrations on `migrate()`;
+//!   a missing var is a hard `PgError::MissingEnvVar` (fail-fast).
+//!
+//! Query implementations for the kernel entities live in the `auth`, `users`,
+//! `roles`, etc. modules below as `impl Service<&Params> for Database`.
 
 pub mod auth;
 pub mod authorities;
@@ -20,46 +33,10 @@ pub mod users;
 
 pub mod prelude;
 
-#[derive(Clone)]
-pub struct Database {
-    pool: PgPool,
-}
+const DATABASE_URL: &str = "DATABASE_URL";
+const READ_DATABASE_URL: &str = "READ_DATABASE_URL";
+const MIGRATIONS_ENABLED: &str = "MIGRATIONS_ENABLED";
 
-impl Database {
-    #[tracing::instrument(name = "creating oxidauth db", level = "trace")]
-    pub fn new(
-        pool: PgPool,
-    ) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
-        Ok(Self { pool })
-    }
+pub const MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
 
-    #[tracing::instrument(
-        name = "creating oxidauth db from env",
-        level = "trace"
-    )]
-    pub async fn from_env(
-    ) -> Result<Self, Box<dyn Error + Send + Sync + 'static>> {
-        let database_url = env::var("DATABASE_URL")?;
-
-        let pool = PgPool::connect(&database_url).await?;
-
-        Self::new(pool)
-    }
-
-    pub async fn ping(&self) -> Result<(), sqlx::Error> {
-        sqlx::query_as::<_, (i32,)>("SELECT (1)")
-            .fetch_one(&self.pool)
-            .await?;
-
-        Ok(())
-    }
-
-    #[tracing::instrument(skip(self))]
-    pub async fn migrate(&self) -> Result<(), sqlx::Error> {
-        sqlx::migrate!()
-            .run(&self.pool)
-            .await?;
-
-        Ok(())
-    }
-}
+postgres::database!(DATABASE_URL, READ_DATABASE_URL, MIGRATIONS_ENABLED, MIGRATOR);

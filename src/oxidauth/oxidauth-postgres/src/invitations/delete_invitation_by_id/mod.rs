@@ -23,7 +23,7 @@ impl<'a> Service<&'a DeleteInvitationParams> for Database {
             "./delete_invitation_by_id_query.sql"
         ))
         .bind(params.id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let invitation = result.into();

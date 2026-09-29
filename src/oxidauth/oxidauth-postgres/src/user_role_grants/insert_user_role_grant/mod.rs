@@ -25,7 +25,7 @@ impl<'a> Service<&'a CreateUserRoleGrant> for Database {
         ))
         .bind(params.user_id)
         .bind(params.role_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let user_role_grant = row.into();
@@ -34,11 +34,5 @@ impl<'a> Service<&'a CreateUserRoleGrant> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_be_able_to_insert_a_new_user_role_grant(_pool: PgPool) {}
-}
+

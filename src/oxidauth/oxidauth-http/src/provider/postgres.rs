@@ -1,5 +1,5 @@
 use oxidauth_kernel::error::BoxedError;
-use oxidauth_postgres::Database;
+use oxidauth_postgres::{Database, PingTrait};
 use provider::Provider;
 use tracing::info;
 

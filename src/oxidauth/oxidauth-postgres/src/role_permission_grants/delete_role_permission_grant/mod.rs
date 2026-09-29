@@ -22,7 +22,7 @@ impl<'a> Service<&'a DeleteRolePermissionGrantParams> for Database {
         ))
         .bind(params.role_id)
         .bind(params.permission_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let role_permission_grant = result.into();

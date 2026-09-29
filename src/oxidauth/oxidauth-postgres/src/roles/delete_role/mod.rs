@@ -16,7 +16,7 @@ impl<'a> Service<&'a DeleteRole> for Database {
             "./delete_role.sql"
         ))
         .bind(params.role_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let role = result.into();
@@ -25,11 +25,5 @@ impl<'a> Service<&'a DeleteRole> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_role_by_id_successfully(_pool: PgPool) {}
-}
+

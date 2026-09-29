@@ -17,7 +17,7 @@ impl InsertTotpSecretsQuery for Database {
         &self,
         params: &InsertTotpSecretsParams,
     ) -> Result<(), BoxedError> {
-        let mut tx = self.pool.begin().await?;
+        let mut tx = self.write_pool().begin().await?;
 
         for (user_id, secret_key) in params
             .user_id_and_secrets

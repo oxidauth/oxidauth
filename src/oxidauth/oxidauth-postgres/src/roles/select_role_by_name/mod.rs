@@ -16,7 +16,8 @@ impl<'a> Service<&'a FindRoleByName> for Database {
         &self,
         params: &'a FindRoleByName,
     ) -> Result<Role, BoxedError> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let result = select_role_by_name_query(&mut conn, &params.role).await?;
 
@@ -40,11 +41,5 @@ pub async fn select_role_by_name_query(
     Ok(result)
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_role_by_name_successfully(_pool: PgPool) {}
-}
+

@@ -23,7 +23,7 @@ impl<'a> Service<&'a SaveSettingParams> for Database {
         ))
         .bind(&params.key)
         .bind(&params.value)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let setting = result.into();
@@ -32,17 +32,5 @@ impl<'a> Service<&'a SaveSettingParams> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[sqlx::test]
-    async fn it_should_be_able_to_upsert_a_new_setting(_pool: PgPool) {
-        // let db = Database::new(pool).expect("should be able to make a db");
-    }
 
-    #[sqlx::test]
-    async fn it_should_be_able_to_upsert_an_existing_setting(_pool: PgPool) {
-        // let db = Database::new(pool).expect("should be able to make a db");
-    }
-}

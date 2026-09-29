@@ -18,7 +18,7 @@ impl<'a> Service<&'a DeletePublicKey> for Database {
             "./delete_public_key.sql"
         ))
         .bind(params.public_key_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let public_key = result.try_into()?;

@@ -18,7 +18,8 @@ impl<'a> Service<&'a InsertTotpSecretParams> for Database {
         &self,
         params: &'a InsertTotpSecretParams,
     ) -> Result<Self::Response, Self::Error> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.write_pool();
+        let mut conn = pool.acquire().await?;
 
         insert_totp_secret_query(&mut conn, params).await?;
 

@@ -13,7 +13,8 @@ impl<'a> Service<&'a FindRoleById> for Database {
 
     #[tracing::instrument(name = "select_role_by_id_query", skip(self))]
     async fn call(&self, params: &'a FindRoleById) -> Result<Role, BoxedError> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let result = select_role_by_id_query(&mut conn, params.role_id).await?;
 
@@ -37,11 +38,5 @@ pub async fn select_role_by_id_query(
     Ok(result)
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_role_by_id_successfully(_pool: PgPool) {}
-}
+

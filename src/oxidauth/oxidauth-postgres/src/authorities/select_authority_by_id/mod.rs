@@ -18,7 +18,7 @@ impl<'a> Service<&'a FindAuthorityById> for Database {
             "./query_authority_by_id.sql"
         ))
         .bind(params.authority_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.read_pool())
         .await?;
 
         let authority = result.try_into()?;
@@ -27,12 +27,5 @@ impl<'a> Service<&'a FindAuthorityById> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_an_authority_by_id_successfully(_pool: PgPool) {}
-}

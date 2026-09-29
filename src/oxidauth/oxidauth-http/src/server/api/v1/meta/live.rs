@@ -1,5 +1,5 @@
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
-use oxidauth_postgres::Database;
+use oxidauth_postgres::{Database, PingTrait};
 use provider::Provider;
 
 pub async fn handler(State(provider): State<Provider>) -> impl IntoResponse {

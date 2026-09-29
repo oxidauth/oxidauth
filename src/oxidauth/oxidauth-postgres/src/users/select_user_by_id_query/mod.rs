@@ -15,7 +15,8 @@ impl<'a> Service<&'a FindUserById> for Database {
         &self,
         user_id: &'a FindUserById,
     ) -> Result<Self::Response, Self::Error> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let result =
             select_user_by_id_query(&mut conn, user_id.user_id).await?;
@@ -40,12 +41,5 @@ pub async fn select_user_by_id_query(
     Ok(result)
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_user_by_id_successfully(_pool: PgPool) {}
-}

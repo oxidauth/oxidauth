@@ -16,7 +16,8 @@ impl<'a> Service<&'a FindUsersByIds> for Database {
         &self,
         params: &'a FindUsersByIds,
     ) -> Result<Self::Response, Self::Error> {
-        let mut conn = self.pool.acquire().await?;
+        let pool = self.read_pool();
+        let mut conn = pool.acquire().await?;
 
         let user_rows =
             select_users_by_ids_query(&mut conn, &params.user_ids).await?;
@@ -60,12 +61,5 @@ pub async fn select_users_by_ids_query(
     Ok(result)
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_users_by_ids_successfully(_pool: PgPool) {}
-}

@@ -1,6 +1,6 @@
 # 06 — Telemetry via xlib + boot sequence
 
-**Status**: `reviewed` (walkthrough 2026-09-29: approved as written — ENVIRONMENT/RUST_LOG required at boot, bootstrap stays)
+**Status**: `in-progress` (worker dispatched 2026-09-29)
 **Depends on**: 04
 **Risk**: low.
 

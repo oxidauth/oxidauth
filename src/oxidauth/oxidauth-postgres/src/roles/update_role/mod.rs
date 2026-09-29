@@ -17,7 +17,7 @@ impl<'a> Service<&'a UpdateRole> for Database {
         ))
         .bind(params.role_id)
         .bind(&params.name)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let role = result.into();
@@ -26,11 +26,5 @@ impl<'a> Service<&'a UpdateRole> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_update_a_role_successfully(_pool: PgPool) {}
-}
+

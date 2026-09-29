@@ -17,7 +17,7 @@ impl<'a> Service<&'a ListAllPublicKeys> for Database {
         let public_key = sqlx::query_as::<_, PgPublicSanitizedKey>(
             include_str!("./select_all_public_keys.sql"),
         )
-        .fetch_all(&self.pool)
+        .fetch_all(&self.read_pool())
         .await?
         .into_iter()
         .map(|public_key| public_key.try_into())
@@ -27,12 +27,5 @@ impl<'a> Service<&'a ListAllPublicKeys> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_all_public_keys_successfully(_pool: PgPool) {}
-}

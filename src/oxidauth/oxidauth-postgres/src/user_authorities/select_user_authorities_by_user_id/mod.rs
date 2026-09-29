@@ -25,7 +25,7 @@ impl<'a> Service<&'a ListUserAuthoritiesByUserId> for Database {
                 "./select_user_authorities_by_user_id.sql"
             ))
             .bind(params.user_id)
-            .fetch_all(&self.pool)
+            .fetch_all(&self.read_pool())
             .await?
             .into_iter()
             .map(|u| u.try_into())
@@ -35,15 +35,5 @@ impl<'a> Service<&'a ListUserAuthoritiesByUserId> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_user_authorities_by_user_id_successfully(
-        _pool: PgPool,
-    ) {
-    }
-}

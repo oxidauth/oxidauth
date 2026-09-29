@@ -26,7 +26,7 @@ impl<'a> Service<&'a UpdateUserAuthority> for Database {
         .bind(params.user_id)
         .bind(params.authority_id)
         .bind(&*params.params)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let user_authority = row.into();
@@ -35,14 +35,5 @@ impl<'a> Service<&'a UpdateUserAuthority> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_be_able_to_update_an_existing_user_authority(
-        _pool: PgPool,
-    ) {
-    }
-}
+

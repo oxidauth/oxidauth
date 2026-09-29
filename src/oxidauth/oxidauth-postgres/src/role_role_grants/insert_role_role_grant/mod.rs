@@ -20,7 +20,7 @@ impl<'a> Service<&'a CreateRoleRoleGrant> for Database {
         ))
         .bind(params.parent_id)
         .bind(params.child_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let role_role_grant = result.into();

@@ -30,7 +30,7 @@ impl<'a> Service<&'a UpdateUser> for Database {
         .bind(&params.last_name)
         .bind(status)
         .bind(&params.profile)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.write_pool())
         .await?;
 
         let user = row.try_into()?;
@@ -39,15 +39,5 @@ impl<'a> Service<&'a UpdateUser> for Database {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_be_able_to_update_an_existing_user(_pool: PgPool) {}
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_fail_to_parse_an_invalid_user_status(_pool: PgPool) {}
-}

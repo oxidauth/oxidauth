@@ -23,7 +23,7 @@ impl<'a> Service<&'a SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryPar
         ))
         .bind(params.authority_id)
         .bind(&params.user_identifier)
-        .fetch_one(&self.pool)
+        .fetch_one(&self.read_pool())
         .await
         .map_err(|err| match err {
             sqlx::Error::RowNotFound => format!("user authority not found: {:?}", err),
@@ -36,15 +36,5 @@ impl<'a> Service<&'a SelectUserAuthoritiesByAuthorityIdAndUserIdentifierQueryPar
     }
 }
 
-#[cfg(test)]
-mod tests {
 
-    use sqlx::PgPool;
 
-    #[ignore]
-    #[sqlx::test]
-    async fn it_should_query_a_user_authority_by_authority_id_and_user_identifier_successfully(
-        _pool: PgPool,
-    ) {
-    }
-}
