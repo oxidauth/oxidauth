@@ -1,11 +1,10 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::authorities::create_authority::{
-    CreateAuthority,
-    CreateAuthorityReq,
-    CreateAuthorityRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::authorities::create_authority::{CreateAuthorityReq, CreateAuthorityRes};
+pub use oxidauth_kernel::{
+    authorities::{TotpSettings, create_authority::CreateAuthority},
+    error::BoxedError,
 };
-pub use oxidauth_kernel::{authorities::TotpSettings, error::BoxedError};
 
 use super::*;
 
@@ -14,10 +13,7 @@ const METHOD: &str = "create_authority";
 
 #[async_trait]
 pub trait CreateAuthorityTrait {
-    async fn create_authority<T>(
-        &self,
-        authority: T,
-    ) -> Result<CreateAuthorityRes, BoxedError>
+    async fn create_authority<T>(&self, authority: T) -> Result<CreateAuthorityRes, BoxedError>
     where
         T: Into<CreateAuthorityReq> + fmt::Debug + Send;
 }
@@ -25,10 +21,7 @@ pub trait CreateAuthorityTrait {
 #[async_trait]
 impl CreateAuthorityTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn create_authority<T>(
-        &self,
-        authority: T,
-    ) -> Result<CreateAuthorityRes, BoxedError>
+    async fn create_authority<T>(&self, authority: T) -> Result<CreateAuthorityRes, BoxedError>
     where
         T: Into<CreateAuthorityReq> + fmt::Debug + Send,
     {
@@ -50,10 +43,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl CreateAuthorityTrait for ClientMock {
-    async fn create_authority<T>(
-        &self,
-        authority: T,
-    ) -> Result<CreateAuthorityRes, BoxedError>
+    async fn create_authority<T>(&self, authority: T) -> Result<CreateAuthorityRes, BoxedError>
     where
         T: Into<CreateAuthorityReq> + fmt::Debug + Send,
     {
@@ -65,5 +55,53 @@ impl CreateAuthorityTrait for ClientMock {
         };
 
         return func(authority.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use std::time::Duration;
+
+    use oxidauth_kernel::{
+        JsonValue,
+        authorities::{AuthoritySettings, AuthorityStrategy, NbfOffset},
+        jwt::EntitlementsEncoding,
+    };
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{authority, contract};
+
+    #[tokio::test]
+    async fn create_authority_route_contract() {
+        contract(
+            "POST",
+            "/api/v1/authorities",
+            ("authority", "create_authority"),
+            json!({ "authority": authority() }),
+            |client| {
+                async move {
+                    client
+                        .create_authority(CreateAuthorityReq {
+                            authority: CreateAuthority {
+                                name: "primary".to_string(),
+                                client_key: None,
+                                status: None,
+                                strategy: AuthorityStrategy::UsernamePassword,
+                                settings: AuthoritySettings {
+                                    jwt_ttl: Duration::from_secs(86_400),
+                                    jwt_nbf_offset: NbfOffset::Disabled,
+                                    refresh_token_ttl: Duration::from_secs(2_592_000),
+                                    totp: TotpSettings::Disabled,
+                                    entitlements_encoding: EntitlementsEncoding::Txt,
+                                },
+                                params: JsonValue::new(json!({})),
+                            },
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

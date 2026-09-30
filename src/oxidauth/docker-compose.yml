@@ -1,0 +1,104 @@
+# Dev compose: mounts the local source into the dev image and shares cargo's
+# target directory across all rust services via the project's shared volume
+# (declared in the root docker-compose.yml). The production Dockerfiles under
+# src/*/build/ are NOT used here - those are for production builds.
+#
+# Paths are relative to this file's location (src/<stack>/), so the project
+# root is ../../ and the env file is ../../.env (RUST_DEV_IMAGE_VERSION,
+# DOCKER_PLATFORM). Include this compose from the project root:
+#
+#   include:
+#     - ./src/oxidauth/docker-compose.yml
+
+services:
+  postgres:
+    image: postgres:16
+    platform: $DOCKER_PLATFORM
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # init.sh creates the oxidauth db+user; POSTGRES_DB=oxidauth would collide with CREATE DATABASE
+      POSTGRES_DB: postgres
+      SERVICES: oxidauth
+    ports:
+      - "5434:5432"          # keep 5434 host port (dev-box convention)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ../../devops/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - postgres_data:/var/lib/postgresql/data
+
+  oxidauth-api:
+    build:
+      context: ../..
+      dockerfile: devops/docker/oxidauth-dev/Dockerfile
+      args:
+        RUST_DEV_IMAGE_VERSION: $RUST_DEV_IMAGE_VERSION
+    image: oxidauth-dev:local
+    working_dir: /home/rust/src/oxidauth
+    command: /bin/bash -c 'watchexec -c -e rs -r cargo run --bin oxidauth-api'
+    platform: $DOCKER_PLATFORM
+    stdin_open: true
+    tty: true
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      CARGO_TARGET_DIR: /home/rust/shared_target
+      # user/db created by init.sh (SERVICES=oxidauth); host-side URLs (.env) keep the 5434 mapping
+      DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
+      READ_DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
+      MIGRATIONS_ENABLED: "true"
+      ENVIRONMENT: local
+      RUST_LOG: ${RUST_LOG:-INFO}
+      VIRTUAL_HOST: api.oxidauth.localhost
+    env_file:
+      - ../../.env
+    ports:
+      - "80"
+    volumes:
+      - "shared-vol:/home/rust/shared_target"
+      - ../../:/home/rust/src/oxidauth:cached
+    networks:
+      default:
+        aliases:
+          - api.oxidauth.localhost
+
+  # One-shot local-dev fixture seeder (plan 13). Never part of `up`:
+  #   docker compose --profile seed run --rm seedz
+  # ENVIRONMENT=local guard inside; seeding is idempotent; migrations run
+  # only while MIGRATIONS_ENABLED=true. Same dev image/build as the api
+  # (compose dedupes the identical build), shared-vol reuses the api's
+  # cargo cache. depends_on uses service_healthy (matches the api service):
+  # Database::from_env's PgPool::connect is eager with no retry, so even an
+  # interactive one-shot must not race postgres warmup.
+  seedz:
+    profiles: [ "seed" ]
+    build:
+      context: ../..
+      dockerfile: devops/docker/oxidauth-dev/Dockerfile
+      args:
+        RUST_DEV_IMAGE_VERSION: $RUST_DEV_IMAGE_VERSION
+    image: oxidauth-dev:local
+    working_dir: /home/rust/src/oxidauth
+    command: /bin/bash -c 'cargo run --bin seedz'
+    platform: $DOCKER_PLATFORM
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      CARGO_TARGET_DIR: /home/rust/shared_target
+      # user/db created by init.sh (SERVICES=oxidauth); in-cluster URLs
+      DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
+      READ_DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
+      MIGRATIONS_ENABLED: "true"
+      ENVIRONMENT: local
+    env_file:
+      - ../../.env
+    volumes:
+      - "shared-vol:/home/rust/shared_target"
+      - ../../:/home/rust/src/oxidauth:cached
+
+volumes:
+  postgres_data:

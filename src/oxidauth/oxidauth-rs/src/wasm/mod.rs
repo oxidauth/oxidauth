@@ -1,9 +1,6 @@
 pub mod builder;
 
-use std::fmt;
-use std::ops::Deref;
-use std::str::FromStr;
-use std::sync::Arc;
+use std::{fmt, ops::Deref, str::FromStr, sync::Arc};
 
 use gloo_storage::{LocalStorage, Storage as _};
 use tokio::sync::Mutex;
@@ -173,5 +170,116 @@ impl FromStr for StateKey {
             PUBLIC_KEYS_KEY => Ok(StateKey::PublicKeys),
             _ => Err("invalid State key".to_string()),
         }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+
+    // E6: what the wasm module exposes natively (`cargo test -p oxidauth
+    // --features wasm`) — run with --features wasm since the module itself is
+    // feature-gated.
+    //
+    // NOT natively testable in this file: `State::set`, `State::load`,
+    // `State::clear`, `OxidauthClient::new` (calls `load`) and
+    // `clear_state` (calls `clear`) — every one delegates to gloo-storage's
+    // LocalStorage, which panics through js-sys on non-wasm targets (pinned
+    // by `client_construction_panics_on_native` below). Browser persistence
+    // semantics are only observable under a wasm runner.
+
+    #[test]
+    fn config_defaults_to_a_120s_public_keys_ttl() {
+        assert_eq!(Config::default().public_keys_ttl, 120);
+    }
+
+    #[test]
+    fn state_key_display_and_from_str_round_trip_through_the_storage_keys() {
+        for key in [StateKey::Jwt, StateKey::RefreshToken, StateKey::PublicKeys] {
+            let wire = key.to_string();
+            let back: StateKey = wire.parse().unwrap();
+            assert_eq!(back.to_string(), wire);
+        }
+
+        assert!(matches!(
+            "OXIDAUTH_JWT"
+                .parse()
+                .unwrap(),
+            StateKey::Jwt
+        ));
+        assert!(matches!(
+            "OXIDAUTH_REFRESH_TOKEN"
+                .parse()
+                .unwrap(),
+            StateKey::RefreshToken
+        ));
+        assert!(matches!(
+            "OXIDAUTH_PUBLIC_KEYS"
+                .parse()
+                .unwrap(),
+            StateKey::PublicKeys
+        ));
+
+        assert_eq!(StateKey::Jwt.to_string(), "OXIDAUTH_JWT");
+        assert_eq!(StateKey::RefreshToken.to_string(), "OXIDAUTH_REFRESH_TOKEN");
+        assert_eq!(StateKey::PublicKeys.to_string(), "OXIDAUTH_PUBLIC_KEYS");
+
+        // near-misses and empties are rejected with the fixed copy
+        for bad in ["", "JWT", "oxidauth_jwt", "OXIDAUTH_", "other"] {
+            assert_eq!(
+                bad.parse::<StateKey>()
+                    .unwrap_err(),
+                "invalid State key"
+            );
+        }
+    }
+
+    #[test]
+    fn state_get_reads_the_in_memory_fields_purely() {
+        // `get` never touches LocalStorage, so it is fully testable natively
+        let mut state = State::default();
+        assert!(
+            state
+                .get(StateKey::Jwt)
+                .is_none()
+        );
+        assert!(
+            state
+                .get(StateKey::RefreshToken)
+                .is_none()
+        );
+        assert!(
+            state
+                .get(StateKey::PublicKeys)
+                .is_none()
+        );
+
+        state.jwt = Some("jwt".to_string());
+        state.refresh_token = Some("rt".to_string());
+        state.public_keys = Some("[]".to_string());
+        assert_eq!(state.get(StateKey::Jwt), Some("jwt"));
+        assert_eq!(state.get(StateKey::RefreshToken), Some("rt"));
+        assert_eq!(state.get(StateKey::PublicKeys), Some("[]"));
+    }
+
+    #[test]
+    fn client_construction_panics_on_native() {
+        // Pins the boundary itself: `OxidauthClient::new` runs `State::load`,
+        // whose LocalStorage access is a hard panic off-wasm (js-sys). Any
+        // native construction of the wasm client is therefore unsupported —
+        // the builder's two validation arms are the only pure surface.
+        let result = std::panic::catch_unwind(|| {
+            OxidauthClient::new("https://oxidauth.test".to_string(), Config::default())
+        });
+        assert!(
+            result.is_err(),
+            "native OxidauthClient::new must panic on the missing browser storage"
+        );
+    }
+
+    #[test]
+    fn builder_factory_is_pure() {
+        // `OxidauthClient::builder()` must not construct (and panic on) a client
+        let _builder = OxidauthClient::builder();
     }
 }

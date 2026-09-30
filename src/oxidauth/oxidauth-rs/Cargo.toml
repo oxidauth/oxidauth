@@ -1,7 +1,7 @@
 [package]
 name = "oxidauth"
-version = "0.4.0-rc2"
-edition = "2021"
+version = "0.9.0"
+edition = "2024"
 license = "GPL-3.0"
 description = "rust client for oxidauth"
 homepage = "https://oxidauth.rs"
@@ -15,29 +15,42 @@ name = "test_client"
 path = "bin/test_client.rs"
 
 [dependencies]
-oxidauth-kernel = { path = "../oxidauth-kernel" }
-oxidauth-http = { path = "../oxidauth-http" }
-oxidauth-permission = { path = "../oxidauth-permission" }
-oxidauth-usecases = { path = "../oxidauth-usecases" }
+oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel" }
+oxidauth-http = { version = "0.9.0", path = "../oxidauth-http" }
+oxidauth-permission = { version = "0.9.0", path = "../oxidauth-permission" }
+oxidauth-services = { version = "0.9.0", path = "../oxidauth-services" }
 
-async-trait = "0.1.89"
-axum = "0.8.8"
-axum-extra = { version = "0.12.5", features = ["typed-header"] }
-chrono = { version = "0.4.38", features = ["serde"] }
-reqwest = { version = "0.12.5", default-features = false, features = ["json", "rustls-tls"] }
-serde = { version = "1.0.203", features = ["derive"] }
-serde_json = "1.0.117"
-tokio = { version = "1.40.0", features = ["full"] }
-tracing = "0.1.40"
-url = { version = "2.5.2", features = ["serde"] }
-uuid = { version = "1.8.0", features = ["serde", "v4"] }
+async-trait = "0.1.92"
+axum = { version = "0.8.9", optional = true }
+axum-extra = { version = "0.12.6", features = ["typed-header"], optional = true }
+chrono = { version = "0.4.45", features = ["serde"] }
+reqwest = { version = "0.12.28", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+# wasm32 only supports sync/macros/io-util/rt/time; rt-multi-thread is split
+# into the native-target block below.
+tokio = { version = "1.53.1", features = ["macros", "rt", "sync"] }
+tracing = "0.1.44"
+url = { version = "2.5.8", features = ["serde"] }
+uuid = { version = "1.26.1", features = ["serde", "v4"] }
 mockall = "0.14.0"
 
 gloo-storage = { version = "0.4.0", optional = true }
-gloo-timers = { version = "0.3", optional = true }
+gloo-timers = { version = "0.4", optional = true }
 
 [features]
 default = ["server"]
 mock = ["server"]
-server = []
+server = ["dep:axum", "dep:axum-extra"]
 wasm = ["gloo-storage", "gloo-timers"]
+
+# wasm32-unknown-unknown: uuid v4 needs the `js` randomness backend.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { version = "1.26.1", features = ["js"] }
+
+# native targets keep the multi-thread runtime (wasm gets `rt` from above)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+wiremock = "0.6"

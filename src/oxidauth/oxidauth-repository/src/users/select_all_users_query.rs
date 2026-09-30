@@ -1,17 +1,8 @@
-pub use oxidauth_kernel::users::{list_all_users::ListAllUsers, User};
+pub use oxidauth_kernel::users::{User, list_all_users::ListAllUsers};
 
 use crate::prelude::*;
 
-pub trait SelectAllUsersQuery:
-    for<'a> Service<&'a ListAllUsers, Response = Vec<User>, Error = BoxedError>
-{
-}
-
-impl<T> SelectAllUsersQuery for T where
-    T: for<'a> Service<
-        &'a ListAllUsers,
-        Response = Vec<User>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectAllUsersQuery: Send + Sync + 'static {
+    async fn select_all_users(&self, params: &ListAllUsers) -> Result<Vec<User>, BoxedError>;
 }

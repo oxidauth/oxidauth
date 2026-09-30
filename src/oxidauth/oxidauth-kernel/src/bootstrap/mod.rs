@@ -1,12 +1,16 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 
-use crate::dev_prelude::{BoxedError, Service};
+use crate::dev_prelude::BoxedError;
 
-pub type BootstrapService = Arc<
-    dyn for<'a> Service<&'a BootstrapParams, Response = (), Error = BoxedError>,
->;
+#[async_trait]
+pub trait BootstrapServiceTrait: Send + Sync + 'static {
+    async fn bootstrap(&self, params: &BootstrapParams) -> Result<(), BoxedError>;
+}
+
+pub type BootstrapService = Arc<dyn BootstrapServiceTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct BootstrapParams;

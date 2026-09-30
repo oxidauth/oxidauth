@@ -12,9 +12,7 @@ pub use crate::roles::roles::{
 };
 
 pub trait RoleRoleGrantsTrait:
-    ListRoleRoleGrantsByParentIdTrait
-    + DeleteRoleRoleGrantTrait
-    + CreateRoleRoleGrantTrait
+    ListRoleRoleGrantsByParentIdTrait + DeleteRoleRoleGrantTrait + CreateRoleRoleGrantTrait
 {
 }
 

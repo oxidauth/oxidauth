@@ -1,31 +1,20 @@
 use std::error::Error;
 
 use oxidauth_kernel::user_permission_grants::{
-    delete_user_permission_grant::DeleteUserPermissionGrant,
     UserPermissionGrant,
+    delete_user_permission_grant::DeleteUserPermissionGrant,
 };
-pub use oxidauth_kernel::{service::Service, users::User};
+pub use oxidauth_kernel::users::User;
 
 pub use crate::prelude::*;
 
-pub trait DeleteUserPermissionGrantQuery:
-    for<'a> Service<
-    &'a DeleteUserPermissionGrant,
-    Response = UserPermissionGrant,
-    Error = BoxedError,
->
-{
+#[async_trait]
+pub trait DeleteUserPermissionGrantQuery: Send + Sync + 'static {
+    async fn delete_user_permission_grant(
+        &self,
+        params: &DeleteUserPermissionGrant,
+    ) -> Result<UserPermissionGrant, BoxedError>;
 }
-
-impl<T> DeleteUserPermissionGrantQuery for T where
-    T: for<'a> Service<
-        &'a DeleteUserPermissionGrant,
-        Response = UserPermissionGrant,
-        Error = BoxedError,
-    >
-{
-}
-
 #[derive(Debug)]
 pub struct DeleteUserPermissionGrantError {
     pub reason: String,

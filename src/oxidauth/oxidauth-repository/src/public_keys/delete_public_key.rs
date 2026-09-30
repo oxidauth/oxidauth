@@ -1,19 +1,8 @@
-use oxidauth_kernel::public_keys::{
-    delete_public_key::DeletePublicKey, PublicKey,
-};
+use oxidauth_kernel::public_keys::{PublicKey, delete_public_key::DeletePublicKey};
 
 use crate::prelude::*;
 
-pub trait DeletePublicKeyQuery:
-    for<'a> Service<&'a DeletePublicKey, Response = PublicKey, Error = BoxedError>
-{
-}
-
-impl<T> DeletePublicKeyQuery for T where
-    T: for<'a> Service<
-        &'a DeletePublicKey,
-        Response = PublicKey,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait DeletePublicKeyQuery: Send + Sync + 'static {
+    async fn delete_public_key(&self, params: &DeletePublicKey) -> Result<PublicKey, BoxedError>;
 }

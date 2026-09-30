@@ -1,22 +1,21 @@
 use std::sync::Arc;
 
-use serde::Deserialize;
-use serde::Serialize;
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+pub use super::{RoleRoleGrant, RoleRoleGrantDetail};
 use crate::error::BoxedError;
-pub use crate::service::Service;
 
-pub use super::RoleRoleGrant;
-pub use super::RoleRoleGrantDetail;
+#[async_trait]
+pub trait ListRoleRoleGrantsByParentIdServiceTrait: Send + Sync + 'static {
+    async fn list_role_role_grants_by_parent_id(
+        &self,
+        params: &ListRoleRoleGrantsByParentId,
+    ) -> Result<Vec<RoleRoleGrantDetail>, BoxedError>;
+}
 
-pub type ListRoleRoleGrantsByParentIdService = Arc<
-    dyn for<'a> Service<
-        &'a ListRoleRoleGrantsByParentId,
-        Response = Vec<RoleRoleGrantDetail>,
-        Error = BoxedError,
-    >,
->;
+pub type ListRoleRoleGrantsByParentIdService = Arc<dyn ListRoleRoleGrantsByParentIdServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListRoleRoleGrantsByParentId {

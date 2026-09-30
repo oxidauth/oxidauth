@@ -1,0 +1,13 @@
+# Thank you for installing {{ .Chart.Name }}!
+
+The following components have been deployed:
+- API Service: {{ template "oxidauth.api.name" . }}
+{{- if .Values.web.enabled }}
+- Web Service: {{ template "oxidauth.web.name" . }}
+{{- else }}
+- Web Service: disabled (web.enabled=false — reserved for a future admin UI)
+{{- end }}
+
+To get the application URL, run:
+
+  echo "Application URL: http://{{ .Values.api.ingress.host }}"

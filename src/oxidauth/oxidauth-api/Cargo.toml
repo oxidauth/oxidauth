@@ -1,0 +1,44 @@
+[package]
+name = "oxidauth-api"
+version = "0.9.0"
+edition = "2024"
+license = "GPL-3.0"
+description = "http server for oxidauth"
+homepage = "https://oxidauth.rs"
+repository = "https://github.com/oxidauth/oxidauth"
+readme = "README.md"
+
+[dependencies]
+oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel" }
+oxidauth-services = { version = "0.9.0", path = "../oxidauth-services" }
+oxidauth-postgres = { version = "0.9.0", path = "../oxidauth-postgres" }
+oxidauth-permission = { version = "0.9.0", path = "../oxidauth-permission" }
+oxidauth-http = { version = "0.9.0", path = "../oxidauth-http" }
+provider = { version = "0.9.0", path = "../../xlib/provider" }
+telemetry = { version = "0.9.0", path = "../../xlib/telemetry" }
+
+async-trait = "0.1.92"
+# template baseline: default features off, explicit feature list
+axum = { version = "0.8.9", default-features = false, features = [
+    "http1",
+    "json",
+    "macros",
+    "matched-path",
+    "original-uri",
+    "tower-log",
+    "query",
+    "tokio",
+] }
+axum-extra = { version = "0.12.6", features = ["typed-header"] }
+axum-macros = "0.4.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio = { version = "1.53.1", features = ["full"] }
+tower-http = { version = "0.6.2", features = ["cors"] }
+tracing = "0.1.44"
+url = { version = "2.5.8", features = ["serde"] }
+uuid = { version = "1.26.1", features = ["serde", "v4"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

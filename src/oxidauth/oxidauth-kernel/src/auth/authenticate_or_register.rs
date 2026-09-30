@@ -1,22 +1,22 @@
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
-use crate::{
-    JsonValue,
-    dev_prelude::{BoxedError, Service},
-};
-
 use super::{authenticate::AuthenticateParams, register::RegisterParams};
+use crate::{JsonValue, dev_prelude::BoxedError};
 
-pub type AuthenticateOrRegisterService = Arc<
-    dyn for<'a> Service<
-            &'a AuthenticateOrRegisterParams,
-            Response = AuthenticateOrRegisterResponse,
-            Error = BoxedError,
-        >,
->;
+#[async_trait]
+pub trait AuthenticateOrRegisterServiceTrait: Send + Sync + 'static {
+    async fn authenticate_or_register(
+        &self,
+        params: &AuthenticateOrRegisterParams,
+    ) -> Result<AuthenticateOrRegisterResponse, BoxedError>;
+}
+
+pub type AuthenticateOrRegisterService = Arc<dyn AuthenticateOrRegisterServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthenticateOrRegisterResponse {

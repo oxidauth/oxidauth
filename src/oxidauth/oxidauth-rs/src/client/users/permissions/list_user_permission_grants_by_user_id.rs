@@ -1,6 +1,9 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::permissions::list_user_permissions_by_user_id::{ListUserPermissionGrantsByUserIdReq, ListUserPermissionGrantsByUserIdRes};
+use oxidauth_http::Response;
+pub use oxidauth_http::users::permissions::list_user_permissions_by_user_id::{
+    ListUserPermissionGrantsByUserIdReq,
+    ListUserPermissionGrantsByUserIdRes,
+};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -32,16 +35,12 @@ impl ListUserPermissionGrantsByUserIdTrait for Client {
 
         let resp: Response<ListUserPermissionGrantsByUserIdRes> = self
             .get(
-                &format!(
-                    "/users/{}/permissions",
-                    params.user_id
-                ),
+                &format!("/users/{}/permissions", params.user_id),
                 None::<ListUserPermissionGrantsByUserIdReq>,
             )
             .await?;
 
-        let user_permission_grants_res =
-            handle_response(RESOURCE, METHOD, resp)?;
+        let user_permission_grants_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_permission_grants_res)
     }
@@ -64,11 +63,43 @@ impl ListUserPermissionGrantsByUserIdTrait for ClientMock {
             .list_user_permission_grants_by_user_id_fn
             .clone()
         else {
-            panic!(
-                "list_user_permission_grants_by_user_id not defined for mock client"
-            );
+            panic!("list_user_permission_grants_by_user_id not defined for mock client");
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_permission};
+
+    #[tokio::test]
+    async fn list_user_permission_grants_by_user_id_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        contract(
+            "GET",
+            &format!("/api/v1/users/{user_id}/permissions"),
+            (
+                "user_permission_grant",
+                "list_user_permission_grants_by_user_id",
+            ),
+            json!({ "user_permission_grants": [user_permission()] }),
+            move |client| {
+                async move {
+                    client
+                        .list_user_permission_grants_by_user_id(
+                            ListUserPermissionGrantsByUserIdReq { user_id },
+                        )
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

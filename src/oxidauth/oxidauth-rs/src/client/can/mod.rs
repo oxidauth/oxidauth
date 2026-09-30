@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::can::CanReq;
+use oxidauth_http::Response;
+pub use oxidauth_http::can::CanReq;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -25,10 +25,7 @@ impl CanTrait for Client {
         let params = params.into();
 
         let resp: Response<bool> = self
-            .get(
-                &format!("/can/{}", params.permission),
-                None::<CanReq>,
-            )
+            .get(&format!("/can/{}", params.permission), None::<CanReq>)
             .await?;
 
         let can_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -52,5 +49,34 @@ impl CanTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::contract;
+
+    #[tokio::test]
+    async fn can_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/can/oxidauth:users:read",
+            ("permission", "can"),
+            // the can endpoint payload is a bare bool
+            json!(true),
+            |client| {
+                async move {
+                    client
+                        .can(CanReq {
+                            permission: "oxidauth:users:read".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

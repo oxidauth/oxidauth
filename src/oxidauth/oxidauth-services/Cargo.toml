@@ -1,0 +1,44 @@
+[package]
+name = "oxidauth-services"
+version = "0.9.0"
+edition = "2024"
+license = "GPL-3.0"
+description = "service layer for oxidauth"
+homepage = "https://oxidauth.rs"
+repository = "https://github.com/oxidauth/oxidauth"
+readme = "README.md"
+
+[dependencies]
+oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel" }
+oxidauth-repository = { version = "0.9.0", path = "../oxidauth-repository" }
+provider = { version = "0.9.0", path = "../../xlib/provider" }
+
+argon2 = "0.5.3"
+async-trait = "0.1.92"
+base64 = "0.22.1"
+boringauth = "0.9.0"
+chrono = "0.4.45"
+rand = "0.8.5"
+rand_core = { version = "0.6.4", features = ["std"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tracing = "0.1.44"
+tracing-log = "0.2.0"
+tracing-subscriber = { version = "0.3.23", features = [
+    "registry",
+    "env-filter",
+] }
+uuid = { version = "1.26.1", features = ["serde", "v4"] }
+url = { version = "2.5.8", features = ["serde"] }
+reqwest = { version = "0.12.28", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
+
+# wasm32-unknown-unknown: uuid `js` + getrandom `js` backends for v4/rand.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+uuid = { version = "1.26.1", features = ["js"] }
+
+[dev-dependencies]
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "time"] }

@@ -22,3 +22,6 @@
       `RUST_LOG=oxidauth_http=debug` are honored; when unset it logs an error
       and falls back to `INFO` (template behavior), i.e. level `INFO` is no
       longer hardcoded but the process does not die on a missing `RUST_LOG`
+      (superseded by OXA-000046: the fallback is now an `eprintln!` notice — no
+      error event fires, since it runs pre-subscriber; a corrupt non-UTF-8 value
+      aborts boot)

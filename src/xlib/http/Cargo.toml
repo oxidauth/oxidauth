@@ -1,10 +1,10 @@
 [package]
 name = "http"
-version = "0.1.0"
+version = "0.9.0"
 edition = "2024"
 
 [dependencies]
-axum = { version = "0.8.7", default-features = false, features = ["http1", "json", "macros", "matched-path", "original-uri", "tower-log", "query"] }
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = { version = "1.0.122" }
-uuid = { version = "1.10", features = ["serde"] }
+axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "macros", "matched-path", "original-uri", "tower-log", "query"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.151" }
+uuid = { version = "1.26.1", features = ["serde"] }

@@ -4,3 +4,4 @@ SELECT
     created_at,
     updated_at
 FROM public_keys
+ORDER BY created_at ASC, id ASC

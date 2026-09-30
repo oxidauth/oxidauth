@@ -1,3 +1,8 @@
+//! Pair-scoped deletes by design (composite PK) — uniform across all four grant
+//! tables; rationale and bulk-revoke recipe: `user_permission_grants/mod.rs`
+//! and ticket `OXA-000054`.
+use oxidauth_kernel::role_role_grants::create_role_role_grant::CreateRoleRoleGrant;
+
 pub mod delete_role_role_grant;
 pub mod insert_role_role_grant;
 pub mod select_role_role_grants_by_parent_id;
@@ -8,7 +13,18 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::role_role_grants::RoleRoleGrantRow as RepoRoleRoleGrantRow;
 
-use crate::prelude::*;
+use crate::{Database, prelude::*};
+
+#[derive(Debug, Clone)]
+pub struct PgRoleRoleGrantRepository {
+    db: Database,
+}
+
+impl PgRoleRoleGrantRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgRoleRoleGrant {

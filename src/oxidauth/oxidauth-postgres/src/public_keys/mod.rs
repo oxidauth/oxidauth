@@ -1,11 +1,22 @@
 pub mod delete_public_key;
 pub mod insert_public_key;
 pub mod select_all_public_keys;
-pub mod select_public_key_by_user_id;
+pub mod select_public_key_by_id;
 
 use oxidauth_kernel::public_keys::PublicKey;
 
-use crate::prelude::*;
+use crate::{Database, prelude::*};
+
+#[derive(Debug, Clone)]
+pub struct PgPublicKeyRepository {
+    db: Database,
+}
+
+impl PgPublicKeyRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgPublicKey {

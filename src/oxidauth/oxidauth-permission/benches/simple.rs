@@ -1,5 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use oxidauth_permission::tokens::parse::parse;
 
 pub fn parse_simple(c: &mut Criterion) {

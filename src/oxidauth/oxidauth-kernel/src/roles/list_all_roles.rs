@@ -1,18 +1,17 @@
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-pub use crate::error::BoxedError;
-pub use crate::service::Service;
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 
 pub use super::Role;
+pub use crate::error::BoxedError;
 
-pub type ListAllRolesService = Arc<
-    dyn for<'a> Service<
-        &'a ListAllRoles,
-        Response = Vec<Role>,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait ListAllRolesServiceTrait: Send + Sync + 'static {
+    async fn list_all_roles(&self, params: &ListAllRoles) -> Result<Vec<Role>, BoxedError>;
+}
+
+pub type ListAllRolesService = Arc<dyn ListAllRolesServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListAllRoles;

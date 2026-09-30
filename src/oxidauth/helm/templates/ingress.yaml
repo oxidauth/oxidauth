@@ -1,0 +1,37 @@
+{{- if .Values.ingress.enabled }}
+{{- /*
+    Chart-shape annotations first, user's ingress.annotations last so they
+    win every merge (mergeOverwrite = right-hand dict overrides).
+    proxy-body-size defaults to 1m — the template's "0" meant UNLIMITED
+    upload size on a public ingress.
+*/}}
+{{- $annotations := dict "nginx.ingress.kubernetes.io/proxy-body-size" "1m" }}
+{{- if .Values.ingress.forceSsl }}
+  {{- $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
+{{- end }}
+{{- $annotations = mergeOverwrite $annotations (default (dict) .Values.ingress.annotations) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "oxidauth.api.name" . }}-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- toYaml $annotations | nindent 4 }}
+spec:
+  ingressClassName: "nginx"
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{.Values.api.ingress.host | quote}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "oxidauth.api.name" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

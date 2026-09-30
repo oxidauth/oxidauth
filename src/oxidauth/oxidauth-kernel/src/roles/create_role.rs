@@ -1,14 +1,17 @@
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-pub use crate::error::BoxedError;
-pub use crate::service::Service;
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 
 pub use super::Role;
+pub use crate::error::BoxedError;
 
-pub type CreateRoleService = Arc<
-    dyn for<'a> Service<&'a CreateRole, Response = Role, Error = BoxedError>,
->;
+#[async_trait]
+pub trait CreateRoleServiceTrait: Send + Sync + 'static {
+    async fn create_role(&self, params: &CreateRole) -> Result<Role, BoxedError>;
+}
+
+pub type CreateRoleService = Arc<dyn CreateRoleServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateRole {

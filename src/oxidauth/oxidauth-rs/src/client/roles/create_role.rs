@@ -1,11 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::create_role::{
-    CreateRole,
-    CreateRoleReq,
-    CreateRoleRes,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::create_role::{CreateRoleReq, CreateRoleRes};
 use oxidauth_kernel::error::BoxedError;
+pub use oxidauth_kernel::roles::create_role::CreateRole;
 
 use super::*;
 
@@ -14,10 +11,7 @@ const METHOD: &str = "create_role";
 
 #[async_trait]
 pub trait CreateRoleTrait {
-    async fn create_role<T>(
-        &self,
-        role: T,
-    ) -> Result<CreateRoleRes, BoxedError>
+    async fn create_role<T>(&self, role: T) -> Result<CreateRoleRes, BoxedError>
     where
         T: Into<CreateRoleReq> + fmt::Debug + Send;
 }
@@ -56,5 +50,35 @@ impl CreateRoleTrait for ClientMock {
         };
 
         return func(role.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role};
+
+    #[tokio::test]
+    async fn create_role_route_contract() {
+        contract(
+            "POST",
+            "/api/v1/roles",
+            ("role", "create_role"),
+            json!({ "role": role() }),
+            |client| {
+                async move {
+                    client
+                        .create_role(CreateRoleReq {
+                            role: CreateRole {
+                                name: "admin".to_string(),
+                            },
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

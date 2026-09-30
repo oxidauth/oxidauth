@@ -1,2 +1,13 @@
+# hurl suite variables (plan 11). Static values only — src/oxidauth/hurl.sh
+# overrides scheme/host per run (dynamic compose port or OXIDAUTH_HURL_HOST*)
+# and injects stamp (unique entity names per invocation) and api_version.
+#
+# admin_username is the fixed bootstrap constant (oxidauth-services
+# DEFAULT_ADMIN_USERNAME). The LOGIN SECRETS deliberately do NOT live here:
+# this file is tracked. src/oxidauth/hurl.sh reads
+# OXIDAUTH_DEFAULT_CLIENT_KEY / OXIDAUTH_DEFAULT_ADMIN_PASSWORD from the
+# gitignored repo-root .env and passes them as --variable admin_client_key=…
+# / admin_password=… (same injection mechanism as host/stamp).
 scheme=http
 host=api.oxidauth.localhost
+admin_username=oxidauth:admin

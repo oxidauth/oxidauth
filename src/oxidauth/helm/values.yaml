@@ -1,0 +1,101 @@
+replicaCount: 1
+
+namespace: default
+
+image:
+  pullPolicy: IfNotPresent
+
+registryCredentials:
+  registry: ""
+  project: ""
+  username: ""
+  password: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  # nginx force-ssl-redirect (http -> https). Off by default: a chart with no
+  # TLS cert configured must not 308-loop. staging/production turn it on in
+  # the encrypted env values.
+  forceSsl: false
+  # standard k8s ingress TLS blocks, e.g.
+  #   tls:
+  #     - hosts: ["oxidauth-api.local"]
+  #       secretName: oxidauth-api-tls
+  # The TLS Secret itself is cluster-side (cert-manager issuer or a manually
+  # created Secret in the release namespace) — the chart only references it.
+  tls: []
+  # extra/override ingress annotations; wins over the chart defaults
+  # (proxy-body-size "1m", force-ssl-redirect when forceSsl)
+  annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# api env, split by oxidauth.secretEnvKeys (see envSecretKeys): keys NOT
+# listed render into the api ConfigMap, listed keys render into the api
+# Secret (<fullname>-env, stringData). Both halves are injected into the api
+# container as env vars, so every key here still reaches the container.
+# Real per-environment values (DATABASE_URL, pepper, image tag) live in the
+# encrypted devops/helm/values-*.yaml.
+env:
+  # The server binds $PORT (oxidauth-api/src/main.rs; default 80). It is set
+  # explicitly to match api.containerPort below.
+  PORT: "80"
+  ENVIRONMENT: "development"
+  RUST_LOG: "info"
+  # SECRET (rendered into the Secret, not the ConfigMap). Empty default
+  # fails fast at boot; the encrypted env values carry the real DSN.
+  DATABASE_URL: ""
+  # "false" is a deliberate skip, not a crash: xlib/postgres migrate() no-ops
+  # for any value != "true" (a MISSING env var is the hard error). Schema
+  # changes run host-side via bin/reset-db.sh (sqlx-cli), not the boot path.
+  MIGRATIONS_ENABLED: "false"
+  # Informational: the migrations dir copied into the production image
+  # (parkinglot parity). The server embeds migrations via sqlx::migrate! and
+  # never reads this var.
+  MIGRATIONS_PATH: /etc/oxidauth/oxidauth-api/migrations
+  # OXIDAUTH_USERNAME_PASSWORD_PEPPER is deliberately ABSENT here: an empty
+  # default would hash passwords with an empty pepper. Only the encrypted
+  # devops/helm values set it; without it the auth endpoints fail fast.
+
+envSecretKeys: []
+# The helper default is ["DATABASE_URL", "READ_DATABASE_URL",
+# "OXIDAUTH_USERNAME_PASSWORD_PEPPER"]; set this list to override the whole
+# set (re-add any built-in keys you still want secreted). Only keys actually
+# present in `env` are ever rendered — absent keys are not fabricated.
+
+# No web frontend ships with oxidauth today; the web-* templates stay behind
+# this flag so a future admin-UI stack re-enables without chart surgery.
+web:
+  enabled: false
+  replicas: 1
+  image:
+    repository: "oxidauth-web"
+    tag: "latest"
+  ingress:
+    host: "oxidauth-web.local"
+    # same posture as ingress.* (see above): force-ssl behind forceSsl,
+    # standard {hosts, secretName} tls blocks (Secret is cluster-side), and
+    # annotations that override the chart's proxy-body-size "1m" default
+    forceSsl: false
+    tls: []
+    annotations: {}
+
+api:
+  replicas: 1
+  # matches the server's PORT default; service.targetPort follows this value
+  containerPort: 80
+  image:
+    repository: "oxidauth-api"
+    tag: "latest"
+  ingress:
+    host: "oxidauth-api.local"

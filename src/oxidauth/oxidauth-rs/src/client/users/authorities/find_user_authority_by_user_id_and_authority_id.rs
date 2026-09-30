@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::authorities::find_user_authority_by_user_id_and_authority_id::{
-    FindUserAuthorityByUserIdAndAuthorityIdReq, FindUserAuthorityByUserIdAndAuthorityIdRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::users::authorities::find_user_authority_by_user_id_and_authority_id::{
+    FindUserAuthorityByUserIdAndAuthorityIdReq,
+    FindUserAuthorityByUserIdAndAuthorityIdRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -65,11 +66,48 @@ impl FindUserAuthorityByUserIdAndAuthorityIdTrait for ClientMock {
             .find_user_authority_by_user_id_and_authority_id_fn
             .clone()
         else {
-            panic!(
-                "find_user_authority_by_user_id_and_authority_id not defined for mock client"
-            );
+            panic!("find_user_authority_by_user_id_and_authority_id not defined for mock client");
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_authority_with_authority};
+
+    #[tokio::test]
+    async fn find_user_authority_by_user_id_and_authority_id_route_contract() {
+        let user_id = Uuid::new_v4();
+        let authority_id = Uuid::new_v4();
+
+        // this Res is a bare UserAuthorityWithAuthority (no wrapper key),
+        // unlike its list sibling — shape pinned here
+        contract(
+            "GET",
+            &format!("/api/v1/users/{user_id}/authorities/{authority_id}"),
+            (
+                "user_authority",
+                "find_user_authority_by_user_id_and_authority_id",
+            ),
+            user_authority_with_authority(),
+            move |client| {
+                async move {
+                    client
+                        .find_user_authority_by_user_id_and_authority_id(
+                            FindUserAuthorityByUserIdAndAuthorityIdReq {
+                                user_id,
+                                authority_id,
+                            },
+                        )
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

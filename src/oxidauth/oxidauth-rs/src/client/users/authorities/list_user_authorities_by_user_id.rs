@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::authorities::list_user_authorities_by_user_id::{
-    ListUserAuthoritiesByUserIdReq, ListUserAuthoritiesByUserIdRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::users::authorities::list_user_authorities_by_user_id::{
+    ListUserAuthoritiesByUserIdReq,
+    ListUserAuthoritiesByUserIdRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -34,10 +35,7 @@ impl ListUserAuthoritiesByUserIdTrait for Client {
 
         let resp: Response<ListUserAuthoritiesByUserIdRes> = self
             .get(
-                &format!(
-                    "/users/{}/authorities",
-                    params.user_id
-                ),
+                &format!("/users/{}/authorities", params.user_id),
                 None::<ListUserAuthoritiesByUserIdReq>,
             )
             .await?;
@@ -65,11 +63,40 @@ impl ListUserAuthoritiesByUserIdTrait for ClientMock {
             .list_user_authorities_by_user_id_fn
             .clone()
         else {
-            panic!(
-                "list_user_authorities_by_user_id not defined for mock client"
-            );
+            panic!("list_user_authorities_by_user_id not defined for mock client");
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_authority_with_authority};
+
+    #[tokio::test]
+    async fn list_user_authorities_by_user_id_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        contract(
+            "GET",
+            &format!("/api/v1/users/{user_id}/authorities"),
+            ("user_authority", "list_user_authorities_by_user_id"),
+            json!({ "user_authorities": [user_authority_with_authority()] }),
+            move |client| {
+                async move {
+                    client
+                        .list_user_authorities_by_user_id(ListUserAuthoritiesByUserIdReq {
+                            user_id,
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

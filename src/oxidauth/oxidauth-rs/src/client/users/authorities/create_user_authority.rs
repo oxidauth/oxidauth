@@ -1,7 +1,9 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::authorities::create_user_authority::{
-    CreateUserAuthorityBodyReq, CreateUserAuthorityRes, UserAuthorityParams,
+use oxidauth_http::Response;
+pub use oxidauth_http::users::authorities::create_user_authority::{
+    CreateUserAuthorityBodyReq,
+    CreateUserAuthorityRes,
+    UserAuthorityParams,
 };
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
@@ -39,13 +41,7 @@ impl CreateUserAuthorityTrait for Client {
         let user_authority = user_authority.into();
 
         let resp: Response<CreateUserAuthorityRes> = self
-            .post(
-                &format!(
-                    "/users/{}/authorities",
-                    user_id
-                ),
-                user_authority,
-            )
+            .post(&format!("/users/{}/authorities", user_id), user_authority)
             .await?;
 
         let user_authority_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -76,9 +72,44 @@ impl CreateUserAuthorityTrait for ClientMock {
             panic!("create_user_authority not defined for mock client");
         };
 
-        return func(
-            user_id.into(),
-            user_authority.into(),
-        );
+        return func(user_id.into(), user_authority.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use oxidauth_kernel::JsonValue;
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_authority};
+
+    #[tokio::test]
+    async fn create_user_authority_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        contract(
+            "POST",
+            &format!("/api/v1/users/{user_id}/authorities"),
+            ("user_authority", "create_user_authority"),
+            json!({ "user_authority": user_authority() }),
+            move |client| {
+                async move {
+                    client
+                        .create_user_authority(
+                            user_id,
+                            CreateUserAuthorityBodyReq {
+                                client_key: Uuid::new_v4(),
+                                user_authority: UserAuthorityParams {
+                                    params: JsonValue::new(json!({ "password": "hunter2" })),
+                                },
+                            },
+                        )
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

@@ -1,22 +1,12 @@
 use oxidauth_kernel::role_role_grants::list_role_role_grants_by_parent_id::*;
-pub use oxidauth_kernel::{roles::Role, service::Service};
+pub use oxidauth_kernel::roles::Role;
 
 pub use crate::prelude::*;
 
-pub trait SelectRoleRoleGrantsByParentIdQuery:
-    for<'a> Service<
-    &'a ListRoleRoleGrantsByParentId,
-    Response = Vec<RoleRoleGrantDetail>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectRoleRoleGrantsByParentIdQuery for T where
-    T: for<'a> Service<
-        &'a ListRoleRoleGrantsByParentId,
-        Response = Vec<RoleRoleGrantDetail>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectRoleRoleGrantsByParentIdQuery: Send + Sync + 'static {
+    async fn select_role_role_grants_by_parent_id(
+        &self,
+        params: &ListRoleRoleGrantsByParentId,
+    ) -> Result<Vec<RoleRoleGrantDetail>, BoxedError>;
 }

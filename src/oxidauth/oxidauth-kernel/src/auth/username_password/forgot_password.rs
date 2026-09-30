@@ -1,9 +1,10 @@
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::BoxedError;
-pub use crate::service::Service;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ForgotPasswordParams {
@@ -15,10 +16,12 @@ pub struct ForgotPasswordResponse {
     pub code: String,
 }
 
-pub type ForgotPasswordService = Arc<
-    dyn for<'a> Service<
-            &'a ForgotPasswordParams,
-            Response = ForgotPasswordResponse,
-            Error = BoxedError,
-        >,
->;
+#[async_trait]
+pub trait ForgotPasswordServiceTrait: Send + Sync + 'static {
+    async fn forgot_password(
+        &self,
+        params: &ForgotPasswordParams,
+    ) -> Result<ForgotPasswordResponse, BoxedError>;
+}
+
+pub type ForgotPasswordService = Arc<dyn ForgotPasswordServiceTrait>;

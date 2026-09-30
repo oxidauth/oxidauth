@@ -6,6 +6,19 @@ pub mod delete_invitation_by_id;
 pub mod insert_invitation;
 pub mod select_invitation_by_id;
 
+use crate::Database;
+
+#[derive(Debug, Clone)]
+pub struct PgInvitationRepository {
+    db: Database,
+}
+
+impl PgInvitationRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
+
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgInvitation {
     pub id: Uuid,

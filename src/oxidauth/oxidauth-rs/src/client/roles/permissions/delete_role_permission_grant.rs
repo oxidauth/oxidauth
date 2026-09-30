@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::permissions::delete_role_permission_grant::{
-    DeleteRolePermissionGrantReq, DeleteRolePermissionGrantRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::permissions::delete_role_permission_grant::{
+    DeleteRolePermissionGrantReq,
+    DeleteRolePermissionGrantRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -36,15 +37,13 @@ impl DeleteRolePermissionGrantTrait for Client {
             .delete(
                 &format!(
                     "/roles/{}/permissions/{}",
-                    role_permission_grant.role_id,
-                    role_permission_grant.permission
+                    role_permission_grant.role_id, role_permission_grant.permission
                 ),
                 None::<DeleteRolePermissionGrantReq>,
             )
             .await?;
 
-        let role_permission_grant_res =
-            handle_response(RESOURCE, METHOD, resp)?;
+        let role_permission_grant_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_permission_grant_res)
     }
@@ -71,5 +70,36 @@ impl DeleteRolePermissionGrantTrait for ClientMock {
         };
 
         return func(role_permission_grant.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role_permission};
+
+    #[tokio::test]
+    async fn delete_role_permission_grant_route_contract() {
+        let role_id = Uuid::new_v4();
+
+        contract(
+            "DELETE",
+            &format!("/api/v1/roles/{role_id}/permissions/oxidauth:users:read"),
+            ("role_permission_grant", "delete_role_permission_grant"),
+            role_permission(),
+            move |client| {
+                async move {
+                    client
+                        .delete_role_permission_grant(DeleteRolePermissionGrantReq {
+                            role_id,
+                            permission: "oxidauth:users:read".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

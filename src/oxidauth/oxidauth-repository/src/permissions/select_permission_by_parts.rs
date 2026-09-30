@@ -1,22 +1,12 @@
+pub use oxidauth_kernel::permissions::Permission;
 use oxidauth_kernel::permissions::find_permission_by_parts::*;
-pub use oxidauth_kernel::{permissions::Permission, service::Service};
 
 pub use crate::prelude::*;
 
-pub trait SelectPermissionByPartsQuery:
-    for<'a> Service<
-    &'a FindPermissionByParts,
-    Response = Option<Permission>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectPermissionByPartsQuery for T where
-    T: for<'a> Service<
-        &'a FindPermissionByParts,
-        Response = Option<Permission>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectPermissionByPartsQuery: Send + Sync + 'static {
+    async fn select_permission_by_parts(
+        &self,
+        params: &FindPermissionByParts,
+    ) -> Result<Option<Permission>, BoxedError>;
 }

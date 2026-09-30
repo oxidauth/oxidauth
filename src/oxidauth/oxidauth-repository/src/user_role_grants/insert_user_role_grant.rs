@@ -1,30 +1,20 @@
 use std::error::Error;
 
 use oxidauth_kernel::user_role_grants::{
-    create_user_role_grant::CreateUserRoleGrant, UserRoleGrant,
+    UserRoleGrant,
+    create_user_role_grant::CreateUserRoleGrant,
 };
-pub use oxidauth_kernel::{service::Service, users::User};
+pub use oxidauth_kernel::users::User;
 
 pub use crate::prelude::*;
 
-pub trait InsertUserRoleGrantQuery:
-    for<'a> Service<
-    &'a CreateUserRoleGrant,
-    Response = UserRoleGrant,
-    Error = BoxedError,
->
-{
+#[async_trait]
+pub trait InsertUserRoleGrantQuery: Send + Sync + 'static {
+    async fn insert_user_role_grant(
+        &self,
+        params: &CreateUserRoleGrant,
+    ) -> Result<UserRoleGrant, BoxedError>;
 }
-
-impl<T> InsertUserRoleGrantQuery for T where
-    T: for<'a> Service<
-        &'a CreateUserRoleGrant,
-        Response = UserRoleGrant,
-        Error = BoxedError,
-    >
-{
-}
-
 #[derive(Debug)]
 pub struct InsertUserRoleGrantError {
     pub reason: String,

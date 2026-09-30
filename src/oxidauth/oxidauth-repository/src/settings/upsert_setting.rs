@@ -1,19 +1,10 @@
+use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    service::Service,
-    settings::{save_setting::SaveSettingParams, Setting},
+    settings::{Setting, save_setting::SaveSettingParams},
 };
 
-pub trait SaveSettingQuery:
-    for<'a> Service<&'a SaveSettingParams, Response = Setting, Error = BoxedError>
-{
-}
-
-impl<T> SaveSettingQuery for T where
-    T: for<'a> Service<
-        &'a SaveSettingParams,
-        Response = Setting,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SaveSettingQuery: Send + Sync + 'static {
+    async fn save_setting(&self, params: &SaveSettingParams) -> Result<Setting, BoxedError>;
 }

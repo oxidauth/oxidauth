@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::delete_user_by_id::DeleteUserByIdRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::users::delete_user_by_id::DeleteUserByIdRes;
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
 
@@ -11,10 +11,7 @@ const METHOD: &str = "delete_user";
 
 #[async_trait]
 pub trait DeleteUserTrait {
-    async fn delete_user<T>(
-        &self,
-        user_id: T,
-    ) -> Result<DeleteUserByIdRes, BoxedError>
+    async fn delete_user<T>(&self, user_id: T) -> Result<DeleteUserByIdRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send;
 }
@@ -22,20 +19,14 @@ pub trait DeleteUserTrait {
 #[async_trait]
 impl DeleteUserTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn delete_user<T>(
-        &self,
-        user_id: T,
-    ) -> Result<DeleteUserByIdRes, BoxedError>
+    async fn delete_user<T>(&self, user_id: T) -> Result<DeleteUserByIdRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
         let user_id = user_id.into();
 
         let resp: Response<DeleteUserByIdRes> = self
-            .delete(
-                &format!("/users/{}", user_id),
-                None::<()>,
-            )
+            .delete(&format!("/users/{}", user_id), None::<()>)
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -50,10 +41,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl DeleteUserTrait for ClientMock {
-    async fn delete_user<T>(
-        &self,
-        user_id: T,
-    ) -> Result<DeleteUserByIdRes, BoxedError>
+    async fn delete_user<T>(&self, user_id: T) -> Result<DeleteUserByIdRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send,
     {
@@ -62,5 +50,34 @@ impl DeleteUserTrait for ClientMock {
         };
 
         return func(user_id.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user};
+
+    #[tokio::test]
+    async fn delete_user_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        contract(
+            "DELETE",
+            &format!("/api/v1/users/{user_id}"),
+            ("user", "delete_user"),
+            json!({ "user": user() }),
+            move |client| {
+                async move {
+                    client
+                        .delete_user(user_id)
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

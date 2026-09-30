@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::roles::list_role_role_grants_by_parent_id::{
-    ListRoleRoleGrantsByParentIdReq, ListRoleRoleGrantsByParentIdRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::roles::list_role_role_grants_by_parent_id::{
+    ListRoleRoleGrantsByParentIdReq,
+    ListRoleRoleGrantsByParentIdRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -34,10 +35,7 @@ impl ListRoleRoleGrantsByParentIdTrait for Client {
 
         let resp: Response<ListRoleRoleGrantsByParentIdRes> = self
             .get(
-                &format!(
-                    "/roles/{}/roles",
-                    params.parent_id
-                ),
+                &format!("/roles/{}/roles", params.parent_id),
                 None::<ListRoleRoleGrantsByParentIdReq>,
             )
             .await?;
@@ -65,11 +63,40 @@ impl ListRoleRoleGrantsByParentIdTrait for ClientMock {
             .list_role_role_grants_by_parent_id_fn
             .clone()
         else {
-            panic!(
-                "list_role_role_grants_by_parent_id not defined for mock client"
-            );
+            panic!("list_role_role_grants_by_parent_id not defined for mock client");
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role_role_grant_detail};
+
+    #[tokio::test]
+    async fn list_role_role_grants_by_parent_id_route_contract() {
+        let parent_id = Uuid::new_v4();
+
+        contract(
+            "GET",
+            &format!("/api/v1/roles/{parent_id}/roles"),
+            ("role_role_grant", "list_role_role_grants_by_parent_id"),
+            json!({ "roles": [role_role_grant_detail()] }),
+            move |client| {
+                async move {
+                    client
+                        .list_role_role_grants_by_parent_id(ListRoleRoleGrantsByParentIdReq {
+                            parent_id,
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

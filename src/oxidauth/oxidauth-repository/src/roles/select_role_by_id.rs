@@ -1,14 +1,9 @@
+pub use oxidauth_kernel::roles::Role;
 use oxidauth_kernel::roles::find_role_by_id::FindRoleById;
-pub use oxidauth_kernel::{roles::Role, service::Service};
 
 pub use crate::prelude::*;
 
-pub trait SelectRoleByIdQuery:
-    for<'a> Service<&'a FindRoleById, Response = Role, Error = BoxedError>
-{
-}
-
-impl<T> SelectRoleByIdQuery for T where
-    T: for<'a> Service<&'a FindRoleById, Response = Role, Error = BoxedError>
-{
+#[async_trait]
+pub trait SelectRoleByIdQuery: Send + Sync + 'static {
+    async fn select_role_by_id(&self, params: &FindRoleById) -> Result<Role, BoxedError>;
 }

@@ -1,9 +1,9 @@
-use chrono::{DateTime, Utc};
 use core::fmt;
+
+use chrono::{DateTime, Utc};
+pub use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
 use serde_json::Value;
 use uuid::Uuid;
-
-pub use oxidauth_kernel::users::{ParseUserKindErr, ParseUserStatusErr, User};
 
 pub mod delete_user_by_id_query;
 pub mod insert_user;
@@ -12,6 +12,19 @@ pub mod select_user_by_id_query;
 pub mod select_user_by_username_query;
 pub mod select_users_by_ids_query;
 pub mod update_user;
+
+use crate::Database;
+
+#[derive(Debug, Clone)]
+pub struct PgUserRepository {
+    db: Database,
+}
+
+impl PgUserRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct UserRow {
@@ -59,19 +72,15 @@ impl fmt::Display for TryFromUserRowError {
             TryFromUserRowError::ParseUserStatusErr(err) => err.to_string(),
         };
 
-        write!(
-            f,
-            "failed to convert UserRow to User: {}",
-            s
-        )
+        write!(f, "failed to convert UserRow to User: {}", s)
     }
 }
 
 impl std::error::Error for TryFromUserRowError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self {
-            TryFromUserRowError::ParseUserKindErr(ref err) => Some(err),
-            TryFromUserRowError::ParseUserStatusErr(ref err) => Some(err),
+            TryFromUserRowError::ParseUserKindErr(err) => Some(err),
+            TryFromUserRowError::ParseUserStatusErr(err) => Some(err),
         }
     }
 }

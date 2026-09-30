@@ -1,6 +1,9 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::permissions::list_role_permission_grants_by_role_id::{ListRolePermissionGrantsByRoleIdReq, ListRolePermissionGrantsByRoleIdRes};
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::permissions::list_role_permission_grants_by_role_id::{
+    ListRolePermissionGrantsByRoleIdReq,
+    ListRolePermissionGrantsByRoleIdRes,
+};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -32,16 +35,12 @@ impl ListRolePermissionGrantsByRoleIdTrait for Client {
 
         let resp: Response<ListRolePermissionGrantsByRoleIdRes> = self
             .get(
-                &format!(
-                    "/roles/{}/permissions",
-                    params.role_id
-                ),
+                &format!("/roles/{}/permissions", params.role_id),
                 None::<ListRolePermissionGrantsByRoleIdReq>,
             )
             .await?;
 
-        let role_permission_grants_res =
-            handle_response(RESOURCE, METHOD, resp)?;
+        let role_permission_grants_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_permission_grants_res)
     }
@@ -64,11 +63,43 @@ impl ListRolePermissionGrantsByRoleIdTrait for ClientMock {
             .list_role_permission_grants_by_role_id_fn
             .clone()
         else {
-            panic!(
-                "list_role_permission_grants_by_role_id not defined for mock client"
-            );
+            panic!("list_role_permission_grants_by_role_id not defined for mock client");
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role_permission};
+
+    #[tokio::test]
+    async fn list_role_permission_grants_by_role_id_route_contract() {
+        let role_id = Uuid::new_v4();
+
+        contract(
+            "GET",
+            &format!("/api/v1/roles/{role_id}/permissions"),
+            (
+                "role_permission_grant",
+                "list_role_permission_grants_by_role_id",
+            ),
+            json!({ "permissions": [role_permission()] }),
+            move |client| {
+                async move {
+                    client
+                        .list_role_permission_grants_by_role_id(
+                            ListRolePermissionGrantsByRoleIdReq { role_id },
+                        )
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

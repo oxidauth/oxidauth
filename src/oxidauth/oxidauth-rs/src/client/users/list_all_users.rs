@@ -1,9 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::list_all_users::{
-    ListAllUsersReq,
-    ListAllUsersRes,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::users::list_all_users::{ListAllUsersReq, ListAllUsersRes};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -13,10 +10,7 @@ const METHOD: &str = "list_all_users";
 
 #[async_trait]
 pub trait ListAllUsersTrait {
-    async fn list_all_users<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllUsersRes, BoxedError>
+    async fn list_all_users<T>(&self, params: T) -> Result<ListAllUsersRes, BoxedError>
     where
         T: Into<ListAllUsersReq> + fmt::Debug + Send;
 }
@@ -24,10 +18,7 @@ pub trait ListAllUsersTrait {
 #[async_trait]
 impl ListAllUsersTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn list_all_users<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllUsersRes, BoxedError>
+    async fn list_all_users<T>(&self, params: T) -> Result<ListAllUsersRes, BoxedError>
     where
         T: Into<ListAllUsersReq> + fmt::Debug + Send,
     {
@@ -49,10 +40,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl ListAllUsersTrait for ClientMock {
-    async fn list_all_users<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllUsersRes, BoxedError>
+    async fn list_all_users<T>(&self, params: T) -> Result<ListAllUsersRes, BoxedError>
     where
         T: Into<ListAllUsersReq> + fmt::Debug + Send,
     {
@@ -61,5 +49,31 @@ impl ListAllUsersTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user};
+
+    #[tokio::test]
+    async fn list_all_users_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/users",
+            ("user", "list_all_users"),
+            json!({ "users": [user(), user()] }),
+            |client| {
+                async move {
+                    client
+                        .list_all_users(ListAllUsersReq {})
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

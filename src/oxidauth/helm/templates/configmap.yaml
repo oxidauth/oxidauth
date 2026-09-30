@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "oxidauth.name" . }}-config
+  namespace: {{ .Values.namespace }}
+data:
+  # every NON-SECRET env key the api Deployment expects (deployment.yaml
+  # ranges the same map and routes oxidauth.secretEnvKeys hits to the
+  # Secret instead) — the template shipped with two keys while the
+  # Deployment keyRef'd all of them, so any further env key produced a
+  # dangling keyRef
+  {{- $secretKeys := fromJson (include "oxidauth.secretEnvKeys" .) }}
+  {{- range $key, $value := .Values.env }}
+  {{- if not (hasKey $secretKeys $key) }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}

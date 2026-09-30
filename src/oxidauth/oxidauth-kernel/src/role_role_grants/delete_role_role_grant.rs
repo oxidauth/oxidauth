@@ -1,20 +1,21 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::BoxedError;
-pub use crate::service::Service;
-
 pub use super::RoleRoleGrant;
+use crate::error::BoxedError;
 
-pub type DeleteRoleRoleGrantService = Arc<
-    dyn for<'a> Service<
-        &'a DeleteRoleRoleGrant,
-        Response = RoleRoleGrant,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeleteRoleRoleGrantServiceTrait: Send + Sync + 'static {
+    async fn delete_role_role_grant(
+        &self,
+        params: &DeleteRoleRoleGrant,
+    ) -> Result<RoleRoleGrant, BoxedError>;
+}
+
+pub type DeleteRoleRoleGrantService = Arc<dyn DeleteRoleRoleGrantServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteRoleRoleGrant {

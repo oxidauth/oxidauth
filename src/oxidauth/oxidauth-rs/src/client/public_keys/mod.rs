@@ -5,12 +5,7 @@ pub mod list_all_public_keys;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
-use super::{
-    Client,
-    Resource,
-    fmt,
-    handle_response,
-};
+use super::{Client, Resource, fmt, handle_response};
 pub use crate::public_keys::{
     create_public_key::CreatePublicKeyTrait,
     delete_public_key::DeletePublicKeyTrait,
@@ -19,10 +14,7 @@ pub use crate::public_keys::{
 };
 
 pub trait PublicKeysTrait:
-    ListAllPublicKeysTrait
-    + FindPublicKeyByIdTrait
-    + DeletePublicKeyTrait
-    + CreatePublicKeyTrait
+    ListAllPublicKeysTrait + FindPublicKeyByIdTrait + DeletePublicKeyTrait + CreatePublicKeyTrait
 {
 }
 

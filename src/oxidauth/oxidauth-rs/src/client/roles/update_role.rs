@@ -1,9 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::update_role::{
-    UpdateRoleReq,
-    UpdateRoleRes,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::update_role::{UpdateRoleReq, UpdateRoleRes};
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
 
@@ -14,11 +11,7 @@ const METHOD: &str = "update_role";
 
 #[async_trait]
 pub trait UpdateRoleTrait {
-    async fn update_role<T, U>(
-        &self,
-        role_id: T,
-        role: U,
-    ) -> Result<UpdateRoleRes, BoxedError>
+    async fn update_role<T, U>(&self, role_id: T, role: U) -> Result<UpdateRoleRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send,
         U: Into<UpdateRoleReq> + fmt::Debug + Send;
@@ -27,11 +20,7 @@ pub trait UpdateRoleTrait {
 #[async_trait]
 impl UpdateRoleTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn update_role<T, U>(
-        &self,
-        role_id: T,
-        role: U,
-    ) -> Result<UpdateRoleRes, BoxedError>
+    async fn update_role<T, U>(&self, role_id: T, role: U) -> Result<UpdateRoleRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send,
         U: Into<UpdateRoleReq> + fmt::Debug + Send,
@@ -40,10 +29,7 @@ impl UpdateRoleTrait for Client {
         let role = role.into();
 
         let resp: Response<UpdateRoleRes> = self
-            .post(
-                &format!("/roles/{}", role_id),
-                role,
-            )
+            .put(&format!("/roles/{}", role_id), role)
             .await?;
 
         let role_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -58,11 +44,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl UpdateRoleTrait for ClientMock {
-    async fn update_role<T, U>(
-        &self,
-        role_id: T,
-        role: U,
-    ) -> Result<UpdateRoleRes, BoxedError>
+    async fn update_role<T, U>(&self, role_id: T, role: U) -> Result<UpdateRoleRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send,
         U: Into<UpdateRoleReq> + fmt::Debug + Send,
@@ -72,5 +54,43 @@ impl UpdateRoleTrait for ClientMock {
         };
 
         return func(role_id.into(), role.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use oxidauth_kernel::roles::update_role::UpdateRole;
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role};
+
+    #[tokio::test]
+    async fn update_role_route_contract() {
+        let role_id = Uuid::new_v4();
+
+        contract(
+            "PUT",
+            &format!("/api/v1/roles/{role_id}"),
+            ("role", "update_role"),
+            json!({ "role": role() }),
+            move |client| {
+                async move {
+                    client
+                        .update_role(
+                            role_id,
+                            UpdateRoleReq {
+                                role: UpdateRole {
+                                    role_id: None,
+                                    name: "moderator".to_string(),
+                                },
+                            },
+                        )
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

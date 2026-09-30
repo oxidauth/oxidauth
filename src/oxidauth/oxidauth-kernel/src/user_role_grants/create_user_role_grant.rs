@@ -1,19 +1,21 @@
-use serde::Deserialize;
 use std::sync::Arc;
+
+use async_trait::async_trait;
+use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::error::BoxedError;
-pub use crate::service::Service;
-
 pub use super::UserRole;
+use crate::error::BoxedError;
 
-pub type CreateUserRoleGrantService = Arc<
-    dyn for<'a> Service<
-        &'a CreateUserRoleGrant,
-        Response = UserRole,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait CreateUserRoleGrantServiceTrait: Send + Sync + 'static {
+    async fn create_user_role_grant(
+        &self,
+        params: &CreateUserRoleGrant,
+    ) -> Result<UserRole, BoxedError>;
+}
+
+pub type CreateUserRoleGrantService = Arc<dyn CreateUserRoleGrantServiceTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateUserRoleGrant {

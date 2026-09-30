@@ -1,22 +1,12 @@
-use oxidauth_kernel::role_role_grants::delete_role_role_grant::*;
-pub use oxidauth_kernel::{roles::Role, service::Service};
+use oxidauth_kernel::role_role_grants::delete_role_role_grant::{DeleteRoleRoleGrant, *};
+pub use oxidauth_kernel::roles::Role;
 
 pub use crate::prelude::*;
 
-pub trait DeleteRoleRoleGrantQuery:
-    for<'a> Service<
-    &'a DeleteRoleRoleGrant,
-    Response = RoleRoleGrant,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> DeleteRoleRoleGrantQuery for T where
-    T: for<'a> Service<
-        &'a DeleteRoleRoleGrant,
-        Response = RoleRoleGrant,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait DeleteRoleRoleGrantQuery: Send + Sync + 'static {
+    async fn delete_role_role_grant(
+        &self,
+        params: &DeleteRoleRoleGrant,
+    ) -> Result<RoleRoleGrant, BoxedError>;
 }

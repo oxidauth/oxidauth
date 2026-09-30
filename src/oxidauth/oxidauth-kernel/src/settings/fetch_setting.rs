@@ -1,19 +1,18 @@
 use core::fmt;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::Deserialize;
 
-use crate::dev_prelude::{BoxedError, Service};
-
 use super::Setting;
+use crate::dev_prelude::BoxedError;
 
-pub type FetchSettingService = Arc<
-    dyn for<'a> Service<
-        &'a FetchSettingParams,
-        Response = Setting,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait FetchSettingServiceTrait: Send + Sync + 'static {
+    async fn fetch_setting(&self, params: &FetchSettingParams) -> Result<Setting, BoxedError>;
+}
+
+pub type FetchSettingService = Arc<dyn FetchSettingServiceTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct FetchSettingParams {
@@ -35,12 +34,9 @@ impl SettingNotFoundError {
 
 impl fmt::Display for SettingNotFoundError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "no setting found with key: {}",
-            self.key
-        )
+        write!(f, "no setting found with key: {}", self.key)
     }
 }
 
-impl std::error::Error for SettingNotFoundError {}
+impl std::error::Error for SettingNotFoundError {
+}

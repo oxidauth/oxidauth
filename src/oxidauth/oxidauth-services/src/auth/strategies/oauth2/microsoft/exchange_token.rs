@@ -1,0 +1,33 @@
+use oxidauth_kernel::error::BoxedError;
+use reqwest::header::CONTENT_TYPE;
+
+use super::{MicrosoftExchangeTokenReq, MicrosoftExchangeTokenRes};
+use crate::auth::strategies::oauth2::AuthorityParams;
+
+#[tracing::instrument(name = "microsoft oauth exchange token")]
+pub async fn exchange_microsoft_token(
+    code: &String,
+    params: &AuthorityParams,
+) -> Result<String, BoxedError> {
+    let json = MicrosoftExchangeTokenReq {
+        code,
+        scope: &params.scopes,
+        client_id: &params.oauth2_id,
+        client_secret: &params.oauth2_secret,
+        redirect_uri: params.redirect_uri.as_ref(),
+        grant_type: "authorization_code",
+    };
+
+    let exchange: MicrosoftExchangeTokenRes = reqwest::Client::new()
+        .post(params.exchange_url.clone())
+        .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .form(&json)
+        .send()
+        .await
+        .map_err(|err| err.to_string())?
+        .json()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    Ok(exchange.access_token)
+}

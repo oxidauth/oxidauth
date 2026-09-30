@@ -1,5 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use oxidauth_permission::tokens::parse::parse;
 
 pub fn parse_very_very_long(c: &mut Criterion) {
@@ -12,9 +11,6 @@ pub fn parse_very_very_long(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    very_long,
-    parse_very_very_long
-);
+criterion_group!(very_long, parse_very_very_long);
 
 criterion_main!(very_long);

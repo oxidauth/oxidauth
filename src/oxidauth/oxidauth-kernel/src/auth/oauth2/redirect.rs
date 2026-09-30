@@ -1,18 +1,21 @@
 use std::{fmt, sync::Arc};
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
-use crate::dev_prelude::{BoxedError, Service};
+use crate::dev_prelude::BoxedError;
 
-pub type Oauth2RedirectService = Arc<
-    dyn for<'a> Service<
-            &'a Oauth2RedirectParams,
-            Response = Oauth2RedirectResponse,
-            Error = BoxedError,
-        >,
->;
+#[async_trait]
+pub trait Oauth2RedirectServiceTrait: Send + Sync + 'static {
+    async fn oauth2_redirect(
+        &self,
+        params: &Oauth2RedirectParams,
+    ) -> Result<Oauth2RedirectResponse, BoxedError>;
+}
+
+pub type Oauth2RedirectService = Arc<dyn Oauth2RedirectServiceTrait>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Oauth2RedirectParams {

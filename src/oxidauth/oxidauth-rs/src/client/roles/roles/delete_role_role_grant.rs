@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::roles::delete_role_role_grant::{
-    DeleteRoleRoleGrantReq, DeleteRoleRoleGrantRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::roles::delete_role_role_grant::{
+    DeleteRoleRoleGrantReq,
+    DeleteRoleRoleGrantRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -69,5 +70,38 @@ impl DeleteRoleRoleGrantTrait for ClientMock {
         };
 
         return func(role_role_grant.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role_role_grant};
+
+    #[tokio::test]
+    async fn delete_role_role_grant_route_contract() {
+        let parent_id = Uuid::new_v4();
+        let child_id = Uuid::new_v4();
+
+        contract(
+            "DELETE",
+            &format!("/api/v1/roles/{parent_id}/roles/{child_id}"),
+            ("role_role_grant", "delete_role_role_grant"),
+            json!({ "grant": role_role_grant() }),
+            move |client| {
+                async move {
+                    client
+                        .delete_role_role_grant(DeleteRoleRoleGrantReq {
+                            parent_id,
+                            child_id,
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

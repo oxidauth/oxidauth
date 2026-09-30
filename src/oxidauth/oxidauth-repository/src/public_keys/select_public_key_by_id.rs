@@ -1,18 +1,11 @@
-pub use oxidauth_kernel::public_keys::find_public_key_by_id::FindPublicKeyById;
-pub use oxidauth_kernel::public_keys::PublicKey;
+pub use oxidauth_kernel::public_keys::{PublicKey, find_public_key_by_id::FindPublicKeyById};
 
 use crate::prelude::*;
 
-pub trait SelectPublicKeyByIdQuery:
-    for<'a> Service<&'a FindPublicKeyById, Response = PublicKey, Error = BoxedError>
-{
-}
-
-impl<T> SelectPublicKeyByIdQuery for T where
-    T: for<'a> Service<
-        &'a FindPublicKeyById,
-        Response = PublicKey,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectPublicKeyByIdQuery: Send + Sync + 'static {
+    async fn select_public_key_by_id(
+        &self,
+        params: &FindPublicKeyById,
+    ) -> Result<PublicKey, BoxedError>;
 }

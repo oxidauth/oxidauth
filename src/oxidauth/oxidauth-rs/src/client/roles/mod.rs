@@ -13,12 +13,7 @@ pub use oxidauth_kernel::roles::Role;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
-use super::{
-    Client,
-    Resource,
-    fmt,
-    handle_response,
-};
+use super::{Client, Resource, fmt, handle_response};
 pub use crate::roles::{
     create_role::CreateRoleTrait,
     delete_role::DeleteRoleTrait,

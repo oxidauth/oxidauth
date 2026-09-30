@@ -1,11 +1,23 @@
-POST {{scheme}}://{{host}}/api/v1/users
+# User<->role grants. POST/DELETE /users/{user_id}/roles/{role_id}.
+
+POST {{scheme}}://{{host}}/api/v1/auth/authenticate
 {
-    "user": {
-        "username": "browncoat1",
-        "email": "mal@serenity.com",
-        "first_name": "Mal",
-        "last_name": "Reynolds"
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "{{admin_username}}",
+        "password": "{{admin_password}}"
     }
+}
+HTTP/1.1 200
+[Captures]
+jwt: jsonpath "$.payload.jwt"
+[Asserts]
+jsonpath "$.success" == true
+
+POST {{scheme}}://{{host}}/api/v1/users
+Authorization: Bearer {{jwt}}
+{
+    "user": { "username": "hurl-ur-user-{{stamp}}" }
 }
 HTTP/1.1 200
 [Captures]
@@ -14,10 +26,9 @@ user_id: jsonpath "$.payload.user.id"
 jsonpath "$.success" == true
 
 POST {{scheme}}://{{host}}/api/v1/roles
+Authorization: Bearer {{jwt}}
 {
-    "role": {
-        "name": "firefly:captain"
-    }
+    "role": { "name": "hurl-ur-role-{{stamp}}" }
 }
 HTTP/1.1 200
 [Captures]
@@ -25,37 +36,56 @@ role_id: jsonpath "$.payload.role.id"
 [Asserts]
 jsonpath "$.success" == true
 
+GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}/roles
+Authorization: Bearer {{jwt}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.user_role_grants" count == 0
+
 POST {{scheme}}://{{host}}/api/v1/users/{{user_id}}/roles/{{role_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
 jsonpath "$.errors" not exists
-jsonpath "$.payload" != null 
-jsonpath "$.payload.grant" != null 
+jsonpath "$.payload.role.id" == "{{role_id}}"
+jsonpath "$.payload.role.name" == "hurl-ur-role-{{stamp}}"
 jsonpath "$.payload.grant.user_id" == "{{user_id}}"
 jsonpath "$.payload.grant.role_id" == "{{role_id}}"
-jsonpath "$.payload.grant.created_at" != null 
-jsonpath "$.payload.grant.updated_at" != null 
-jsonpath "$.payload.role" != null 
-jsonpath "$.payload.role.id" == "{{role_id}}"
-jsonpath "$.payload.role.name" == "firefly:captain"
-jsonpath "$.payload.role.created_at" != null 
-jsonpath "$.payload.role.updated_at" != null 
+
+GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}/roles
+Authorization: Bearer {{jwt}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.user_role_grants" count == 1
+jsonpath "$.payload.user_role_grants[0].role.id" == "{{role_id}}"
+jsonpath "$.payload.user_role_grants[0].grant.user_id" == "{{user_id}}"
 
 DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}/roles/{{role_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
+jsonpath "$.payload.user_role.grant.user_id" == "{{user_id}}"
+jsonpath "$.payload.user_role.role.id" == "{{role_id}}"
+
+GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}/roles
+Authorization: Bearer {{jwt}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.user_role_grants" count == 0
 
 DELETE {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
 
 DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists

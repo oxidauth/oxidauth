@@ -1,14 +1,12 @@
+pub use super::PublicKey;
 use crate::dev_prelude::*;
 
-pub use super::PublicKey;
+#[async_trait]
+pub trait CreatePublicKeyServiceTrait: Send + Sync + 'static {
+    async fn create_public_key(&self, params: &CreatePublicKey) -> Result<PublicKey, BoxedError>;
+}
 
-pub type CreatePublicKeyService = Arc<
-    dyn for<'a> Service<
-        &'a CreatePublicKey,
-        Response = PublicKey,
-        Error = BoxedError,
-    >,
->;
+pub type CreatePublicKeyService = Arc<dyn CreatePublicKeyServiceTrait>;
 
 #[derive(Debug)]
 pub struct CreatePublicKey;

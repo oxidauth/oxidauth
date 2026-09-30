@@ -1,0 +1,14 @@
+# Build-context hygiene for the production image builds (plan 12): the api
+# Dockerfile takes the repo root as context and `COPY . .`s it into the
+# builder stage, so everything here must never ride along.
+.git
+.env
+*.env
+secrets/
+target/
+**/target/
+tmp/
+**/dist/
+**/*.enc
+*.log
+.DS_Store

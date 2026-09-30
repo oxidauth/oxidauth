@@ -1,18 +1,17 @@
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::error::BoxedError;
-pub use crate::service::Service;
+use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 
 pub use super::Permission;
+use crate::error::BoxedError;
 
-pub type DeletePermissionService = Arc<
-    dyn for<'a> Service<
-        &'a DeletePermission,
-        Response = Permission,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait DeletePermissionServiceTrait: Send + Sync + 'static {
+    async fn delete_permission(&self, params: &DeletePermission) -> Result<Permission, BoxedError>;
+}
+
+pub type DeletePermissionService = Arc<dyn DeletePermissionServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeletePermission {

@@ -4,5 +4,5 @@ SELECT
     created_at,
     updated_at
 FROM public_keys
-ORDER BY created_at DESC
+ORDER BY created_at DESC, id DESC
 LIMIT 1

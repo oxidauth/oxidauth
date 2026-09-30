@@ -1,19 +1,30 @@
 pub mod delete_user_authority;
 pub mod insert_user_authority;
-pub mod select_user_authorities_by_authority_id_and_user_identifier;
 pub mod select_user_authorities_by_user_id;
+pub mod select_user_authority_by_authority_id_and_user_identifier;
 pub mod select_user_authority_by_user_id_and_authority_id;
 pub mod update_user_authority;
 
 use std::{fmt, str::FromStr};
 
 use oxidauth_kernel::{
+    JsonValue,
     authorities::{Authority, AuthorityStatus, AuthorityStrategy},
     user_authorities::{UserAuthority, UserAuthorityWithAuthority},
-    JsonValue,
 };
 
-use crate::prelude::*;
+use crate::{Database, prelude::*};
+
+#[derive(Debug, Clone)]
+pub struct PgUserAuthorityRepository {
+    db: Database,
+}
+
+impl PgUserAuthorityRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(sqlx::FromRow)]
 struct PgUserAuthority {
@@ -25,18 +36,13 @@ struct PgUserAuthority {
     pub updated_at: DateTime<Utc>,
 }
 
+// No derive(Debug): serde_json::Value params bypass kernel redaction (they hold argon2 hashes).
 impl fmt::Debug for PgUserAuthority {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PgUserAuthority")
             .field("user_id", &self.user_id)
-            .field(
-                "authority_id",
-                &self.authority_id,
-            )
-            .field(
-                "user_identifier",
-                &self.user_identifier,
-            )
+            .field("authority_id", &self.authority_id)
+            .field("user_identifier", &self.user_identifier)
             .field("created_at", &self.created_at)
             .field("updated_at", &self.updated_at)
             .finish()
@@ -74,52 +80,22 @@ struct PgUserAuthorityWithAuthority {
     pub authority_updated_at: DateTime<Utc>,
 }
 
+// No derive(Debug): serde_json::Value params + authority_params bypass kernel redaction (hashes).
 impl fmt::Debug for PgUserAuthorityWithAuthority {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PgUserAuthorityWithAuthority")
             .field("user_id", &self.user_id)
-            .field(
-                "authority_id",
-                &self.authority_id,
-            )
-            .field(
-                "user_identifier",
-                &self.user_identifier,
-            )
+            .field("authority_id", &self.authority_id)
+            .field("user_identifier", &self.user_identifier)
             .field("created_at", &self.created_at)
             .field("updated_at", &self.updated_at)
-            .field(
-                "authority_name",
-                &self.authority_name,
-            )
-            .field(
-                "authority_client_key",
-                &self.authority_client_key,
-            )
-            .field(
-                "authority_status",
-                &self.authority_status,
-            )
-            .field(
-                "authority_strategy",
-                &self.authority_strategy,
-            )
-            .field(
-                "authority_settings",
-                &self.authority_settings,
-            )
-            .field(
-                "authority_status",
-                &self.authority_status,
-            )
-            .field(
-                "authority_created_at",
-                &self.authority_created_at,
-            )
-            .field(
-                "authority_updated_at",
-                &self.authority_updated_at,
-            )
+            .field("authority_name", &self.authority_name)
+            .field("authority_client_key", &self.authority_client_key)
+            .field("authority_status", &self.authority_status)
+            .field("authority_strategy", &self.authority_strategy)
+            .field("authority_settings", &self.authority_settings)
+            .field("authority_created_at", &self.authority_created_at)
+            .field("authority_updated_at", &self.authority_updated_at)
             .finish()
     }
 }
@@ -127,9 +103,7 @@ impl fmt::Debug for PgUserAuthorityWithAuthority {
 impl TryFrom<PgUserAuthorityWithAuthority> for UserAuthorityWithAuthority {
     type Error = BoxedError;
 
-    fn try_from(
-        value: PgUserAuthorityWithAuthority,
-    ) -> Result<Self, Self::Error> {
+    fn try_from(value: PgUserAuthorityWithAuthority) -> Result<Self, Self::Error> {
         let user_authority = Self {
             user_authority: UserAuthority {
                 user_id: value.user_id,
@@ -144,9 +118,7 @@ impl TryFrom<PgUserAuthorityWithAuthority> for UserAuthorityWithAuthority {
                 name: value.authority_name,
                 client_key: value.authority_client_key,
                 status: AuthorityStatus::from_str(&value.authority_status)?,
-                strategy: AuthorityStrategy::from_str(
-                    &value.authority_strategy,
-                )?,
+                strategy: AuthorityStrategy::from_str(&value.authority_strategy)?,
                 settings: serde_json::from_value(value.authority_settings)?,
                 params: JsonValue::new(value.authority_params),
                 created_at: value.authority_created_at,

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::authorities::list_all_authorities::{
+use oxidauth_http::Response;
+pub use oxidauth_http::authorities::list_all_authorities::{
     ListAllAuthoritiesReq,
     ListAllAuthoritiesRes,
 };
@@ -9,14 +9,11 @@ use oxidauth_kernel::error::BoxedError;
 use super::*;
 
 const RESOURCE: Resource = Resource::Authority;
-const METHOD: &str = "find_authority_by_strategy";
+const METHOD: &str = "list_all_authorities";
 
 #[async_trait]
 pub trait ListAllAuthoritiesTrait {
-    async fn list_all_authorities<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllAuthoritiesRes, BoxedError>
+    async fn list_all_authorities<T>(&self, params: T) -> Result<ListAllAuthoritiesRes, BoxedError>
     where
         T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send;
 }
@@ -24,10 +21,7 @@ pub trait ListAllAuthoritiesTrait {
 #[async_trait]
 impl ListAllAuthoritiesTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn list_all_authorities<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllAuthoritiesRes, BoxedError>
+    async fn list_all_authorities<T>(&self, params: T) -> Result<ListAllAuthoritiesRes, BoxedError>
     where
         T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send,
     {
@@ -49,10 +43,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl ListAllAuthoritiesTrait for ClientMock {
-    async fn list_all_authorities<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllAuthoritiesRes, BoxedError>
+    async fn list_all_authorities<T>(&self, params: T) -> Result<ListAllAuthoritiesRes, BoxedError>
     where
         T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send,
     {
@@ -64,5 +55,31 @@ impl ListAllAuthoritiesTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{authority, contract};
+
+    #[tokio::test]
+    async fn list_all_authorities_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/authorities",
+            ("authority", "list_all_authorities"),
+            json!({ "authorities": [authority(), authority()] }),
+            |client| {
+                async move {
+                    client
+                        .list_all_authorities(ListAllAuthoritiesReq {})
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

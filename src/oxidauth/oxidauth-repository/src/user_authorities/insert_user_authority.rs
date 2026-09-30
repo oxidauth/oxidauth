@@ -1,9 +1,7 @@
 use std::fmt;
 
-pub use oxidauth_kernel::{service::Service, user_authorities::UserAuthority};
-use oxidauth_kernel::{
-    user_authorities::create_user_authority::CreateUserAuthority, JsonValue,
-};
+pub use oxidauth_kernel::user_authorities::UserAuthority;
+use oxidauth_kernel::{JsonValue, user_authorities::create_user_authority::CreateUserAuthority};
 
 pub use crate::prelude::*;
 

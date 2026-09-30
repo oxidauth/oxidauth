@@ -1,22 +1,14 @@
-pub use oxidauth_kernel::refresh_tokens::find_refresh_token_by_id::FindRefreshTokenById;
-pub use oxidauth_kernel::{refresh_tokens::RefreshToken, service::Service};
+pub use oxidauth_kernel::refresh_tokens::{
+    RefreshToken,
+    find_refresh_token_by_id::FindRefreshTokenById,
+};
 
 pub use crate::prelude::*;
 
-pub trait SelectRefreshTokenByIdQuery:
-    for<'a> Service<
-    &'a FindRefreshTokenById,
-    Response = RefreshToken,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectRefreshTokenByIdQuery for T where
-    T: for<'a> Service<
-        &'a FindRefreshTokenById,
-        Response = RefreshToken,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectRefreshTokenByIdQuery: Send + Sync + 'static {
+    async fn select_refresh_token_by_id(
+        &self,
+        params: &FindRefreshTokenById,
+    ) -> Result<RefreshToken, BoxedError>;
 }

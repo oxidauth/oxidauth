@@ -6,7 +6,19 @@ pub mod delete_permission;
 pub mod insert_permission;
 pub mod select_all_permissions;
 pub mod select_permission_by_parts;
-pub mod update_permission;
+
+use crate::Database;
+
+#[derive(Debug, Clone)]
+pub struct PgPermissionRepository {
+    db: Database,
+}
+
+impl PgPermissionRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgPermission {

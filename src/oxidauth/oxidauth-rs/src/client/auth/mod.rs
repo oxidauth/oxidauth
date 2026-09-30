@@ -5,16 +5,8 @@ pub mod username_password;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
-use super::{
-    Client,
-    Resource,
-    fmt,
-    handle_response,
-};
-pub use crate::auth::{
-    authenticate::AuthenticateTrait,
-    register::RegisterTrait,
-};
+use super::{Client, Resource, fmt, handle_response};
+pub use crate::auth::{authenticate::AuthenticateTrait, register::RegisterTrait};
 
 pub trait AuthTrait: RegisterTrait + AuthenticateTrait {}
 

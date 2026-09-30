@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::permissions::create_user_permission::{
-    CreateUserPermissionReq, CreateUserPermissionRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::users::permissions::create_user_permission::{
+    CreateUserPermissionReq,
+    CreateUserPermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -36,15 +37,13 @@ impl CreateUserPermissionGrantTrait for Client {
             .post(
                 &format!(
                     "/users/{}/permissions/{}",
-                    user_permission_grant.user_id,
-                    user_permission_grant.permission
+                    user_permission_grant.user_id, user_permission_grant.permission
                 ),
                 None::<()>,
             )
             .await?;
 
-        let user_permission_grant_res =
-            handle_response(RESOURCE, METHOD, resp)?;
+        let user_permission_grant_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_permission_grant_res)
     }
@@ -71,5 +70,38 @@ impl CreateUserPermissionGrantTrait for ClientMock {
         };
 
         return func(user_permission_grant.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_permission};
+
+    #[tokio::test]
+    async fn create_user_permission_grant_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        // the create grant returns the raw UserPermission payload (no wrapper
+        // key), unlike its delete sibling — shape pinned here
+        contract(
+            "POST",
+            &format!("/api/v1/users/{user_id}/permissions/oxidauth:users:read"),
+            ("user_permission_grant", "create_user_permission_grant"),
+            user_permission(),
+            move |client| {
+                async move {
+                    client
+                        .create_user_permission_grant(CreateUserPermissionReq {
+                            user_id,
+                            permission: "oxidauth:users:read".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

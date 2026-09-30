@@ -1,6 +1,11 @@
 edition = "2024"
 style_edition = "2024"
-required_version = "1.8.0"
+# Bare numeric specs don't reject older rustfmt (measured: plain "1.11.0" is
+# accepted by 1.9.0-stable) and a "-nightly" suffix is unsatisfiable (the
+# guard compares major.minor.patch only — the channel suffix is stripped).
+# The comparator form is the only pin that hard-errors older nightly rustfmt
+# (stable builds ignore required_version entirely).
+required_version = ">=1.11.0"
 unstable_features = true
 ignore = []
 

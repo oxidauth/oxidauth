@@ -1,20 +1,34 @@
-POST {{scheme}}://{{host}}/api/v1/roles
+# Role<->role (parent/child) grants. POST/DELETE /roles/{parent_id}/roles/{child_id}.
+
+POST {{scheme}}://{{host}}/api/v1/auth/authenticate
 {
-    "role": {
-        "name": "firefly:captain"
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "{{admin_username}}",
+        "password": "{{admin_password}}"
     }
 }
 HTTP/1.1 200
 [Captures]
-role_id: jsonpath "$.payload.role.id"
+jwt: jsonpath "$.payload.jwt"
 [Asserts]
 jsonpath "$.success" == true
 
 POST {{scheme}}://{{host}}/api/v1/roles
+Authorization: Bearer {{jwt}}
 {
-    "role": {
-        "name": "firefly:pilot"
-    }
+    "role": { "name": "hurl-rr-parent-{{stamp}}" }
+}
+HTTP/1.1 200
+[Captures]
+parent_id: jsonpath "$.payload.role.id"
+[Asserts]
+jsonpath "$.success" == true
+
+POST {{scheme}}://{{host}}/api/v1/roles
+Authorization: Bearer {{jwt}}
+{
+    "role": { "name": "hurl-rr-child-{{stamp}}" }
 }
 HTTP/1.1 200
 [Captures]
@@ -22,37 +36,44 @@ child_id: jsonpath "$.payload.role.id"
 [Asserts]
 jsonpath "$.success" == true
 
-POST {{scheme}}://{{host}}/api/v1/roles/{{role_id}}/roles/{{child_id}}
+POST {{scheme}}://{{host}}/api/v1/roles/{{parent_id}}/roles/{{child_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
 jsonpath "$.errors" not exists
-jsonpath "$.payload" != null 
-jsonpath "$.payload.grant" != null 
-jsonpath "$.payload.grant.parent_id" == "{{role_id}}"
-jsonpath "$.payload.grant.child_id" == "{{child_id}}"
-jsonpath "$.payload.grant.created_at" != null 
-jsonpath "$.payload.grant.updated_at" != null 
-jsonpath "$.payload.child" != null 
 jsonpath "$.payload.child.id" == "{{child_id}}"
-jsonpath "$.payload.child.name" == "firefly:pilot"
-jsonpath "$.payload.child.created_at" != null 
-jsonpath "$.payload.child.updated_at" != null 
+jsonpath "$.payload.child.name" == "hurl-rr-child-{{stamp}}"
+jsonpath "$.payload.grant.parent_id" == "{{parent_id}}"
+jsonpath "$.payload.grant.child_id" == "{{child_id}}"
+jsonpath "$.payload.grant.created_at" exists
+jsonpath "$.payload.grant.updated_at" exists
 
-DELETE {{scheme}}://{{host}}/api/v1/roles/{{role_id}}/roles/{{child_id}}
+GET {{scheme}}://{{host}}/api/v1/roles/{{parent_id}}/roles
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
+jsonpath "$.payload.roles" count == 1
+jsonpath "$.payload.roles[0].role.id" == "{{child_id}}"
+jsonpath "$.payload.roles[0].grant.parent_id" == "{{parent_id}}"
+
+DELETE {{scheme}}://{{host}}/api/v1/roles/{{parent_id}}/roles/{{child_id}}
+Authorization: Bearer {{jwt}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.grant.parent_id" == "{{parent_id}}"
+jsonpath "$.payload.grant.child_id" == "{{child_id}}"
 
 DELETE {{scheme}}://{{host}}/api/v1/roles/{{child_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
 
-DELETE {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
+DELETE {{scheme}}://{{host}}/api/v1/roles/{{parent_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists

@@ -28,7 +28,7 @@ pub fn parse(s: &str) -> Result<Vec<Token<'_>>, PermissionParseErr> {
                         word_start = None;
                     },
                     Prev::None | Prev::Token(Period) | Prev::Token(Colon) => {
-                        return Err(PermissionParseErr::InvalidPermission)
+                        return Err(PermissionParseErr::InvalidPermission);
                     },
                     _ => {},
                 }
@@ -51,7 +51,7 @@ pub fn parse(s: &str) -> Result<Vec<Token<'_>>, PermissionParseErr> {
                         word_start = None;
                     },
                     Prev::Token(Single) | Prev::Token(Double) => {
-                        return Err(PermissionParseErr::InvalidPermission)
+                        return Err(PermissionParseErr::InvalidPermission);
                     },
                     _ => {},
                 }
@@ -80,7 +80,7 @@ pub fn parse(s: &str) -> Result<Vec<Token<'_>>, PermissionParseErr> {
                         word_start = None;
                     },
                     Prev::None | Prev::Token(Period) | Prev::Token(Colon) => {
-                        return Err(PermissionParseErr::InvalidPermission)
+                        return Err(PermissionParseErr::InvalidPermission);
                     },
                     _ => {},
                 }
@@ -102,11 +102,12 @@ pub fn parse(s: &str) -> Result<Vec<Token<'_>>, PermissionParseErr> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use Token::*;
 
+    use super::*;
+
     macro_rules! assert_permission {
-        ($input:expr, [ $($result:expr),+ ]) => {
+        ($input:expr_2021, [ $($result:expr_2021),+ ]) => {
             let p = $input;
             let expected = Ok(vec![$($result),+]);
 
@@ -114,7 +115,7 @@ mod tests {
 
             assert_eq!(result, expected);
         };
-        ($input:expr, error) => {
+        ($input:expr_2021, error) => {
             let p = $input;
 
             let result = parse(p);
@@ -135,15 +136,9 @@ mod tests {
             [Single, Colon, Single, Period, Single, Colon, Single]
         );
 
-        assert_permission!(
-            "*:*:*",
-            [Single, Colon, Single, Colon, Single]
-        );
+        assert_permission!("*:*:*", [Single, Colon, Single, Colon, Single]);
 
-        assert_permission!(
-            "**:**:**",
-            [Double, Colon, Double, Colon, Double]
-        );
+        assert_permission!("**:**:**", [Double, Colon, Double, Colon, Double]);
 
         assert_permission!(
             "realm:resource:action",
@@ -156,14 +151,37 @@ mod tests {
             ]
         );
 
-        assert_permission!(
-            "*:b:c",
-            [Single, Colon, Dynamic("b"), Colon, Dynamic("c")]
-        );
+        assert_permission!("*:b:c", [Single, Colon, Dynamic("b"), Colon, Dynamic("c")]);
 
         assert_permission!(
             "oxidauth.admin_web.super_admin.tenant.special:tenant.c2fd240c-4160-459e-a184-084ddba63a94.users.c2fd240c-4160-459e-a184-084ddba63a94.relationship.c2fd240c-4160-459e-a184-084ddba63a94:read_manage_write_all.*",
-            [Dynamic("oxidauth"), Period, Dynamic("admin_web"), Period, Dynamic("super_admin"), Period, Dynamic("tenant"), Period, Dynamic("special"), Colon, Dynamic("tenant"), Period, Dynamic("c2fd240c-4160-459e-a184-084ddba63a94"), Period, Dynamic("users"), Period, Dynamic("c2fd240c-4160-459e-a184-084ddba63a94"), Period, Dynamic("relationship"), Period, Dynamic("c2fd240c-4160-459e-a184-084ddba63a94"), Colon, Dynamic("read_manage_write_all"), Period, Single]
+            [
+                Dynamic("oxidauth"),
+                Period,
+                Dynamic("admin_web"),
+                Period,
+                Dynamic("super_admin"),
+                Period,
+                Dynamic("tenant"),
+                Period,
+                Dynamic("special"),
+                Colon,
+                Dynamic("tenant"),
+                Period,
+                Dynamic("c2fd240c-4160-459e-a184-084ddba63a94"),
+                Period,
+                Dynamic("users"),
+                Period,
+                Dynamic("c2fd240c-4160-459e-a184-084ddba63a94"),
+                Period,
+                Dynamic("relationship"),
+                Period,
+                Dynamic("c2fd240c-4160-459e-a184-084ddba63a94"),
+                Colon,
+                Dynamic("read_manage_write_all"),
+                Period,
+                Single
+            ]
         );
     }
 

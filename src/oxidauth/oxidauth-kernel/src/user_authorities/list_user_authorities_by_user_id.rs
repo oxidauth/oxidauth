@@ -1,14 +1,15 @@
+pub use super::UserAuthorityWithAuthority;
 use crate::dev_prelude::*;
 
-pub use super::UserAuthorityWithAuthority;
+#[async_trait]
+pub trait ListUserAuthoritiesByUserIdServiceTrait: Send + Sync + 'static {
+    async fn list_user_authorities_by_user_id(
+        &self,
+        params: &ListUserAuthoritiesByUserId,
+    ) -> Result<Vec<UserAuthorityWithAuthority>, BoxedError>;
+}
 
-pub type ListUserAuthoritiesByUserIdService = Arc<
-    dyn for<'a> Service<
-        &'a ListUserAuthoritiesByUserId,
-        Response = Vec<UserAuthorityWithAuthority>,
-        Error = BoxedError,
-    >,
->;
+pub type ListUserAuthoritiesByUserIdService = Arc<dyn ListUserAuthoritiesByUserIdServiceTrait>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListUserAuthoritiesByUserId {

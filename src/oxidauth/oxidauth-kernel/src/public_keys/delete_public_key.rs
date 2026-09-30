@@ -1,14 +1,12 @@
+pub use super::PublicKey;
 use crate::dev_prelude::*;
 
-pub use super::PublicKey;
+#[async_trait]
+pub trait DeletePublicKeyServiceTrait: Send + Sync + 'static {
+    async fn delete_public_key(&self, params: &DeletePublicKey) -> Result<PublicKey, BoxedError>;
+}
 
-pub type DeletePublicKeyService = Arc<
-    dyn for<'a> Service<
-        &'a DeletePublicKey,
-        Response = PublicKey,
-        Error = BoxedError,
-    >,
->;
+pub type DeletePublicKeyService = Arc<dyn DeletePublicKeyServiceTrait>;
 
 #[derive(Debug, Deserialize)]
 pub struct DeletePublicKey {

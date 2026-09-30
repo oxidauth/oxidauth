@@ -3,16 +3,7 @@ use oxidauth_kernel::users::find_users_by_ids::UsersByIds;
 
 use crate::prelude::*;
 
-pub trait SelectUsersByIdsQuery:
-    for<'a> Service<&'a FindUsersByIds, Response = UsersByIds, Error = BoxedError>
-{
-}
-
-impl<T> SelectUsersByIdsQuery for T where
-    T: for<'a> Service<
-        &'a FindUsersByIds,
-        Response = UsersByIds,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectUsersByIdsQuery: Send + Sync + 'static {
+    async fn select_users_by_ids(&self, params: &FindUsersByIds) -> Result<UsersByIds, BoxedError>;
 }

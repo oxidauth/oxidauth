@@ -1,22 +1,11 @@
-pub use oxidauth_kernel::authorities::list_all_authorities::ListAllAuthorities;
-pub use oxidauth_kernel::{authorities::Authority, service::Service};
+pub use oxidauth_kernel::authorities::{Authority, list_all_authorities::ListAllAuthorities};
 
 pub use crate::prelude::*;
 
-pub trait SelectAllAuthoritiesQuery:
-    for<'a> Service<
-    &'a ListAllAuthorities,
-    Response = Vec<Authority>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectAllAuthoritiesQuery for T where
-    T: for<'a> Service<
-        &'a ListAllAuthorities,
-        Response = Vec<Authority>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectAllAuthoritiesQuery: Send + Sync + 'static {
+    async fn select_all_authorities(
+        &self,
+        params: &ListAllAuthorities,
+    ) -> Result<Vec<Authority>, BoxedError>;
 }

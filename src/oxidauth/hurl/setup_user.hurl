@@ -1,55 +1,43 @@
-POST {{scheme}}://{{host}}/api/v1/authorities
+# STANDALONE — hurl.sh runs only public_keys_create.hurl + tests/*.hurl;
+# invoke me directly: hurl --test <hurl.sh's --variable args> hurl/setup_user.hurl
+
+# Plan-11 bootstrap sanity (run standalone or implicitly as suite context):
+# the deterministic bootstrap must expose a usable superuser.
+
+# authenticate as the seeded admin
+POST {{scheme}}://{{host}}/api/v1/auth/authenticate
 {
-    "authority": {
-        "name": "default",
-        "strategy": "username_password",
-        "params": {
-            "password_salt": "wry4tb4tj54nt4tjt4231sikiu89SDGBGIp97"
-        },
-        "settings": {
-            "jwt_ttl": {
-                "secs": 120,
-                "nanos": 0
-            },
-            "refresh_token_ttl": {
-                "secs": 345600,
-                "nanos": 0
-            }
-        }
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "{{admin_username}}",
+        "password": "{{admin_password}}"
     }
 }
 HTTP/1.1 200
 [Captures]
-authority_id: jsonpath "$.payload.authority.id"
+jwt: jsonpath "$.payload.jwt"
 [Asserts]
 jsonpath "$.success" == true
 jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
+jsonpath "$.payload.jwt" exists
+jsonpath "$.payload.refresh_token" exists
 
-
-POST {{scheme}}://{{host}}/api/v1/public_keys
+# the admin user exists and carries the API kind + enabled status
+GET {{scheme}}://{{host}}/api/v1/users/by_username/{{admin_username}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
 jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
+jsonpath "$.payload.user.username" == "{{admin_username}}"
+jsonpath "$.payload.user.kind" == "api"
+jsonpath "$.payload.user.status" == "enabled"
 
-POST {{scheme}}://{{host}}/api/v1/auth/register
-{
-    "strategy": "username_password",
-    "params": {
-        "username": "malreynolds",
-        "first_name": "Mal",
-        "last_name": "Reynolds",
-        "email": "mreynolds@serenity.com",
-        "password": "password123",
-        "password_confirmation": "password123"
-    }
-}
+# the admin's wildcard permission answers yes
+GET {{scheme}}://{{host}}/api/v1/can/oxidauth:users:read
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
-jsonpath "$.payload.jwt" != null
-jsonpath "$.payload.refresh_token" != null
+jsonpath "$.payload" == true
+jsonpath "$.notices[0]" == "yes you can"

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "oxidauth.api.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "oxidauth.api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default .Values.replicaCount .Values.api.replicas }}
+  selector:
+    matchLabels:
+      {{- include "oxidauth.api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "oxidauth.api.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: {{ template "oxidauth.name" . }}-registry
+      {{- if .Values.affinity }}
+      affinity: {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.containerPort }}
+              protocol: TCP
+          env:
+            {{- $secretKeys := fromJson (include "oxidauth.secretEnvKeys" .) }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              valueFrom:
+                {{- if hasKey $secretKeys $key }}
+                secretKeyRef:
+                  name: {{ template "oxidauth.fullname" $ }}-env
+                  key: {{ $key }}
+                {{- else }}
+                configMapKeyRef:
+                  name: {{ template "oxidauth.name" $ }}-config
+                  key: {{ $key }}
+                {{- end }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

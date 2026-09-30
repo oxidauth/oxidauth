@@ -1,14 +1,8 @@
-pub use oxidauth_kernel::users::delete_user_by_id::DeleteUserById;
-pub use oxidauth_kernel::users::User;
+pub use oxidauth_kernel::users::{User, delete_user_by_id::DeleteUserById};
 
 use crate::prelude::*;
 
-pub trait DeleteUserByIdQuery:
-    for<'a> Service<&'a DeleteUserById, Response = User, Error = BoxedError>
-{
-}
-
-impl<T> DeleteUserByIdQuery for T where
-    T: for<'a> Service<&'a DeleteUserById, Response = User, Error = BoxedError>
-{
+#[async_trait]
+pub trait DeleteUserByIdQuery: Send + Sync + 'static {
+    async fn delete_user_by_id(&self, params: &DeleteUserById) -> Result<User, BoxedError>;
 }

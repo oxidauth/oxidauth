@@ -1,9 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::list_all_roles::{
-    ListAllRolesReq,
-    ListAllRolesRes,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::list_all_roles::{ListAllRolesReq, ListAllRolesRes};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -13,10 +10,7 @@ const METHOD: &str = "list_all_roles";
 
 #[async_trait]
 pub trait ListAllRolesTrait {
-    async fn list_all_roles<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllRolesRes, BoxedError>
+    async fn list_all_roles<T>(&self, params: T) -> Result<ListAllRolesRes, BoxedError>
     where
         T: Into<ListAllRolesReq> + fmt::Debug + Send;
 }
@@ -24,20 +18,14 @@ pub trait ListAllRolesTrait {
 #[async_trait]
 impl ListAllRolesTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn list_all_roles<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllRolesRes, BoxedError>
+    async fn list_all_roles<T>(&self, params: T) -> Result<ListAllRolesRes, BoxedError>
     where
         T: Into<ListAllRolesReq> + fmt::Debug + Send,
     {
         let _params = params.into();
 
         let resp: Response<ListAllRolesRes> = self
-            .get(
-                "/roles",
-                None::<ListAllRolesReq>,
-            )
+            .get("/roles", None::<ListAllRolesReq>)
             .await?;
 
         let role_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -52,10 +40,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl ListAllRolesTrait for ClientMock {
-    async fn list_all_roles<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllRolesRes, BoxedError>
+    async fn list_all_roles<T>(&self, params: T) -> Result<ListAllRolesRes, BoxedError>
     where
         T: Into<ListAllRolesReq> + fmt::Debug + Send,
     {
@@ -64,5 +49,31 @@ impl ListAllRolesTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role};
+
+    #[tokio::test]
+    async fn list_all_roles_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/roles",
+            ("role", "list_all_roles"),
+            json!({ "roles": [role()] }),
+            |client| {
+                async move {
+                    client
+                        .list_all_roles(ListAllRolesReq {})
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

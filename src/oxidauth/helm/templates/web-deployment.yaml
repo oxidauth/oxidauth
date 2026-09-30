@@ -1,0 +1,35 @@
+{{- if .Values.web.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "oxidauth.web.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "oxidauth.web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ default .Values.replicaCount .Values.web.replicas }}
+  selector:
+    matchLabels:
+      {{- include "oxidauth.web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "oxidauth.web.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: {{ template "oxidauth.name" . }}-registry
+      containers:
+        - name: web
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ template "oxidauth.name" . }}-config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

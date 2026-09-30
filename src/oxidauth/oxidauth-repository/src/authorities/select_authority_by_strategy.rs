@@ -1,22 +1,14 @@
-pub use oxidauth_kernel::authorities::find_authority_by_strategy::FindAuthorityByStrategy;
-pub use oxidauth_kernel::{authorities::Authority, service::Service};
+pub use oxidauth_kernel::authorities::{
+    Authority,
+    find_authority_by_strategy::FindAuthorityByStrategy,
+};
 
 pub use crate::prelude::*;
 
-pub trait SelectAuthorityByStrategyQuery:
-    for<'a> Service<
-    &'a FindAuthorityByStrategy,
-    Response = Option<Authority>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectAuthorityByStrategyQuery for T where
-    T: for<'a> Service<
-        &'a FindAuthorityByStrategy,
-        Response = Option<Authority>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectAuthorityByStrategyQuery: Send + Sync + 'static {
+    async fn select_authority_by_strategy(
+        &self,
+        params: &FindAuthorityByStrategy,
+    ) -> Result<Option<Authority>, BoxedError>;
 }

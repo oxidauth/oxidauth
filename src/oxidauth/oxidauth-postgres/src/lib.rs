@@ -8,11 +8,13 @@
 //! Env vars:
 //! - `DATABASE_URL` (required): write pool
 //! - `READ_DATABASE_URL` (optional): read pool, falls back to `DATABASE_URL`
-//! - `MIGRATIONS_ENABLED` (required): `"true"` runs migrations on `migrate()`;
-//!   a missing var is a hard `PgError::MissingEnvVar` (fail-fast).
+//! - `MIGRATIONS_ENABLED` (required): `"true"` runs migrations on `migrate()`; a missing var is a
+//!   hard `PgError::MissingEnvVar` (fail-fast).
 //!
 //! Query implementations for the kernel entities live in the `auth`, `users`,
-//! `roles`, etc. modules below as `impl Service<&Params> for Database`.
+//! `roles`, etc. modules below: each entity module declares a
+//! `Pg<Entity>Repository` struct (holding `Database`) whose query traits from
+//! `oxidauth-repository` are implemented per query submodule.
 
 pub mod auth;
 pub mod authorities;
@@ -33,10 +35,18 @@ pub mod users;
 
 pub mod prelude;
 
+#[cfg(test)]
+pub(crate) mod test_fixtures;
+
 const DATABASE_URL: &str = "DATABASE_URL";
 const READ_DATABASE_URL: &str = "READ_DATABASE_URL";
 const MIGRATIONS_ENABLED: &str = "MIGRATIONS_ENABLED";
 
 pub const MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
 
-postgres::database!(DATABASE_URL, READ_DATABASE_URL, MIGRATIONS_ENABLED, MIGRATOR);
+postgres::database!(
+    DATABASE_URL,
+    READ_DATABASE_URL,
+    MIGRATIONS_ENABLED,
+    MIGRATOR
+);

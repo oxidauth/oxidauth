@@ -1,25 +1,14 @@
-use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 pub use oxidauth_kernel::private_keys::PrivateKey;
+use oxidauth_kernel::private_keys::find_most_recent_private_key::FindMostRecentPrivateKey;
 
 use crate::prelude::*;
 
-pub trait SelectMostRecentPrivateKeyQuery:
-    for<'a> Service<
-    &'a FindMostRecentPrivateKey,
-    Response = PrivateKey,
-    Error = BoxedError,
->
-{
+#[async_trait]
+pub trait SelectMostRecentPrivateKeyQuery: Send + Sync + 'static {
+    async fn select_most_recent_private_key(
+        &self,
+        params: &FindMostRecentPrivateKey,
+    ) -> Result<PrivateKey, BoxedError>;
 }
-
-impl<T> SelectMostRecentPrivateKeyQuery for T where
-    T: for<'a> Service<
-        &'a FindMostRecentPrivateKey,
-        Response = PrivateKey,
-        Error = BoxedError,
-    >
-{
-}
-
 #[derive(Debug)]
 pub struct SelectMostRecentPrivateKey {}

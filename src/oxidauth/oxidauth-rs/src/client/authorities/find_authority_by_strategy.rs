@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-pub use oxidauth_http::server::api::v1::authorities::find_authority_by_strategy::FindAuthorityByStrategyRes;
-use oxidauth_http::response::Response;
+use oxidauth_http::Response;
+pub use oxidauth_http::authorities::find_authority_by_strategy::FindAuthorityByStrategyRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -32,10 +32,7 @@ impl FindAuthorityByStrategyTrait for Client {
 
         let resp: Response<FindAuthorityByStrategyRes> = self
             .get(
-                &format!(
-                    "/authorities/by_strategy/{}",
-                    authority_strategy
-                ),
+                &format!("/authorities/by_strategy/{}", authority_strategy),
                 None::<()>,
             )
             .await?;
@@ -67,5 +64,31 @@ impl FindAuthorityByStrategyTrait for ClientMock {
         };
 
         return func(authority_strategy.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{authority, contract};
+
+    #[tokio::test]
+    async fn find_authority_by_strategy_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/authorities/by_strategy/username_password",
+            ("authority", "find_authority_by_strategy"),
+            json!({ "authority": authority() }),
+            |client| {
+                async move {
+                    client
+                        .find_authority_by_strategy("username_password".to_string())
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

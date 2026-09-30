@@ -1,188 +1,149 @@
-GET {{scheme}}://{{host}}/api/v1/users
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.users" != null
-jsonpath "$.payload.users" count == 0
+# User CRUD (+ by_username / by_ids). The suite's first-pass leftovers would
+# make the unique username collide, so the cleanup deletes are load-bearing.
 
-POST {{scheme}}://{{host}}/api/v1/authorities
+POST {{scheme}}://{{host}}/api/v1/auth/authenticate
 {
-    "authority": {
-        "name": "default-01",
-        "strategy": "username_password",
-        "params": {
-            "password_salt": "wry4tb4tj54nt4tjt4231sikiu89SDGBGIp97"
-        },
-        "settings": {
-            "jwt_ttl": {
-                "secs": 120,
-                "nanos": 0
-            },
-            "refresh_token_ttl": {
-                "secs": 345600,
-                "nanos": 0
-            }
-        }
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "{{admin_username}}",
+        "password": "{{admin_password}}"
     }
 }
 HTTP/1.1 200
 [Captures]
-authority_id: jsonpath "$.payload.authority.id"
+jwt: jsonpath "$.payload.jwt"
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
 
+# guarded route without a token
+GET {{scheme}}://{{host}}/api/v1/users
+HTTP/1.1 401
+
+# a uuid the table will never contain
 GET {{scheme}}://{{host}}/api/v1/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{jwt}}
 HTTP/1.1 400
 [Asserts]
 jsonpath "$.success" == false
 jsonpath "$.payload" not exists
-jsonpath "$.errors" != null
 jsonpath "$.errors[0].debug" contains "RowNotFound"
 
+GET {{scheme}}://{{host}}/api/v1/users/by_username/hurl-nobody-{{stamp}}
+Authorization: Bearer {{jwt}}
+HTTP/1.1 400
+[Asserts]
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "Username"
+
 POST {{scheme}}://{{host}}/api/v1/users
+Authorization: Bearer {{jwt}}
 {
     "user": {
-        "username": "browncoat1",
-        "email": "mal@serenity.com",
-        "first_name": "Mal",
-        "last_name": "Reynolds"
+        "username": "hurl-user-{{stamp}}",
+        "email": "hurl-user-{{stamp}}@oxidauth.rs",
+        "first_name": "Hurl",
+        "last_name": "User"
     }
 }
-
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-
-
-GET {{scheme}}://{{host}}/api/v1/users
 HTTP/1.1 200
 [Captures]
-user_id: jsonpath "$.payload.users[0].id"
+user_id: jsonpath "$.payload.user.id"
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
-jsonpath "$.payload.users" != null
-jsonpath "$.payload.users" count == 1
-jsonpath "$.payload.users[0].id" != null
-jsonpath "$.payload.users[0].username" == "browncoat1"
-jsonpath "$.payload.users[0].email" == "mal@serenity.com"
-jsonpath "$.payload.users[0].first_name" == "Mal"
-jsonpath "$.payload.users[0].last_name" == "Reynolds"
-jsonpath "$.payload.users[0].status" == "enabled"
-jsonpath "$.payload.users[0].kind" == "human"
-jsonpath "$.payload.users[0].profile" != null
-jsonpath "$.payload.users[0].created_at" != null
-jsonpath "$.payload.users[0].updated_at" != null
+jsonpath "$.payload.user.id" exists
+jsonpath "$.payload.user.kind" == "human"
+jsonpath "$.payload.user.status" == "enabled"
+jsonpath "$.payload.user.username" == "hurl-user-{{stamp}}"
+jsonpath "$.payload.user.email" == "hurl-user-{{stamp}}@oxidauth.rs"
+jsonpath "$.payload.user.first_name" == "Hurl"
+jsonpath "$.payload.user.last_name" == "User"
+jsonpath "$.payload.user.profile" exists
+jsonpath "$.payload.user.created_at" exists
+jsonpath "$.payload.user.updated_at" exists
 
-
-POST {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities
+# duplicate username hits the unique index
+POST {{scheme}}://{{host}}/api/v1/users
+Authorization: Bearer {{jwt}}
 {
-    "authority_strategy": "username_password",
-    "user_authority": {
-        "params": {
-            "username": "browncoat1",
-            "password": "malsunguessablepassword",
-            "password_confirmation": "malsunguessablepassword"
-        }
-    }
+    "user": { "username": "hurl-user-{{stamp}}" }
 }
-HTTP/1.1 200
+HTTP/1.1 400
 [Asserts]
-jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
-jsonpath "$.payload.user_authority" != null
-jsonpath "$.payload.user_authority.user_id" == "{{user_id}}"
-jsonpath "$.payload.user_authority.authority_id" == "{{authority_id}}"
-jsonpath "$.payload.user_authority.params" != null
-jsonpath "$.payload.user_authority.params.password_hash" != null
-jsonpath "$.payload.user_authority.created_at" != null
-jsonpath "$.payload.user_authority.updated_at" != null
-
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "UserAlreadyExistsError"
+jsonpath "$.errors[0].display" == "username is already taken"
+jsonpath "$.errors[0].debug" not contains "duplicate key"
+jsonpath "$.errors[0].debug" not contains "users_username_key"
 
 GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.user" != null
-jsonpath "$.payload.user.id" != null
-jsonpath "$.payload.user.username" == "browncoat1"
-jsonpath "$.payload.user.email" == "mal@serenity.com"
-jsonpath "$.payload.user.first_name" == "Mal"
-jsonpath "$.payload.user.last_name" == "Reynolds"
-jsonpath "$.payload.user.status" == "enabled"
-jsonpath "$.payload.user.kind" == "human"
-jsonpath "$.payload.user.profile" != null
-jsonpath "$.payload.user.created_at" != null
-jsonpath "$.payload.user.updated_at" != null
+jsonpath "$.payload.user.id" == "{{user_id}}"
+jsonpath "$.payload.user.username" == "hurl-user-{{stamp}}"
 
-
-GET {{scheme}}://{{host}}/api/v1/users/by_username/browncoat1
+GET {{scheme}}://{{host}}/api/v1/users/by_username/hurl-user-{{stamp}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.user" != null
-jsonpath "$.payload.user.id" != null
-jsonpath "$.payload.user.username" == "browncoat1"
-jsonpath "$.payload.user.email" == "mal@serenity.com"
-jsonpath "$.payload.user.first_name" == "Mal"
-jsonpath "$.payload.user.last_name" == "Reynolds"
-jsonpath "$.payload.user.status" == "enabled"
-jsonpath "$.payload.user.kind" == "human"
-jsonpath "$.payload.user.profile" != null
-jsonpath "$.payload.user.created_at" != null
-jsonpath "$.payload.user.updated_at" != null
+jsonpath "$.payload.user.id" == "{{user_id}}"
+
+# the seeded admin plus this file's user are both listed
+GET {{scheme}}://{{host}}/api/v1/users
+Authorization: Bearer {{jwt}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.users" count >= 2
+
+# by_ids returns found users and names the missing ids
+POST {{scheme}}://{{host}}/api/v1/users/by_ids
+Authorization: Bearer {{jwt}}
+{
+    "user_ids": [
+        "{{user_id}}",
+        "00000000-0000-0000-0000-000000000000"
+    ]
+}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.users" count == 1
+jsonpath "$.payload.users[0].id" == "{{user_id}}"
+jsonpath "$.payload.user_ids_not_found[0]" == "00000000-0000-0000-0000-000000000000"
 
 PUT {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
 {
     "user": {
-        "email": "kaylee@serenity.com",
-        "first_name": "Kaylee",
-        "last_name": "Frye"
+        "email": "hurl-renamed-{{stamp}}@oxidauth.rs",
+        "first_name": "Renamed",
+        "last_name": "Crewmember"
     }
 }
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.user" != null
-jsonpath "$.payload.user.id" != null
-jsonpath "$.payload.user.username" == "browncoat1"
-jsonpath "$.payload.user.email" == "kaylee@serenity.com"
-jsonpath "$.payload.user.first_name" == "Kaylee"
-jsonpath "$.payload.user.last_name" == "Frye"
+jsonpath "$.payload.user.id" == "{{user_id}}"
+jsonpath "$.payload.user.username" == "hurl-user-{{stamp}}"
+jsonpath "$.payload.user.email" == "hurl-renamed-{{stamp}}@oxidauth.rs"
+jsonpath "$.payload.user.first_name" == "Renamed"
+jsonpath "$.payload.user.last_name" == "Crewmember"
 jsonpath "$.payload.user.status" == "enabled"
-jsonpath "$.payload.user.kind" == "human"
-jsonpath "$.payload.user.profile" != null
-jsonpath "$.payload.user.created_at" != null
-jsonpath "$.payload.user.updated_at" != null
-
-DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities/{{authority_id}}
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-
-DELETE {{scheme}}://{{host}}/api/v1/authorities/{{authority_id}}
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.errors" not exists
 
 DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
+jsonpath "$.payload.user.id" == "{{user_id}}"
+
+GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
+HTTP/1.1 400
+[Asserts]
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "RowNotFound"

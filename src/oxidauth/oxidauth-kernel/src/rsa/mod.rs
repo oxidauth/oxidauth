@@ -1,11 +1,14 @@
-use crate::error::BoxedError;
+use std::error::Error;
+
 use base64::prelude::*;
 use rsa::{
-    Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey,
+    Pkcs1v15Encrypt,
+    RsaPrivateKey,
+    RsaPublicKey,
     pkcs8::{DecodePrivateKey, DecodePublicKey, EncodePrivateKey, EncodePublicKey, LineEnding},
 };
 
-use std::error::Error;
+use crate::error::BoxedError;
 
 // TODO(dewey4iv): this should be an env var or something
 const DEFAULT_BIT_SIZE: usize = 2048;

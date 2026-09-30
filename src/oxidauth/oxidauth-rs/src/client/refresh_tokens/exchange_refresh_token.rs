@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::refresh_tokens::exchange::{
+use oxidauth_http::Response;
+pub use oxidauth_http::refresh_tokens::exchange::{
     ExchangeRefreshTokenReq,
     ExchangeRefreshTokenRes,
 };
@@ -64,5 +64,38 @@ impl ExchangeRefreshTokenTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, uid};
+
+    #[tokio::test]
+    async fn exchange_refresh_token_route_contract() {
+        let refresh_token = Uuid::new_v4();
+
+        contract(
+            "POST",
+            "/api/v1/refresh_tokens",
+            ("refresh_token", "exchange_refresh_token"),
+            json!({
+                "jwt": "header.payload.signature",
+                "refresh_token": uid(),
+                "user_id": uid(),
+            }),
+            move |client| {
+                async move {
+                    client
+                        .exchange_refresh_token(ExchangeRefreshTokenReq { refresh_token })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

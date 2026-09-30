@@ -14,7 +14,18 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::authorities::AuthorityRow as RepoAuthorityRow;
 
-use crate::prelude::*;
+use crate::{Database, prelude::*};
+
+#[derive(Debug, Clone)]
+pub struct PgAuthorityRepository {
+    db: Database,
+}
+
+impl PgAuthorityRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, sqlx::FromRow)]
 struct PgAuthority {

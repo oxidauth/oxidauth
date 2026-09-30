@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::find_user_by_username::FindUserByUsernameRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::users::find_user_by_username::FindUserByUsernameRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -31,13 +31,7 @@ impl FindUserByUsernameTrait for Client {
         let username = username.into();
 
         let resp: Response<FindUserByUsernameRes> = self
-            .get(
-                &format!(
-                    "/users/by_username/{}",
-                    username,
-                ),
-                None::<()>,
-            )
+            .get(&format!("/users/by_username/{}", username,), None::<()>)
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -67,5 +61,31 @@ impl FindUserByUsernameTrait for ClientMock {
         };
 
         return func(username.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user};
+
+    #[tokio::test]
+    async fn find_user_by_username_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/users/by_username/malreynolds",
+            ("user", "find_user_by_username"),
+            json!({ "user": user() }),
+            |client| {
+                async move {
+                    client
+                        .find_user_by_username("malreynolds".to_string())
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

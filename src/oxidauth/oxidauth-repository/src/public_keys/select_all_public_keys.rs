@@ -1,22 +1,11 @@
-pub use oxidauth_kernel::public_keys::list_all_public_keys::ListAllPublicKeys;
-pub use oxidauth_kernel::public_keys::PublicKey;
+pub use oxidauth_kernel::public_keys::{PublicKey, list_all_public_keys::ListAllPublicKeys};
 
 use crate::prelude::*;
 
-pub trait SelectAllPublicKeysQuery:
-    for<'a> Service<
-    &'a ListAllPublicKeys,
-    Response = Vec<PublicKey>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectAllPublicKeysQuery for T where
-    T: for<'a> Service<
-        &'a ListAllPublicKeys,
-        Response = Vec<PublicKey>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectAllPublicKeysQuery: Send + Sync + 'static {
+    async fn select_all_public_keys(
+        &self,
+        params: &ListAllPublicKeys,
+    ) -> Result<Vec<PublicKey>, BoxedError>;
 }

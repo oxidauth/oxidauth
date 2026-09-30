@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::public_keys::create_public_key::CreatePublicKeyRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::public_keys::create_public_key::CreatePublicKeyRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -10,16 +10,13 @@ const METHOD: &str = "create_public_key";
 
 #[async_trait]
 pub trait CreatePublicKeyTrait {
-    async fn create_public_key(&self)
-    -> Result<CreatePublicKeyRes, BoxedError>;
+    async fn create_public_key(&self) -> Result<CreatePublicKeyRes, BoxedError>;
 }
 
 #[async_trait]
 impl CreatePublicKeyTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn create_public_key(
-        &self,
-    ) -> Result<CreatePublicKeyRes, BoxedError> {
+    async fn create_public_key(&self) -> Result<CreatePublicKeyRes, BoxedError> {
         let resp: Response<CreatePublicKeyRes> = self
             .post("/public_keys", None::<()>)
             .await?;
@@ -36,9 +33,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl CreatePublicKeyTrait for ClientMock {
-    async fn create_public_key(
-        &self,
-    ) -> Result<CreatePublicKeyRes, BoxedError> {
+    async fn create_public_key(&self) -> Result<CreatePublicKeyRes, BoxedError> {
         let Some(func) = self
             .create_public_key_fn
             .clone()
@@ -47,5 +42,31 @@ impl CreatePublicKeyTrait for ClientMock {
         };
 
         return func();
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, public_key};
+
+    #[tokio::test]
+    async fn create_public_key_route_contract() {
+        contract(
+            "POST",
+            "/api/v1/public_keys",
+            ("public_key", "create_public_key"),
+            json!({ "public_key": public_key() }),
+            |client| {
+                async move {
+                    client
+                        .create_public_key()
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::roles::permissions::create_role_permission_grant::{
-    CreateRolePermissionGrantReq, CreateRolePermissionGrantRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::roles::permissions::create_role_permission_grant::{
+    CreateRolePermissionGrantReq,
+    CreateRolePermissionGrantRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -36,15 +37,13 @@ impl CreateRolePermissionGrantTrait for Client {
             .post(
                 &format!(
                     "/roles/{}/permissions/{}",
-                    role_permission_grant.role_id,
-                    role_permission_grant.permission
+                    role_permission_grant.role_id, role_permission_grant.permission
                 ),
                 None::<CreateRolePermissionGrantReq>,
             )
             .await?;
 
-        let role_permission_grant_res =
-            handle_response(RESOURCE, METHOD, resp)?;
+        let role_permission_grant_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(role_permission_grant_res)
     }
@@ -71,5 +70,38 @@ impl CreateRolePermissionGrantTrait for ClientMock {
         };
 
         return func(role_permission_grant.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, role_permission};
+
+    #[tokio::test]
+    async fn create_role_permission_grant_route_contract() {
+        let role_id = Uuid::new_v4();
+
+        // the create/delete grants return the raw RolePermission payload (no
+        // wrapper key), unlike their list sibling — shape pinned here
+        contract(
+            "POST",
+            &format!("/api/v1/roles/{role_id}/permissions/oxidauth:users:read"),
+            ("role_permission_grant", "create_role_permission_grant"),
+            role_permission(),
+            move |client| {
+                async move {
+                    client
+                        .create_role_permission_grant(CreateRolePermissionGrantReq {
+                            role_id,
+                            permission: "oxidauth:users:read".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

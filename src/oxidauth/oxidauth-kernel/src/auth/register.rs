@@ -1,16 +1,21 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     JsonValue,
     authorities::find_authority_by_client_key::FindAuthorityByClientKey,
-    dev_prelude::{BoxedError, Service},
+    dev_prelude::BoxedError,
 };
 
-pub type RegisterService =
-    Arc<dyn for<'a> Service<&'a RegisterParams, Response = RegisterResponse, Error = BoxedError>>;
+#[async_trait]
+pub trait RegisterServiceTrait: Send + Sync + 'static {
+    async fn register(&self, params: &RegisterParams) -> Result<RegisterResponse, BoxedError>;
+}
+
+pub type RegisterService = Arc<dyn RegisterServiceTrait>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegisterParams {

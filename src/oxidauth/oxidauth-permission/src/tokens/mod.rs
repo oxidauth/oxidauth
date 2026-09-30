@@ -111,7 +111,7 @@ mod tests {
 
         assert_eq!(err, PermissionParseErr::WildcardChallenge)
     }
-    
+
     #[test]
     fn parse_and_validate_errors_on_single_wildcard_challenges() {
         let err = parse_and_validate("*:offers:read", &["oxidauth:offers:read"]);

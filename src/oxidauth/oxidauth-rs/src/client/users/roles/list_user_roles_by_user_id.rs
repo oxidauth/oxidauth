@@ -1,9 +1,8 @@
 use async_trait::async_trait;
-use uuid::Uuid;
-
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::roles::list_user_roles_by_user_id::ListUserRoleGrantsByUserIdRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::users::roles::list_user_roles_by_user_id::ListUserRoleGrantsByUserIdRes;
 use oxidauth_kernel::error::BoxedError;
+use uuid::Uuid;
 
 use super::*;
 
@@ -33,10 +32,7 @@ impl ListUserRolesByUserIdTrait for Client {
         let user_id = user_id.into();
 
         let resp: Response<ListUserRoleGrantsByUserIdRes> = self
-            .get(
-                &format!("/users/{}/roles", user_id),
-                None::<()>,
-            )
+            .get(&format!("/users/{}/roles", user_id), None::<()>)
             .await?;
 
         let user_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -66,5 +62,34 @@ impl ListUserRolesByUserIdTrait for ClientMock {
         };
 
         return func(user_id.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_role};
+
+    #[tokio::test]
+    async fn list_user_roles_by_user_id_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        contract(
+            "GET",
+            &format!("/api/v1/users/{user_id}/roles"),
+            ("user_role", "list_user_roles_by_user_id"),
+            json!({ "user_role_grants": [user_role()] }),
+            move |client| {
+                async move {
+                    client
+                        .list_user_roles_by_user_id(user_id)
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

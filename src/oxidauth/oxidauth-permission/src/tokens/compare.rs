@@ -111,7 +111,7 @@ mod tests {
     use super::*;
 
     macro_rules! assert_compare {
-        ($b:expr, $set:expr, $challenge:expr) => {
+        ($b:expr_2021, $set:expr_2021, $challenge:expr_2021) => {
             assert_eq!($b, compare(&$set, &$challenge));
         };
     }
@@ -120,11 +120,7 @@ mod tests {
     fn test_compare() {
         use Token::*;
 
-        assert_compare!(
-            false,
-            [],
-            [Single, Colon, Double, Colon, Double]
-        );
+        assert_compare!(false, [], [Single, Colon, Double, Colon, Double]);
 
         assert_compare!(
             true,

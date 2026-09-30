@@ -1,11 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::create_user::{
-    CreateUserReq,
-    CreateUserRes,
-    UserKind,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::users::create_user::{CreateUserReq, CreateUserRes};
 use oxidauth_kernel::error::BoxedError;
+pub use oxidauth_kernel::users::UserKind;
 
 use super::*;
 
@@ -14,10 +11,7 @@ const METHOD: &str = "create_user";
 
 #[async_trait]
 pub trait CreateUserTrait {
-    async fn create_user<T>(
-        &self,
-        user: T,
-    ) -> Result<CreateUserRes, BoxedError>
+    async fn create_user<T>(&self, user: T) -> Result<CreateUserRes, BoxedError>
     where
         T: Into<CreateUserReq> + fmt::Debug + Send;
 }
@@ -56,5 +50,43 @@ impl CreateUserTrait for ClientMock {
         };
 
         return func(user.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use oxidauth_kernel::users::create_user::CreateUser;
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user};
+
+    #[tokio::test]
+    async fn create_user_route_contract() {
+        contract(
+            "POST",
+            "/api/v1/users",
+            ("user", "create_user"),
+            json!({ "user": user() }),
+            |client| {
+                async move {
+                    client
+                        .create_user(CreateUserReq {
+                            user: CreateUser {
+                                id: None,
+                                kind: None,
+                                status: None,
+                                username: "malreynolds".to_string(),
+                                email: None,
+                                first_name: None,
+                                last_name: None,
+                                profile: None,
+                            },
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

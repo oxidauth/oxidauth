@@ -5,6 +5,19 @@ use serde_json::Value;
 pub mod select_setting_by_key;
 pub mod upsert_setting;
 
+use crate::Database;
+
+#[derive(Debug, Clone)]
+pub struct PgSettingRepository {
+    db: Database,
+}
+
+impl PgSettingRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
+
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgSetting {
     pub key: String,

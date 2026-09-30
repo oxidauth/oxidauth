@@ -1,26 +1,14 @@
 pub use oxidauth_kernel::role_permission_grants::RolePermissionGrant;
-pub use oxidauth_kernel::service::Service;
 
 pub use crate::prelude::*;
 
-pub trait DeleteRolePermissionGrantQuery:
-    for<'a> Service<
-    &'a DeleteRolePermissionGrantParams,
-    Response = RolePermissionGrant,
-    Error = BoxedError,
->
-{
+#[async_trait]
+pub trait DeleteRolePermissionGrantQuery: Send + Sync + 'static {
+    async fn delete_role_permission_grant(
+        &self,
+        params: &DeleteRolePermissionGrantParams,
+    ) -> Result<RolePermissionGrant, BoxedError>;
 }
-
-impl<T> DeleteRolePermissionGrantQuery for T where
-    T: for<'a> Service<
-        &'a DeleteRolePermissionGrantParams,
-        Response = RolePermissionGrant,
-        Error = BoxedError,
-    >
-{
-}
-
 #[derive(Debug)]
 pub struct DeleteRolePermissionGrantParams {
     pub role_id: Uuid,

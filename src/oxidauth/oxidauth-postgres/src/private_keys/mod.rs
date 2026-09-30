@@ -4,6 +4,19 @@ use uuid::Uuid;
 
 pub mod select_most_recent_private_key;
 
+use crate::Database;
+
+#[derive(Debug, Clone)]
+pub struct PgPrivateKeyRepository {
+    db: Database,
+}
+
+impl PgPrivateKeyRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
+
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgPrivateKey {
     pub id: Uuid,

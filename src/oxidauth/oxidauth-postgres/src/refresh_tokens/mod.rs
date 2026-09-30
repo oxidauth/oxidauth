@@ -6,7 +6,18 @@ pub mod select_refresh_token_by_id;
 use oxidauth_kernel::refresh_tokens::RefreshToken;
 use oxidauth_repository::refresh_tokens::RefreshTokenRow as RepoRefreshTokenRow;
 
-use crate::prelude::*;
+use crate::{Database, prelude::*};
+
+#[derive(Debug, Clone)]
+pub struct PgRefreshTokenRepository {
+    db: Database,
+}
+
+impl PgRefreshTokenRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgRefreshToken {

@@ -68,7 +68,8 @@ impl fmt::Display for ProviderError {
     }
 }
 
-impl Error for ProviderError {}
+impl Error for ProviderError {
+}
 
 #[cfg(test)]
 mod tests {
@@ -114,7 +115,129 @@ mod tests {
             Ok(_) => unreachable!(),
             Err(err) => {
                 assert_eq!("alloc::string::String not found", err.to_string())
-            }
+            },
         }
+    }
+
+    #[test]
+    fn storing_the_same_type_twice_overwrites_the_binding() {
+        let mut provider = Provider::new();
+
+        provider.store::<i32>(1);
+        provider.store::<i32>(2);
+
+        assert_eq!(
+            provider
+                .fetch::<i32>()
+                .unwrap(),
+            &2
+        );
+    }
+
+    #[test]
+    fn fetch_miss_reports_the_exact_missing_type_name() {
+        let provider = Provider::new();
+
+        let err = provider
+            .fetch::<bool>()
+            .unwrap_err();
+
+        assert_eq!(err.to_string(), "bool not found");
+    }
+
+    #[test]
+    fn bindings_are_isolated_per_type() {
+        let mut provider = Provider::new();
+
+        provider.store::<i32>(7);
+        provider.store::<String>("seven".into());
+        provider.store::<u64>(7);
+
+        assert_eq!(
+            provider
+                .fetch::<i32>()
+                .unwrap(),
+            &7
+        );
+        assert_eq!(
+            provider
+                .fetch::<String>()
+                .unwrap(),
+            &"seven".to_string()
+        );
+        assert_eq!(
+            provider
+                .fetch::<u64>()
+                .unwrap(),
+            &7
+        );
+        assert!(
+            provider
+                .fetch::<bool>()
+                .is_err(),
+            "stored types must not leak"
+        );
+    }
+
+    #[test]
+    fn take_removes_only_its_own_type() {
+        let mut provider = Provider::new();
+
+        provider.store::<i32>(7);
+        provider.store::<u32>(9);
+
+        assert_eq!(
+            provider
+                .take::<u32>()
+                .unwrap(),
+            9
+        );
+        assert!(
+            provider
+                .fetch::<u32>()
+                .is_err(),
+            "take must remove the binding"
+        );
+        assert_eq!(
+            provider
+                .fetch::<i32>()
+                .unwrap(),
+            &7
+        );
+    }
+
+    #[test]
+    fn take_fails_when_the_binding_is_shared_with_a_clone() {
+        let mut provider = Provider::new();
+
+        provider.store::<u16>(5);
+
+        // Cloning shares the Arc<dyn Any>, so `Arc::into_inner` in `take` finds a
+        // second strong ref held by `provider` and must yield ProviderError.
+        let mut cloned = provider.clone();
+
+        assert!(cloned.take::<u16>().is_err());
+        assert_eq!(
+            provider
+                .fetch::<u16>()
+                .unwrap(),
+            &5,
+            "original must be untouched"
+        );
+    }
+
+    #[test]
+    fn fetch_unchecked_returns_the_binding() {
+        let mut provider = Provider::new();
+
+        provider.store::<i64>(42);
+
+        assert_eq!(*provider.fetch_unchecked::<i64>(), 42);
+    }
+
+    #[test]
+    #[should_panic(expected = "provider error")]
+    fn fetch_unchecked_panics_on_miss() {
+        Provider::new().fetch_unchecked::<bool>();
     }
 }

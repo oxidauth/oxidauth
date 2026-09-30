@@ -1,23 +1,14 @@
 pub use oxidauth_kernel::user_role_grants::{
-    list_user_role_grants_by_user_id::ListUserRoleGrantsByUserId, UserRole,
+    UserRole,
+    list_user_role_grants_by_user_id::ListUserRoleGrantsByUserId,
 };
 
 use crate::prelude::*;
 
-pub trait SelectUserRoleGrantsByUserIdQuery:
-    for<'a> Service<
-    &'a ListUserRoleGrantsByUserId,
-    Response = Vec<UserRole>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectUserRoleGrantsByUserIdQuery for T where
-    T: for<'a> Service<
-        &'a ListUserRoleGrantsByUserId,
-        Response = Vec<UserRole>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectUserRoleGrantsByUserIdQuery: Send + Sync + 'static {
+    async fn select_user_role_grants_by_user_id(
+        &self,
+        params: &ListUserRoleGrantsByUserId,
+    ) -> Result<Vec<UserRole>, BoxedError>;
 }

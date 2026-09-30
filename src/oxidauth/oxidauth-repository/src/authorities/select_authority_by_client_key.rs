@@ -1,18 +1,12 @@
+pub use oxidauth_kernel::authorities::Authority;
 use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKey;
-pub use oxidauth_kernel::{authorities::Authority, service::Service};
 
 pub use crate::prelude::*;
 
-pub trait SelectAuthorityByClientKeyQuery:
-    for<'a> Service<&'a FindAuthorityByClientKey, Response = Option<Authority>, Error = BoxedError>
-{
-}
-
-impl<T> SelectAuthorityByClientKeyQuery for T where
-    T: for<'a> Service<
-            &'a FindAuthorityByClientKey,
-            Response = Option<Authority>,
-            Error = BoxedError,
-        >
-{
+#[async_trait]
+pub trait SelectAuthorityByClientKeyQuery: Send + Sync + 'static {
+    async fn select_authority_by_client_key(
+        &self,
+        params: &FindAuthorityByClientKey,
+    ) -> Result<Option<Authority>, BoxedError>;
 }

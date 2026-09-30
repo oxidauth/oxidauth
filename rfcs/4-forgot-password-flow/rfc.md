@@ -40,21 +40,21 @@ If totp code is valid, this route resets the user password (with salt and pepper
 
 #### New handler & router files added http
 
-- oxidauth-http/src/server/api/v1/auth/username_password folder
-- oxidauth-http/src/server/api/v1/auth/username_password/forgot_password.rs
-- oxidauth-http/src/server/api/v1/auth/username_password/update_password.rs
+- src/oxidauth/oxidauth-api/src/server/api/v1/auth/username_password folder
+- src/oxidauth/oxidauth-api/src/server/api/v1/auth/username_password/forgot_password.rs
+- src/oxidauth/oxidauth-api/src/server/api/v1/auth/username_password/update_password.rs
 
 #### New type files added to Kernel
 
-- oxidauth-kernel/src/auth/username_password folder
-- oxidauth-kernel/src/auth/username_password/forgot_password.rs
-- oxidauth-kernel/src/auth/username_password/update_password.rs
+- src/oxidauth/oxidauth-kernel/src/auth/username_password folder
+- src/oxidauth/oxidauth-kernel/src/auth/username_password/forgot_password.rs
+- src/oxidauth/oxidauth-kernel/src/auth/username_password/update_password.rs
 
 #### New UseCase files added
 
-- oxidauth-usecases/src/auth/strategies/username_password folder
-- oxidauth-usecases/src/auth/strategies/username_password/forgot_password.rs
-- oxidauth-usecases/src/auth/strategies/username_password/update_password.rs
+- src/oxidauth/oxidauth-services/src/auth/strategies/username_password folder
+- src/oxidauth/oxidauth-services/src/auth/strategies/username_password/forgot_password.rs
+- src/oxidauth/oxidauth-services/src/auth/strategies/username_password/update_password.rs
 
 #### Provider references
 

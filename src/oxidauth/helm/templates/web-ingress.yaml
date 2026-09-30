@@ -1,0 +1,36 @@
+{{- if .Values.web.enabled }}
+{{- /*
+    Same annotation/TLS posture as the api ingress (proxy-body-size 1m
+    default — never unlimited; force-ssl-redirect behind forceSsl; web.*
+    annotations win every merge).
+*/}}
+{{- $annotations := dict "nginx.ingress.kubernetes.io/proxy-body-size" "1m" }}
+{{- if .Values.web.ingress.forceSsl }}
+  {{- $_ := set $annotations "nginx.ingress.kubernetes.io/force-ssl-redirect" "true" }}
+{{- end }}
+{{- $annotations = mergeOverwrite $annotations (default (dict) .Values.web.ingress.annotations) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "oxidauth.web.name" . }}-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- toYaml $annotations | nindent 4 }}
+spec:
+  ingressClassName: "nginx"
+  {{- with .Values.web.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.web.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "oxidauth.web.name" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

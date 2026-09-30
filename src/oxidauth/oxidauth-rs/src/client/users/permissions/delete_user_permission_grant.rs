@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::permissions::delete_user_permission::{
-    DeleteUserPermissionReq, DeleteUserPermissionRes,
+use oxidauth_http::Response;
+pub use oxidauth_http::users::permissions::delete_user_permission::{
+    DeleteUserPermissionReq,
+    DeleteUserPermissionRes,
 };
 use oxidauth_kernel::error::BoxedError;
 
@@ -36,15 +37,13 @@ impl DeleteUserPermissionGrantTrait for Client {
             .delete(
                 &format!(
                     "/users/{}/permissions/{}",
-                    user_permission_grant.user_id,
-                    user_permission_grant.permission
+                    user_permission_grant.user_id, user_permission_grant.permission
                 ),
                 None::<()>,
             )
             .await?;
 
-        let user_permission_grant_res =
-            handle_response(RESOURCE, METHOD, resp)?;
+        let user_permission_grant_res = handle_response(RESOURCE, METHOD, resp)?;
 
         Ok(user_permission_grant_res)
     }
@@ -71,5 +70,37 @@ impl DeleteUserPermissionGrantTrait for ClientMock {
         };
 
         return func(user_permission_grant.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_permission};
+
+    #[tokio::test]
+    async fn delete_user_permission_grant_route_contract() {
+        let user_id = Uuid::new_v4();
+
+        contract(
+            "DELETE",
+            &format!("/api/v1/users/{user_id}/permissions/oxidauth:users:read"),
+            ("user_permission_grant", "delete_user_permission_grant"),
+            json!({ "user_permission": user_permission() }),
+            move |client| {
+                async move {
+                    client
+                        .delete_user_permission_grant(DeleteUserPermissionReq {
+                            user_id,
+                            permission: "oxidauth:users:read".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

@@ -1,13 +1,26 @@
 [package]
-name = "oxidauth-seed"
-version = "0.4.0"
-edition = "2021"
+name = "seedz"
+version = "0.9.0"
+edition = "2024"
 license = "GPL-3.0"
-description = "crate for seeding an oxidauth env -- usually for testing or demo"
+description = "local development fixture seeder for oxidauth -- refuses to run outside ENVIRONMENT=local"
 homepage = "https://oxidauth.rs"
 repository = "https://github.com/oxidauth/oxidauth"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "seedz"
+path = "src/main.rs"
+
 [dependencies]
+oxidauth-kernel = { version = "0.9.0", path = "../oxidauth/oxidauth-kernel" }
+oxidauth-postgres = { version = "0.9.0", path = "../oxidauth/oxidauth-postgres" }
+telemetry = { version = "0.9.0", path = "../xlib/telemetry" }
+
+async-trait = "0.1.92"
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid"] }
+tokio = { version = "1.53.1", features = ["full"] }
+tracing = "0.1.44"
+uuid = "1.26.1"

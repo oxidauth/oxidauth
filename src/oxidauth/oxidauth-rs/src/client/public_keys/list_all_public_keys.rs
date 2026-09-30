@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::public_keys::list_all_public_keys::ListAllPublicKeysRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::public_keys::list_all_public_keys::ListAllPublicKeysRes;
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -10,17 +10,13 @@ const METHOD: &str = "list_all_public_keys";
 
 #[async_trait]
 pub trait ListAllPublicKeysTrait {
-    async fn list_all_public_keys(
-        &self,
-    ) -> Result<ListAllPublicKeysRes, BoxedError>;
+    async fn list_all_public_keys(&self) -> Result<ListAllPublicKeysRes, BoxedError>;
 }
 
 #[async_trait]
 impl ListAllPublicKeysTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn list_all_public_keys(
-        &self,
-    ) -> Result<ListAllPublicKeysRes, BoxedError> {
+    async fn list_all_public_keys(&self) -> Result<ListAllPublicKeysRes, BoxedError> {
         let resp: Response<ListAllPublicKeysRes> = self
             .get("/public_keys", None::<()>)
             .await?;
@@ -37,9 +33,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl ListAllPublicKeysTrait for ClientMock {
-    async fn list_all_public_keys(
-        &self,
-    ) -> Result<ListAllPublicKeysRes, BoxedError> {
+    async fn list_all_public_keys(&self) -> Result<ListAllPublicKeysRes, BoxedError> {
         let Some(func) = self
             .list_all_public_keys_fn
             .clone()
@@ -48,5 +42,31 @@ impl ListAllPublicKeysTrait for ClientMock {
         };
 
         return func();
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, public_key};
+
+    #[tokio::test]
+    async fn list_all_public_keys_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/public_keys",
+            ("public_key", "list_all_public_keys"),
+            json!({ "public_keys": [public_key()] }),
+            |client| {
+                async move {
+                    client
+                        .list_all_public_keys()
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

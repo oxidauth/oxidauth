@@ -1,11 +1,8 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::permissions::create_permission::{
-    CreatePermissionReq,
-    CreatePermissionRes,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::permissions::create_permission::{CreatePermissionReq, CreatePermissionRes};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -15,10 +12,7 @@ const METHOD: &str = "create_permission";
 
 #[async_trait]
 pub trait CreatePermissionTrait {
-    async fn create_permission<T>(
-        &self,
-        permission: T,
-    ) -> Result<CreatePermissionRes, BoxedError>
+    async fn create_permission<T>(&self, permission: T) -> Result<CreatePermissionRes, BoxedError>
     where
         T: Into<CreatePermissionReq> + fmt::Debug + Send;
 }
@@ -26,10 +20,7 @@ pub trait CreatePermissionTrait {
 #[async_trait]
 impl CreatePermissionTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn create_permission<T>(
-        &self,
-        permission: T,
-    ) -> Result<CreatePermissionRes, BoxedError>
+    async fn create_permission<T>(&self, permission: T) -> Result<CreatePermissionRes, BoxedError>
     where
         T: Into<CreatePermissionReq> + fmt::Debug + Send,
     {
@@ -37,10 +28,7 @@ impl CreatePermissionTrait for Client {
 
         let resp: Response<CreatePermissionRes> = self
             .post(
-                &format!(
-                    "/permissions/{}",
-                    permission.permission
-                ),
+                &format!("/permissions/{}", permission.permission),
                 None::<CreatePermissionReq>,
             )
             .await?;
@@ -57,10 +45,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl CreatePermissionTrait for ClientMock {
-    async fn create_permission<T>(
-        &self,
-        permission: T,
-    ) -> Result<CreatePermissionRes, BoxedError>
+    async fn create_permission<T>(&self, permission: T) -> Result<CreatePermissionRes, BoxedError>
     where
         T: Into<CreatePermissionReq> + fmt::Debug + Send,
     {
@@ -82,13 +67,37 @@ pub struct CreatePermissionError {
 
 impl fmt::Display for CreatePermissionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "unable to create permission: {}",
-            self.reason
-        )
+        write!(f, "unable to create permission: {}", self.reason)
     }
 }
 
 impl Error for CreatePermissionError {
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, permission};
+
+    #[tokio::test]
+    async fn create_permission_route_contract() {
+        contract(
+            "POST",
+            "/api/v1/permissions/oxidauth:users:read",
+            ("permission", "create_permission"),
+            json!({ "permission": permission() }),
+            |client| {
+                async move {
+                    client
+                        .create_permission(CreatePermissionReq {
+                            permission: "oxidauth:users:read".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
+    }
 }

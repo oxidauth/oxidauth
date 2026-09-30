@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::authorities::find_authority_by_id::FindAuthorityByIdRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::authorities::find_authority_by_id::FindAuthorityByIdRes;
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
 
@@ -32,13 +32,7 @@ impl FindAuthorityByIdTrait for Client {
         let authority_id = authority_id.into();
 
         let resp: Response<FindAuthorityByIdRes> = self
-            .get(
-                &format!(
-                    "/authorities/{}",
-                    authority_id
-                ),
-                None::<()>,
-            )
+            .get(&format!("/authorities/{}", authority_id), None::<()>)
             .await?;
 
         let authority_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -68,5 +62,34 @@ impl FindAuthorityByIdTrait for ClientMock {
         };
 
         return func(authority_id.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{authority, contract};
+
+    #[tokio::test]
+    async fn find_authority_by_id_route_contract() {
+        let authority_id = Uuid::new_v4();
+
+        contract(
+            "GET",
+            &format!("/api/v1/authorities/{authority_id}"),
+            ("authority", "find_authority_by_id"),
+            json!({ "authority": authority() }),
+            move |client| {
+                async move {
+                    client
+                        .find_authority_by_id(authority_id)
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

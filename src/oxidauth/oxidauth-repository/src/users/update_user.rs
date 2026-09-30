@@ -1,20 +1,16 @@
 use std::error::Error;
 
-pub use oxidauth_kernel::{error::BoxedError, users::update_user::UpdateUser};
-pub use oxidauth_kernel::{service::Service, users::User};
+pub use oxidauth_kernel::{
+    error::BoxedError,
+    users::{User, update_user::UpdateUser},
+};
 
 pub use crate::prelude::*;
 
-pub trait UpdateUserQuery:
-    for<'a> Service<&'a UpdateUser, Response = User, Error = BoxedError>
-{
+#[async_trait]
+pub trait UpdateUserQuery: Send + Sync + 'static {
+    async fn update_user(&self, params: &UpdateUser) -> Result<User, BoxedError>;
 }
-
-impl<T> UpdateUserQuery for T where
-    T: for<'a> Service<&'a UpdateUser, Response = User, Error = BoxedError>
-{
-}
-
 #[derive(Debug)]
 pub struct UpdateUserError {
     pub reason: String,

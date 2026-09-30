@@ -1,0 +1,11 @@
+# The MSRV we build with: the registry dev image (v1.98.0) and every CI lane
+# agree on this number (migration plan 14). Repo-wide formatting is a separate
+# convention: `cargo +nightly-2026-09-27 fmt --all` (rustfmt 1.11.0-nightly),
+# because rustfmt.toml uses nightly-only options and pins
+# `required_version = ">=1.11.0"` — older rustfmt hard-errors; today's stable
+# (1.9.0-stable) ignores the pin but silently reformats to a WRONG style, so
+# plain `cargo fmt` is never the fmt lane (that nightly is not declared here).
+[toolchain]
+channel = "1.98.0"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]

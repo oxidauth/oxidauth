@@ -10,8 +10,8 @@ for service in "${SERVICES_LIST[@]}"; do
 
 # this can't move -- formatting this messes up the script
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<-EOSQL
-    CREATE DATABASE $service;
-    CREATE USER $service WITH ENCRYPTED PASSWORD '$service';
+    CREATE USER $service WITH ENCRYPTED PASSWORD '$service' CREATEDB;
+    CREATE DATABASE $service WITH OWNER $service;
 EOSQL
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$service" <<-EOSQL

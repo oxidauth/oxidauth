@@ -9,16 +9,15 @@ pub mod permissions;
 pub mod roles;
 pub mod update_user;
 
+// shared E5 endpoint-wrapper contract harness (test-only; see module docs)
+#[cfg(all(test, not(target_arch = "wasm32")))]
+pub(crate) mod contract;
+
 pub use oxidauth_kernel::users::*;
 
 #[cfg(feature = "mock")]
 use super::mock::ClientMock;
-use super::{
-    Client,
-    Resource,
-    fmt,
-    handle_response,
-};
+use super::{Client, Resource, fmt, handle_response};
 pub use crate::users::{
     create_user::CreateUserTrait,
     delete_user::DeleteUserTrait,

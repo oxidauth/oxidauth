@@ -1,89 +1,104 @@
-GET {{scheme}}://{{host}}/api/v1/roles
+# Role CRUD. Role names are globally unique; the deterministic bootstrap
+# seeded oxidauth:admin and the admin user holds it.
 
+POST {{scheme}}://{{host}}/api/v1/auth/authenticate
+{
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "{{admin_username}}",
+        "password": "{{admin_password}}"
+    }
+}
+HTTP/1.1 200
+[Captures]
+jwt: jsonpath "$.payload.jwt"
+[Asserts]
+jsonpath "$.success" == true
+
+# the seeded admin role answers by name
+GET {{scheme}}://{{host}}/api/v1/roles/by_name/oxidauth:admin
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.roles" != null
-jsonpath "$.payload.roles" count == 0
+jsonpath "$.payload.role.name" == "oxidauth:admin"
 
 GET {{scheme}}://{{host}}/api/v1/roles/00000000-0000-0000-0000-000000000000
-
+Authorization: Bearer {{jwt}}
 HTTP/1.1 400
 [Asserts]
 jsonpath "$.success" == false
 jsonpath "$.payload" not exists
-jsonpath "$.errors" != null
 jsonpath "$.errors[0].debug" contains "RowNotFound"
 
 POST {{scheme}}://{{host}}/api/v1/roles
+Authorization: Bearer {{jwt}}
 {
     "role": {
-        "name": "firefly:captain"
+        "name": "hurl-role-{{stamp}}"
     }
 }
-
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-
-
-GET {{scheme}}://{{host}}/api/v1/roles
-
 HTTP/1.1 200
 [Captures]
-role_id: jsonpath "$.payload.roles[0].id"
-
+role_id: jsonpath "$.payload.role.id"
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
 jsonpath "$.errors" not exists
-jsonpath "$.payload.roles" != null
-jsonpath "$.payload.roles" count == 1
-jsonpath "$.payload.roles[0].id" != null
-jsonpath "$.payload.roles[0].name" == "firefly:captain"
-jsonpath "$.payload.roles[0].created_at" != null
-jsonpath "$.payload.roles[0].updated_at" != null
+jsonpath "$.payload.role.id" exists
+jsonpath "$.payload.role.name" == "hurl-role-{{stamp}}"
+jsonpath "$.payload.role.created_at" exists
+jsonpath "$.payload.role.updated_at" exists
 
-
-GET {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
-
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.role" != null
-jsonpath "$.payload.role.id" != null
-jsonpath "$.payload.role.name" == "firefly:captain"
-jsonpath "$.payload.role.created_at" != null
-jsonpath "$.payload.role.updated_at" != null
-
-
-PUT {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
+# duplicate name -> unique-index violation, honest 400
+POST {{scheme}}://{{host}}/api/v1/roles
+Authorization: Bearer {{jwt}}
 {
     "role": {
-        "name": "firefly:mechanic"
+        "name": "hurl-role-{{stamp}}"
     }
 }
+HTTP/1.1 400
+[Asserts]
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "duplicate key"
 
+GET {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.payload" != null
-jsonpath "$.errors" not exists
-jsonpath "$.payload.role" != null
-jsonpath "$.payload.role.id" != null
-jsonpath "$.payload.role.name" == "firefly:mechanic"
-jsonpath "$.payload.role.created_at" != null
-jsonpath "$.payload.role.updated_at" != null
+jsonpath "$.payload.role.id" == "{{role_id}}"
 
+PUT {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
+Authorization: Bearer {{jwt}}
+{
+    "role": {
+        "name": "hurl-role-renamed-{{stamp}}"
+    }
+}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.role.id" == "{{role_id}}"
+jsonpath "$.payload.role.name" == "hurl-role-renamed-{{stamp}}"
+
+GET {{scheme}}://{{host}}/api/v1/roles/by_name/hurl-role-renamed-{{stamp}}
+Authorization: Bearer {{jwt}}
+HTTP/1.1 200
+[Asserts]
+jsonpath "$.success" == true
+jsonpath "$.payload.role.id" == "{{role_id}}"
 
 DELETE {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
-
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
+jsonpath "$.payload.role.id" == "{{role_id}}"
+
+GET {{scheme}}://{{host}}/api/v1/roles/{{role_id}}
+Authorization: Bearer {{jwt}}
+HTTP/1.1 400
+[Asserts]
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "RowNotFound"

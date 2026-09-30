@@ -1,19 +1,17 @@
-use crate::dev_prelude::*;
-
 use std::{
     error::Error,
     fmt::{self},
 };
 
 use super::TOTPValidationRes;
+use crate::dev_prelude::*;
 
-pub type ValidateTOTPService = Arc<
-    dyn for<'a> Service<
-        &'a ValidateTOTP,
-        Response = TOTPValidationRes,
-        Error = BoxedError,
-    >,
->;
+#[async_trait]
+pub trait ValidateTOTPServiceTrait: Send + Sync + 'static {
+    async fn validate_totp(&self, params: &ValidateTOTP) -> Result<TOTPValidationRes, BoxedError>;
+}
+
+pub type ValidateTOTPService = Arc<dyn ValidateTOTPServiceTrait>;
 
 #[derive(Debug)]
 pub struct ValidateTOTP {
@@ -31,4 +29,5 @@ impl fmt::Display for ValidateTOTPError {
     }
 }
 
-impl Error for ValidateTOTPError {}
+impl Error for ValidateTOTPError {
+}

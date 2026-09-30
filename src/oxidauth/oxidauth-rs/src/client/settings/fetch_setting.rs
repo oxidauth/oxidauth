@@ -1,9 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::settings::fetch_setting::{
-    FetchSettingReq,
-    FetchSettingRes,
-};
+use oxidauth_http::Response;
+pub use oxidauth_http::settings::fetch_setting::{FetchSettingReq, FetchSettingRes};
 use oxidauth_kernel::error::BoxedError;
 
 use super::*;
@@ -13,10 +10,7 @@ const METHOD: &str = "fetch_setting";
 
 #[async_trait]
 pub trait FetchSettingTrait {
-    async fn fetch_setting<T>(
-        &self,
-        params: T,
-    ) -> Result<FetchSettingRes, BoxedError>
+    async fn fetch_setting<T>(&self, params: T) -> Result<FetchSettingRes, BoxedError>
     where
         T: Into<FetchSettingReq> + fmt::Debug + Send;
 }
@@ -24,10 +18,7 @@ pub trait FetchSettingTrait {
 #[async_trait]
 impl FetchSettingTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn fetch_setting<T>(
-        &self,
-        params: T,
-    ) -> Result<FetchSettingRes, BoxedError>
+    async fn fetch_setting<T>(&self, params: T) -> Result<FetchSettingRes, BoxedError>
     where
         T: Into<FetchSettingReq> + fmt::Debug + Send,
     {
@@ -52,10 +43,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl FetchSettingTrait for ClientMock {
-    async fn fetch_setting<T>(
-        &self,
-        params: T,
-    ) -> Result<FetchSettingRes, BoxedError>
+    async fn fetch_setting<T>(&self, params: T) -> Result<FetchSettingRes, BoxedError>
     where
         T: Into<FetchSettingReq> + fmt::Debug + Send,
     {
@@ -64,5 +52,33 @@ impl FetchSettingTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, setting};
+
+    #[tokio::test]
+    async fn fetch_setting_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/settings/bootstrap.plan",
+            ("setting", "fetch_setting"),
+            json!({ "setting": setting("bootstrap.plan") }),
+            |client| {
+                async move {
+                    client
+                        .fetch_setting(FetchSettingReq {
+                            key: "bootstrap.plan".to_string(),
+                        })
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

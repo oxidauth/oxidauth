@@ -1,22 +1,14 @@
-pub use oxidauth_kernel::user_authorities::list_user_authorities_by_user_id::ListUserAuthoritiesByUserId;
-pub use oxidauth_kernel::user_authorities::UserAuthorityWithAuthority;
+pub use oxidauth_kernel::user_authorities::{
+    UserAuthorityWithAuthority,
+    list_user_authorities_by_user_id::ListUserAuthoritiesByUserId,
+};
 
 use crate::prelude::*;
 
-pub trait SelectUserAuthoritiesByUserIdQuery:
-    for<'a> Service<
-    &'a ListUserAuthoritiesByUserId,
-    Response = Vec<UserAuthorityWithAuthority>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectUserAuthoritiesByUserIdQuery for T where
-    T: for<'a> Service<
-        &'a ListUserAuthoritiesByUserId,
-        Response = Vec<UserAuthorityWithAuthority>,
-        Error = BoxedError,
-    >
-{
+#[async_trait]
+pub trait SelectUserAuthoritiesByUserIdQuery: Send + Sync + 'static {
+    async fn select_user_authorities_by_user_id(
+        &self,
+        params: &ListUserAuthoritiesByUserId,
+    ) -> Result<Vec<UserAuthorityWithAuthority>, BoxedError>;
 }

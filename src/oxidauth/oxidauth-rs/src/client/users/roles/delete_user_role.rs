@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::users::roles::delete_user_role::DeleteUserRoleRes;
+use oxidauth_http::Response;
+pub use oxidauth_http::users::roles::delete_user_role::DeleteUserRoleRes;
 use oxidauth_kernel::error::BoxedError;
 use uuid::Uuid;
 
@@ -37,13 +37,7 @@ impl DeleteUserRoleTrait for Client {
         let role_id = role_id.into();
 
         let resp: Response<DeleteUserRoleRes> = self
-            .delete(
-                &format!(
-                    "/users/{}/roles/{}",
-                    user_id, role_id
-                ),
-                None::<()>,
-            )
+            .delete(&format!("/users/{}/roles/{}", user_id, role_id), None::<()>)
             .await?;
 
         let user_role_res = handle_response(RESOURCE, METHOD, resp)?;
@@ -75,5 +69,35 @@ impl DeleteUserRoleTrait for ClientMock {
         };
 
         return func(user_id.into(), role_id.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use serde_json::json;
+    use uuid::Uuid;
+
+    use super::*;
+    use crate::client::users::contract::{contract, user_role};
+
+    #[tokio::test]
+    async fn delete_user_role_route_contract() {
+        let user_id = Uuid::new_v4();
+        let role_id = Uuid::new_v4();
+
+        contract(
+            "DELETE",
+            &format!("/api/v1/users/{user_id}/roles/{role_id}"),
+            ("user_role", "delete_user_role"),
+            json!({ "user_role": user_role() }),
+            move |client| {
+                async move {
+                    client
+                        .delete_user_role(user_id, role_id)
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

@@ -1,25 +1,13 @@
 use async_trait::async_trait;
 use oxidauth_kernel::{
     error::BoxedError,
-    service::Service,
-    settings::{fetch_setting::FetchSettingParams, Setting},
+    settings::{Setting, fetch_setting::FetchSettingParams},
 };
 
 #[async_trait]
-pub trait SelectSettingByKey:
-    for<'a> Service<
-    &'a FetchSettingParams,
-    Response = Option<Setting>,
-    Error = BoxedError,
->
-{
-}
-
-impl<T> SelectSettingByKey for T where
-    T: for<'a> Service<
-        &'a FetchSettingParams,
-        Response = Option<Setting>,
-        Error = BoxedError,
-    >
-{
+pub trait SelectSettingByKey: Send + Sync + 'static {
+    async fn select_setting_by_key(
+        &self,
+        params: &FetchSettingParams,
+    ) -> Result<Option<Setting>, BoxedError>;
 }

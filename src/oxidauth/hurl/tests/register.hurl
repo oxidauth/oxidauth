@@ -1,74 +1,104 @@
-POST {{scheme}}://{{host}}/api/v1/authorities
+# POST /auth/register against the deterministic-bootstrap (username_password)
+# authority. The registrant's username embeds {{stamp}}, so the second pass of
+# the suite only succeeds if this file's delete actually removed the user.
+
+POST {{scheme}}://{{host}}/api/v1/auth/authenticate
 {
-    "authority": {
-        "name": "default",
-        "strategy": "username_password",
-        "params": {
-            "password_salt": "wry4tb4tj54nt4tjt4231sikiu89SDGBGIp97"
-        },
-        "settings": {
-            "jwt_ttl": {
-                "secs": 120,
-                "nanos": 0
-            },
-            "refresh_token_ttl": {
-                "secs": 345600,
-                "nanos": 0
-            }
-        }
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "{{admin_username}}",
+        "password": "{{admin_password}}"
     }
 }
 HTTP/1.1 200
 [Captures]
-authority_id: jsonpath "$.payload.authority.id"
+jwt: jsonpath "$.payload.jwt"
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
 
+# password and confirmation disagree -> honest 400 service error
 POST {{scheme}}://{{host}}/api/v1/auth/register
 {
-    "strategy": "username_password",
+    "client_key": "{{admin_client_key}}",
     "params": {
-        "username": "malreynolds",
-        "first_name": "Mal",
-        "last_name": "Reynolds",
-        "email": "mreynolds@serenity.com",
-        "password": "password123",
-        "password_confirmation": "password123"
+        "username": "hurl-reg-{{stamp}}",
+        "password": "hurl-password-1",
+        "password_confirmation": "hurl-password-2"
+    }
+}
+HTTP/1.1 400
+[Asserts]
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "password and password confirmation do not match"
+
+# the real registration
+POST {{scheme}}://{{host}}/api/v1/auth/register
+{
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "hurl-reg-{{stamp}}",
+        "password": "hurl-password-1",
+        "password_confirmation": "hurl-password-1",
+        "email": "hurl-reg-{{stamp}}@oxidauth.rs",
+        "first_name": "Hurl",
+        "last_name": "Registrant"
     }
 }
 HTTP/1.1 200
+[Captures]
+user_jwt: jsonpath "$.payload.jwt"
 [Asserts]
 jsonpath "$.success" == true
 jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
-jsonpath "$.payload.jwt" != null
-jsonpath "$.payload.refresh_token" != null
+jsonpath "$.payload.jwt" exists
+jsonpath "$.payload.refresh_token" exists
 
-GET {{scheme}}://{{host}}/api/v1/users/by_username/malreynolds
+# a second registration with the same username hits the unique index
+POST {{scheme}}://{{host}}/api/v1/auth/register
+{
+    "client_key": "{{admin_client_key}}",
+    "params": {
+        "username": "hurl-reg-{{stamp}}",
+        "password": "hurl-password-1",
+        "password_confirmation": "hurl-password-1"
+    }
+}
+HTTP/1.1 400
+[Asserts]
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "UserAlreadyExistsError"
+jsonpath "$.errors[0].display" == "username is already taken"
+jsonpath "$.errors[0].debug" not contains "duplicate key"
+jsonpath "$.errors[0].debug" not contains "23505"
+jsonpath "$.errors[0].debug" not contains "users_username_key"
+jsonpath "$.errors[0].source" not exists
+
+# the admin can see the new user
+GET {{scheme}}://{{host}}/api/v1/users/by_username/hurl-reg-{{stamp}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Captures]
 user_id: jsonpath "$.payload.user.id"
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-jsonpath "$.payload" != null
+jsonpath "$.payload.user.username" == "hurl-reg-{{stamp}}"
+jsonpath "$.payload.user.email" == "hurl-reg-{{stamp}}@oxidauth.rs"
+jsonpath "$.payload.user.first_name" == "Hurl"
+jsonpath "$.payload.user.last_name" == "Registrant"
+jsonpath "$.payload.user.kind" == "human"
+jsonpath "$.payload.user.status" == "enabled"
 
-DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}/authorities/{{authority_id}}
-HTTP/1.1 200
-[Asserts]
-jsonpath "$.success" == true
-jsonpath "$.errors" not exists
-
+# cleanup — and pass 2 of the suite proves this really deleted the row
 DELETE {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
 HTTP/1.1 200
 [Asserts]
 jsonpath "$.success" == true
-jsonpath "$.errors" not exists
+jsonpath "$.payload.user.id" == "{{user_id}}"
 
-DELETE {{scheme}}://{{host}}/api/v1/authorities/{{authority_id}}
-HTTP/1.1 200
+GET {{scheme}}://{{host}}/api/v1/users/{{user_id}}
+Authorization: Bearer {{jwt}}
+HTTP/1.1 400
 [Asserts]
-jsonpath "$.success" == true
-jsonpath "$.errors" not exists
+jsonpath "$.success" == false
+jsonpath "$.errors[0].debug" contains "RowNotFound"

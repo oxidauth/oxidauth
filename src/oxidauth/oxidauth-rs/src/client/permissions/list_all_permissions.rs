@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use oxidauth_http::response::Response;
-pub use oxidauth_http::server::api::v1::permissions::list_all_permissions::{
+use oxidauth_http::Response;
+pub use oxidauth_http::permissions::list_all_permissions::{
     ListAllPermissionsReq,
     ListAllPermissionsRes,
 };
@@ -13,10 +13,7 @@ const METHOD: &str = "list_all_permissions";
 
 #[async_trait]
 pub trait ListAllPermissionsTrait {
-    async fn list_all_permissions<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllPermissionsRes, BoxedError>
+    async fn list_all_permissions<T>(&self, params: T) -> Result<ListAllPermissionsRes, BoxedError>
     where
         T: Into<ListAllPermissionsReq> + fmt::Debug + Send;
 }
@@ -24,10 +21,7 @@ pub trait ListAllPermissionsTrait {
 #[async_trait]
 impl ListAllPermissionsTrait for Client {
     #[tracing::instrument(skip(self))]
-    async fn list_all_permissions<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllPermissionsRes, BoxedError>
+    async fn list_all_permissions<T>(&self, params: T) -> Result<ListAllPermissionsRes, BoxedError>
     where
         T: Into<ListAllPermissionsReq> + fmt::Debug + Send,
     {
@@ -49,10 +43,7 @@ use crate::mock::ClientMock;
 #[cfg(feature = "mock")]
 #[async_trait]
 impl ListAllPermissionsTrait for ClientMock {
-    async fn list_all_permissions<T>(
-        &self,
-        params: T,
-    ) -> Result<ListAllPermissionsRes, BoxedError>
+    async fn list_all_permissions<T>(&self, params: T) -> Result<ListAllPermissionsRes, BoxedError>
     where
         T: Into<ListAllPermissionsReq> + fmt::Debug + Send,
     {
@@ -64,5 +55,32 @@ impl ListAllPermissionsTrait for ClientMock {
         };
 
         return func(params.into());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use oxidauth_kernel::permissions::list_all_permissions::ListAllPermissions;
+    use serde_json::json;
+
+    use super::*;
+    use crate::client::users::contract::{contract, permission};
+
+    #[tokio::test]
+    async fn list_all_permissions_route_contract() {
+        contract(
+            "GET",
+            "/api/v1/permissions",
+            ("permission", "list_all_permissions"),
+            json!({ "permissions": [permission()] }),
+            |client| {
+                async move {
+                    client
+                        .list_all_permissions(ListAllPermissions)
+                        .await
+                }
+            },
+        )
+        .await;
     }
 }

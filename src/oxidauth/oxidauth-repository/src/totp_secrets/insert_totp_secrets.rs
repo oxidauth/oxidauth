@@ -1,5 +1,3 @@
-pub use oxidauth_kernel::service::Service;
-
 pub use crate::prelude::*;
 
 pub struct InsertTotpSecretsParams {
@@ -8,8 +6,6 @@ pub struct InsertTotpSecretsParams {
 
 #[async_trait]
 pub trait InsertTotpSecretsQuery: Send + Sync + 'static {
-    async fn insert_totp_secrets(
-        &self,
-        params: &InsertTotpSecretsParams,
-    ) -> Result<(), BoxedError>;
+    async fn insert_totp_secrets(&self, params: &InsertTotpSecretsParams)
+    -> Result<(), BoxedError>;
 }

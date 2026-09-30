@@ -8,7 +8,18 @@ pub mod update_role;
 use oxidauth_kernel::roles::Role;
 use oxidauth_repository::roles::RoleRow as RepoRoleRow;
 
-use crate::prelude::*;
+use crate::{Database, prelude::*};
+
+#[derive(Debug, Clone)]
+pub struct PgRoleRepository {
+    db: Database,
+}
+
+impl PgRoleRepository {
+    pub fn new(db: Database) -> Self {
+        Self { db }
+    }
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct PgRole {

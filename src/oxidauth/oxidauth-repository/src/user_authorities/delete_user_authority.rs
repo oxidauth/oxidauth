@@ -1,30 +1,20 @@
 use std::error::Error;
 
 use oxidauth_kernel::user_authorities::{
-    delete_user_authority::DeleteUserAuthority, UserAuthority,
+    UserAuthority,
+    delete_user_authority::DeleteUserAuthority,
 };
-pub use oxidauth_kernel::{service::Service, users::User};
+pub use oxidauth_kernel::users::User;
 
 pub use crate::prelude::*;
 
-pub trait DeleteUserAuthorityQuery:
-    for<'a> Service<
-    &'a DeleteUserAuthority,
-    Response = UserAuthority,
-    Error = BoxedError,
->
-{
+#[async_trait]
+pub trait DeleteUserAuthorityQuery: Send + Sync + 'static {
+    async fn delete_user_authority(
+        &self,
+        params: &DeleteUserAuthority,
+    ) -> Result<UserAuthority, BoxedError>;
 }
-
-impl<T> DeleteUserAuthorityQuery for T where
-    T: for<'a> Service<
-        &'a DeleteUserAuthority,
-        Response = UserAuthority,
-        Error = BoxedError,
-    >
-{
-}
-
 #[derive(Debug)]
 pub struct DeleteUserAuthorityError {
     pub reason: String,

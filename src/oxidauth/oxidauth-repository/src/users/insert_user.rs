@@ -1,14 +1,9 @@
+pub use oxidauth_kernel::users::User;
 use oxidauth_kernel::users::create_user::CreateUser;
-pub use oxidauth_kernel::{service::Service, users::User};
 
 pub use crate::prelude::*;
 
-pub trait InsertUserQuery:
-    for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
-{
-}
-
-impl<T> InsertUserQuery for T where
-    T: for<'a> Service<&'a CreateUser, Response = User, Error = BoxedError>
-{
+#[async_trait]
+pub trait InsertUserQuery: Send + Sync + 'static {
+    async fn insert_user(&self, params: &CreateUser) -> Result<User, BoxedError>;
 }

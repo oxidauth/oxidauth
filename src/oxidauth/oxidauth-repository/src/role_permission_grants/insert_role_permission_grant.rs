@@ -1,26 +1,14 @@
 use oxidauth_kernel::role_permission_grants::create_role_permission_grant::*;
-pub use oxidauth_kernel::service::Service;
 
 pub use crate::prelude::*;
 
-pub trait InsertRolePermissionGrantQuery:
-    for<'a> Service<
-    &'a InsertRolePermissionGrant,
-    Response = RolePermissionGrant,
-    Error = BoxedError,
->
-{
+#[async_trait]
+pub trait InsertRolePermissionGrantQuery: Send + Sync + 'static {
+    async fn insert_role_permission_grant(
+        &self,
+        params: &InsertRolePermissionGrant,
+    ) -> Result<RolePermissionGrant, BoxedError>;
 }
-
-impl<T> InsertRolePermissionGrantQuery for T where
-    T: for<'a> Service<
-        &'a InsertRolePermissionGrant,
-        Response = RolePermissionGrant,
-        Error = BoxedError,
-    >
-{
-}
-
 #[derive(Debug)]
 pub struct InsertRolePermissionGrant {
     pub role_id: Uuid,
