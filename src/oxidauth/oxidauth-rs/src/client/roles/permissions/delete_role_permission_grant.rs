@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::RolePermissionGrant;
 const METHOD: &str = "delete_role_permission_grant";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait DeleteRolePermissionGrantTrait {
     async fn delete_role_permission_grant<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait DeleteRolePermissionGrantTrait {
         T: Into<DeleteRolePermissionGrantReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeleteRolePermissionGrantTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn delete_role_permission_grant<T>(
@@ -53,7 +55,8 @@ impl DeleteRolePermissionGrantTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeleteRolePermissionGrantTrait for ClientMock {
     async fn delete_role_permission_grant<T>(
         &self,

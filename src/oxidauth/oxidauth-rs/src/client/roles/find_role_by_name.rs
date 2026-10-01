@@ -8,14 +8,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "find_role_by_name";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FindRoleByNameTrait {
     async fn find_role_by_name<T>(&self, role: T) -> Result<FindRoleByNameRes, BoxedError>
     where
         T: Into<String> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindRoleByNameTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn find_role_by_name<T>(&self, role: T) -> Result<FindRoleByNameRes, BoxedError>
@@ -38,7 +40,8 @@ impl FindRoleByNameTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindRoleByNameTrait for ClientMock {
     async fn find_role_by_name<T>(&self, role: T) -> Result<FindRoleByNameRes, BoxedError>
     where

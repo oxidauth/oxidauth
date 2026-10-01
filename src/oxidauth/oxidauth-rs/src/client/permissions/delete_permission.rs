@@ -8,14 +8,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "delete_permission";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait DeletePermissionTrait {
     async fn delete_permission<T>(&self, permission: T) -> Result<DeletePermissionRes, BoxedError>
     where
         T: Into<DeletePermissionReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeletePermissionTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn delete_permission<T>(&self, permission: T) -> Result<DeletePermissionRes, BoxedError>
@@ -41,7 +43,8 @@ impl DeletePermissionTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeletePermissionTrait for ClientMock {
     async fn delete_permission<T>(&self, permission: T) -> Result<DeletePermissionRes, BoxedError>
     where

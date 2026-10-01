@@ -9,7 +9,8 @@ use super::*;
 const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "delete_public_key";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait DeletePublicKeyTrait {
     async fn delete_public_key<T>(
         &self,
@@ -19,7 +20,8 @@ pub trait DeletePublicKeyTrait {
         T: Into<Uuid> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeletePublicKeyTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn delete_public_key<T>(&self, public_key_id: T) -> Result<DeletePublicKeyRes, BoxedError>
@@ -42,7 +44,8 @@ impl DeletePublicKeyTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeletePublicKeyTrait for ClientMock {
     async fn delete_public_key<T>(&self, public_key_id: T) -> Result<DeletePublicKeyRes, BoxedError>
     where

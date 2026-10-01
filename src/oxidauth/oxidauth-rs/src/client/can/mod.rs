@@ -8,14 +8,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "can";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CanTrait {
     async fn can<T>(&self, params: T) -> Result<bool, BoxedError>
     where
         T: Into<CanReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CanTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn can<T>(&self, params: T) -> Result<bool, BoxedError>
@@ -38,7 +40,8 @@ impl CanTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CanTrait for ClientMock {
     async fn can<T>(&self, params: T) -> Result<bool, BoxedError>
     where

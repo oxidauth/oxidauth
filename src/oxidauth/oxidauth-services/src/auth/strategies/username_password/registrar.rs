@@ -1,16 +1,13 @@
 use async_trait::async_trait;
+pub use oxidauth_kernel::auth::username_password::registrar::UsernamePasswordRegisterParams;
 use oxidauth_kernel::{
     JsonValue,
-    Password,
     auth::Registrar,
     authorities::Authority,
     error::BoxedError,
     user_authorities::create_user_authority::CreateUserAuthority,
-    users::{UserKind, UserStatus, create_user::CreateUser},
+    users::create_user::CreateUser,
 };
-use serde::Deserialize;
-use serde_json::Value;
-use uuid::Uuid;
 
 use super::{
     AuthorityParams,
@@ -79,56 +76,9 @@ pub async fn new(authority: &Authority) -> Result<Box<dyn Registrar>, BoxedError
     }))
 }
 
-#[derive(Clone, Deserialize)]
-pub struct UsernamePasswordRegisterParams {
-    pub username: String,
-    pub password: Password,
-    pub password_confirmation: Password,
-    pub email: Option<String>,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub kind: Option<UserKind>,
-}
-
-impl TryFrom<JsonValue> for UsernamePasswordRegisterParams {
-    type Error = BoxedError;
-
-    fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        let s: Self = serde_json::from_value(value.inner_value())?;
-
-        Ok(s)
-    }
-}
-
-impl From<UsernamePasswordRegisterParams> for CreateUser {
-    fn from(params: UsernamePasswordRegisterParams) -> Self {
-        let UsernamePasswordRegisterParams {
-            username,
-            email,
-            first_name,
-            last_name,
-            kind,
-            ..
-        } = params.clone();
-        let user_id = Uuid::new_v4();
-        let kind = Some(kind.unwrap_or_default());
-
-        Self {
-            id: Some(user_id),
-            username,
-            email,
-            first_name,
-            last_name,
-            status: Some(UserStatus::default()),
-            kind,
-            profile: Some(Value::default()),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use oxidauth_kernel::users::UserKind;
+    use oxidauth_kernel::users::{UserKind, UserStatus};
     use serde_json::json;
 
     use super::{

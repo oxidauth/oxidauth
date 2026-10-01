@@ -9,7 +9,8 @@ use super::*;
 const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "list_user_roles_by_user_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ListUserRolesByUserIdTrait {
     async fn list_user_roles_by_user_id<T>(
         &self,
@@ -19,7 +20,8 @@ pub trait ListUserRolesByUserIdTrait {
         T: Into<Uuid> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListUserRolesByUserIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn list_user_roles_by_user_id<T>(
@@ -45,7 +47,8 @@ impl ListUserRolesByUserIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListUserRolesByUserIdTrait for ClientMock {
     async fn list_user_roles_by_user_id<T>(
         &self,

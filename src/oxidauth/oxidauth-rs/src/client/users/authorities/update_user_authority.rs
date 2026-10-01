@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::UserAuthority;
 const METHOD: &str = "update_user_authority";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait UpdateUserAuthorityTrait {
     async fn update_user_authority<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait UpdateUserAuthorityTrait {
         T: Into<UpdateUserAuthority> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl UpdateUserAuthorityTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn update_user_authority<T>(
@@ -53,7 +55,8 @@ impl UpdateUserAuthorityTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl UpdateUserAuthorityTrait for ClientMock {
     async fn update_user_authority<T>(
         &self,

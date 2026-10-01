@@ -17,7 +17,10 @@ async-trait = "0.1.92"
 base64 = "0.22.1"
 chrono = { version = "0.4.45", features = ["serde"] }
 flate2 = "1.0.33"
-jsonwebtoken = "9.3.1"
+# HMAC/RSA jwt backend (ring). Optional so wasm consumers (browser admin
+# consoles via oxidauth-rs `wasm`) compile the DTOs without a ring backend;
+# server-side consumers keep it through `default`.
+jsonwebtoken = { version = "9.3.1", optional = true }
 rand = "0.8.5"
 rsa = { version = "0.9.10", features = ["serde"] }
 rust_decimal = { version = "1.43.0", features = ["serde"] }
@@ -33,3 +36,7 @@ uuid = { version = "1.26.1", features = ["v4", "serde"] }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
 uuid = { version = "1.26.1", features = ["js"] }
+
+[features]
+default = ["jwt"]
+jwt = ["dep:jsonwebtoken"]

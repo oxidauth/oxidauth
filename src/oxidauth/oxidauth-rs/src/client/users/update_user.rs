@@ -9,7 +9,8 @@ use super::*;
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "update_user";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait UpdateUserTrait {
     async fn update_user<T, U>(&self, user_id: T, user: U) -> Result<UpdateUserRes, BoxedError>
     where
@@ -17,7 +18,8 @@ pub trait UpdateUserTrait {
         U: Into<UpdateUserBodyReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl UpdateUserTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn update_user<T, U>(&self, user_id: T, user: U) -> Result<UpdateUserRes, BoxedError>
@@ -42,7 +44,8 @@ impl UpdateUserTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl UpdateUserTrait for ClientMock {
     async fn update_user<T, U>(&self, user_id: T, user: U) -> Result<UpdateUserRes, BoxedError>
     where

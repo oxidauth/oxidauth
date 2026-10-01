@@ -10,7 +10,9 @@ readme = "README.md"
 
 # Wire DTOs only: no axum/tokio here — the server lives in oxidauth-api.
 [dependencies]
-oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel" }
+# default-features=false: jwt crypto (jsonwebtoken -> ring) is server-side;
+# wire DTOs must stay wasm-linkable (see oxidauth-kernel `[features]`).
+oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel", default-features = false }
 http = { version = "0.9.0", path = "../../xlib/http" }
 
 chrono = { version = "0.4.45", features = ["serde"] }

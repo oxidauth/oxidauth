@@ -1,8 +1,8 @@
 #! /bin/bash
 
 # DATABASE_URL (+ anything else sqlx needs) comes from the repo-root .env:
-# postgres://oxidauth:oxidauth@127.0.0.1:5434/oxidauth — the host port the
-# stack compose maps onto the postgres container.
+# postgres://oxidauth:oxidauth@postgres.oxidauth.localhost:5432/oxidauth —
+# the aka tcp route onto the postgres container (no host port mapping).
 # Stop the api first (`docker compose stop oxidauth-api`): sqlx cannot drop
 # the database while the server pool holds connections.
 # Values in .env must be literal — `source` expands $/`...` (compose does not).

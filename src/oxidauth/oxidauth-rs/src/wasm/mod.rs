@@ -111,9 +111,7 @@ impl State {
         result.map_err(|err| {
             format!(
                 "error saving to LocalStorage: key: {}, value: {:?}, err: {}",
-                key,
-                value,
-                err.to_string()
+                key, value, err
             )
         })
     }

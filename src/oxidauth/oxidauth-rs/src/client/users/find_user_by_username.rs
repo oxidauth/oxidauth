@@ -8,7 +8,8 @@ use super::*;
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "find_user_by_username";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FindUserByUsernameTrait {
     async fn find_user_by_username<T>(
         &self,
@@ -18,7 +19,8 @@ pub trait FindUserByUsernameTrait {
         T: Into<String> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindUserByUsernameTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn find_user_by_username<T>(
@@ -44,7 +46,8 @@ impl FindUserByUsernameTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindUserByUsernameTrait for ClientMock {
     async fn find_user_by_username<T>(
         &self,

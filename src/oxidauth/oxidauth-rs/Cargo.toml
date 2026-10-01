@@ -15,10 +15,9 @@ name = "test_client"
 path = "bin/test_client.rs"
 
 [dependencies]
-oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel" }
+oxidauth-kernel = { version = "0.9.0", path = "../oxidauth-kernel", default-features = false }
 oxidauth-http = { version = "0.9.0", path = "../oxidauth-http" }
 oxidauth-permission = { version = "0.9.0", path = "../oxidauth-permission" }
-oxidauth-services = { version = "0.9.0", path = "../oxidauth-services" }
 
 async-trait = "0.1.92"
 axum = { version = "0.8.9", optional = true }
@@ -36,13 +35,19 @@ uuid = { version = "1.26.1", features = ["serde", "v4"] }
 mockall = "0.14.0"
 
 gloo-storage = { version = "0.4.0", optional = true }
-gloo-timers = { version = "0.4", optional = true }
+gloo-timers = { version = "0.4", optional = true, features = ["futures"] }
+wasm-bindgen-futures = { version = "0.4", optional = true }
 
 [features]
 default = ["server"]
 mock = ["server"]
-server = ["dep:axum", "dep:axum-extra"]
-wasm = ["gloo-storage", "gloo-timers"]
+# `server` builds the axum extractors, which verify tokens — that pulls the
+# kernel's jsonwebtoken backend back in. The wasm admin console builds with
+# `wasm` only and links no crypto (see `Jwt::decode_unverified`).
+server = ["dep:axum", "dep:axum-extra", "oxidauth-kernel/jwt"]
+# `futures` gives `gloo_timers::future::TimeoutFuture` (the wasm auto-refresh
+# sleep); `wasm-bindgen-futures` provides `spawn_local` for the task itself.
+wasm = ["gloo-storage", "gloo-timers", "dep:wasm-bindgen-futures"]
 
 # wasm32-unknown-unknown: uuid v4 needs the `js` randomness backend.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -51,6 +56,7 @@ uuid = { version = "1.26.1", features = ["js"] }
 # native targets keep the multi-thread runtime (wasm gets `rt` from above)
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+parking_lot = "0.12.5"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 wiremock = "0.6"

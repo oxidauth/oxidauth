@@ -9,6 +9,14 @@
 #
 #   include:
 #     - ./src/oxidauth/docker-compose.yml
+#
+# Routing: nothing publishes a host port. The dev proxy (aka, or any
+# dory/nginx-proxy-compatible one) reads VIRTUAL_HOST below and talks to each
+# container on its own port 80 (the api binds 0.0.0.0:$PORT=80; nginx and
+# `trunk serve` bind 80). The docker network aliases make each container
+# answer to that hostname inside the compose network, so the whole dev path
+# is http://app.oxidauth.localhost -> http://api.oxidauth.localhost with no
+# host ports and no localhost anywhere.
 
 services:
   postgres:
@@ -20,8 +28,12 @@ services:
       # init.sh creates the oxidauth db+user; POSTGRES_DB=oxidauth would collide with CREATE DATABASE
       POSTGRES_DB: postgres
       SERVICES: oxidauth
-    ports:
-      - "5434:5432"          # keep 5434 host port (dev-box convention)
+      # raw TCP route for host-side tooling (.env DATABASE_URL, sqlx-cli,
+      # psql): aka publishes VIRTUAL_PORT on the host, so
+      # postgresql://…@postgres.oxidauth.localhost:5432 just works
+      VIRTUAL_HOST: postgres.oxidauth.localhost
+      VIRTUAL_PORT: "5432"
+      VIRTUAL_PROTO: tcp
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -30,6 +42,10 @@ services:
     volumes:
       - ../../devops/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      default:
+        aliases:
+          - postgres.oxidauth.localhost
 
   oxidauth-api:
     build:
@@ -47,7 +63,7 @@ services:
       postgres: { condition: service_healthy }
     environment:
       CARGO_TARGET_DIR: /home/rust/shared_target
-      # user/db created by init.sh (SERVICES=oxidauth); host-side URLs (.env) keep the 5434 mapping
+      # user/db created by init.sh (SERVICES=oxidauth); host-side URLs (.env) go through the postgres virtual host
       DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
       READ_DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
       MIGRATIONS_ENABLED: "true"
@@ -56,8 +72,6 @@ services:
       VIRTUAL_HOST: api.oxidauth.localhost
     env_file:
       - ../../.env
-    ports:
-      - "80"
     volumes:
       - "shared-vol:/home/rust/shared_target"
       - ../../:/home/rust/src/oxidauth:cached
@@ -66,39 +80,64 @@ services:
         aliases:
           - api.oxidauth.localhost
 
-  # One-shot local-dev fixture seeder (plan 13). Never part of `up`:
-  #   docker compose --profile seed run --rm seedz
-  # ENVIRONMENT=local guard inside; seeding is idempotent; migrations run
-  # only while MIGRATIONS_ENABLED=true. Same dev image/build as the api
-  # (compose dedupes the identical build), shared-vol reuses the api's
-  # cargo cache. depends_on uses service_healthy (matches the api service):
-  # Database::from_env's PgPool::connect is eager with no retry, so even an
-  # interactive one-shot must not race postgres warmup.
-  seedz:
-    profiles: [ "seed" ]
+  # Dev console: `trunk serve` in-container (Trunk.toml binds 0.0.0.0:80),
+  # so the browser loop goes through the proxy too — no host port, no
+  # localhost:
+  #   docker compose up -d oxidauth-web  ->  http://app.oxidauth.localhost
+  # OXIDAUTH_API_URL / OXIDAUTH_CLIENT_KEY are compile-time (option_env!)
+  # and are picked up from the environment trunk builds in.
+  oxidauth-web:
     build:
       context: ../..
-      dockerfile: devops/docker/oxidauth-dev/Dockerfile
+      dockerfile: devops/docker/leptos/Dockerfile
       args:
-        RUST_DEV_IMAGE_VERSION: $RUST_DEV_IMAGE_VERSION
-    image: oxidauth-dev:local
-    working_dir: /home/rust/src/oxidauth
-    command: /bin/bash -c 'cargo run --bin seedz'
+        TARGETVERSION: $RUST_DEV_IMAGE_VERSION
+    image: oxidauth-leptos-dev:local
+    working_dir: /home/rust/src/oxidauth/src/oxidauth/oxidauth-web
+    command: /bin/bash -c 'trunk serve'
     platform: $DOCKER_PLATFORM
+    stdin_open: true
+    tty: true
     depends_on:
-      postgres: { condition: service_healthy }
+      - oxidauth-api
     environment:
       CARGO_TARGET_DIR: /home/rust/shared_target
-      # user/db created by init.sh (SERVICES=oxidauth); in-cluster URLs
-      DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
-      READ_DATABASE_URL: postgresql://oxidauth:oxidauth@postgres:5432/oxidauth
-      MIGRATIONS_ENABLED: "true"
-      ENVIRONMENT: local
+      OXIDAUTH_API_URL: ${OXIDAUTH_WEB_API_URL:-http://api.oxidauth.localhost}
+      OXIDAUTH_CLIENT_KEY: ${OXIDAUTH_DEFAULT_CLIENT_KEY:?set in .env}
+      VIRTUAL_HOST: app.oxidauth.localhost
     env_file:
       - ../../.env
     volumes:
       - "shared-vol:/home/rust/shared_target"
       - ../../:/home/rust/src/oxidauth:cached
+    networks:
+      default:
+        aliases:
+          - app.oxidauth.localhost
+
+  # Production-posture smoke for the admin console, started by name:
+  #   docker compose up oxidauth-web-prod
+  #   -> http://web.oxidauth.localhost (its own virtual host so it can run
+  #   beside the dev trunk service without an aka route collision; builds
+  #   the REAL nginx image via build/Dockerfile with the same baked config).
+  oxidauth-web-prod:
+    build:
+      context: ../..
+      dockerfile: src/oxidauth/oxidauth-web/build/Dockerfile
+      args:
+        RUST_BASE_IMAGE_VERSION: $RUST_DEV_IMAGE_VERSION
+        OXIDAUTH_API_URL: ${OXIDAUTH_WEB_API_URL:-http://api.oxidauth.localhost}
+        OXIDAUTH_CLIENT_KEY: ${OXIDAUTH_DEFAULT_CLIENT_KEY:?set in .env}
+    image: oxidauth-web:local
+    platform: $DOCKER_PLATFORM
+    depends_on:
+      - oxidauth-api
+    environment:
+      VIRTUAL_HOST: web.oxidauth.localhost
+    networks:
+      default:
+        aliases:
+          - web.oxidauth.localhost
 
 volumes:
   postgres_data:

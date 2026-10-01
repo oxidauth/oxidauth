@@ -17,12 +17,11 @@ project** actually ships. The 8 layers are a menu, not a mandate.
 | 5 | http       | `oxidauth-http`       | ✅ DTO-only wire crate (server moved out in 0.9.0)                                  |
 | 6 | api        | `oxidauth-api`        | ✅ axum server (`oxidauth-http` was the server crate's name until the 0.9 split)    |
 | 7 | rs         | `oxidauth-rs`         | ✅ exists — the **published client crate is named `oxidauth`**                      |
-| 8 | web        | —                     | ❌ absent: this service ships no UI; the helm chart keeps `web.enabled: false`      |
+| 8 | web        | `oxidauth-web`        | ✅ Leptos CSR admin console (auth-gated, `oxidauth` SDK client); helm stays api-only (`web.enabled: false`) until the console image ships |
 
 Support crates: `oxidauth-permission` is a **stack** crate
 (`src/oxidauth/oxidauth-permission` — permission-token parsing/validation;
-the kernel depends on it), while `src/seedz` is **project-level** (local-dev
-fixture seeder, `ENVIRONMENT=local` guarded). `oxidauth-cli` and
+the kernel depends on it). `oxidauth-cli` and
 `oxidauth-import-export` are kept stubs. The shared xlib crates
 (`src/xlib/{http,postgres,provider,telemetry}`) are vendored from the project
 template. Crate-level details, layer diagram, and the Provider pattern live in
@@ -62,14 +61,6 @@ docker compose up -d
 # the workspace inside the container — give it a few minutes, then retry):
 curl -fsS "http://127.0.0.1:$(docker compose port oxidauth-api 80 | head -1 | sed 's/.*://')/api/v1/__meta/healthcheck"
 # → {"success":true,"payload":{"version":"0.9.0","healthy":true}}
-```
-
-Optional but recommended for dev boxes — idempotent demo fixtures (a second
-authority, demo users/roles/permissions/grants). Run the server **once**
-before the first seed (bootstrap creates what the fixtures build on):
-
-```bash
-docker compose --profile seed run --rm seedz
 ```
 
 Test the live API end-to-end (17 hurl files, two passes — the second pass

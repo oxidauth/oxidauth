@@ -11,6 +11,7 @@ pub use crate::client::{
     ClientTrait as OxidAuthClientTrait,
 };
 pub use crate::client::{
+    DEFAULT_JWT_REFRESH_BUFFER,
     auth::*,
     authorities::*,
     can::CanTrait,

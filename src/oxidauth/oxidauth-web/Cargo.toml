@@ -1,0 +1,39 @@
+[package]
+name = "oxidauth-web"
+version = "0.9.0"
+edition = "2024"
+license = "GPL-3.0"
+description = "oxidauth admin console — leptos csr"
+publish = false
+
+[[bin]]
+name = "oxidauth-web"
+path = "src/main.rs"
+
+[dependencies]
+oxidauth = { path = "../oxidauth-rs", default-features = false, features = ["wasm"] }
+oxidauth-kernel = { path = "../oxidauth-kernel", default-features = false }
+oxidauth-http = { path = "../oxidauth-http" }
+oxidauth-permission = { path = "../oxidauth-permission" }
+
+chrono = "0.4.45"
+http = { path = "../../xlib/http" }
+js-sys = "0.3.104"
+leptos = { version = "0.8.15", features = ["csr"] }
+leptos_router = { version = "0.8.11" }
+reqwest = { version = "0.12.28", default-features = false, features = ["json"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+url = { version = "2.5.8", features = ["serde"] }
+uuid = { version = "1.26.1", features = ["js", "serde", "v4"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlInputElement",
+    "HtmlSelectElement",
+    "HtmlTextAreaElement",
+    "Window",
+] }

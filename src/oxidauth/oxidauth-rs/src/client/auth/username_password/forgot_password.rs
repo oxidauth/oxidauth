@@ -4,7 +4,6 @@ pub use oxidauth_kernel::auth::username_password::forgot_password::{
     ForgotPasswordResponse,
 };
 use oxidauth_kernel::error::BoxedError;
-pub use oxidauth_services::auth::strategies::*;
 
 use super::*;
 

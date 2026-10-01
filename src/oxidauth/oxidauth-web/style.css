@@ -1,0 +1,713 @@
+/* Admin theme: FreshBrew Labs visual system (dark, rust accent), mirroring
+   parkinglot's admin console (src/admin/admin-web/style.css). */
+:root {
+    --bg: #0e0e10;
+    --panel: #18181b;
+    --border: rgba(255, 255, 255, 0.06);
+    --text: #f0efed;
+    --muted: #8a8a8e;
+    --accent: #b7410e;
+    --accent-ink: #f5f1ea;
+    --danger: #e5484d;
+    --ok: #4ade80;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+/* Bare links ("Back to accounts", "Back to users") take the accent, as in
+   the public landing; button-styled navigation is unaffected. */
+a { color: var(--accent); text-decoration: none; }
+
+/* The mount root (index.html `#app`; main.rs mounts the router here). A
+   viewport-tall flex row: the sidebar is an unbroken left rail and the
+   page body scrolls inside `.main-content` instead of the document, so
+   neither the rail nor its footer ever scrolls out of view. */
+#app { display: flex; height: 100vh; }
+
+.sidebar {
+    width: 230px;
+    flex-shrink: 0;
+    /* Below the rail's natural content height (short viewports) let it
+       shrink to `100vh` and hand the overflow to the nav list, so the
+       footer stays pinned and the document never scrolls. */
+    min-height: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px;
+}
+
+.sidebar-header { padding: 8px; }
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 18px;
+    text-decoration: none;
+}
+
+.logo-icon { height: 30px; width: auto; }
+
+/* The rail's logo centers on the sidebar's axis - the same center the nav
+   rows span - instead of riding the header's left edge. Scoped to the
+   header so the login card's left-aligned `.logo` grid item is untouched.
+   The header's own 8px padding is symmetric, so the centered wordmark
+   shares the nav's vertical centerline exactly. */
+.sidebar-header .logo { justify-content: center; }
+
+/* The list is the rail's scroll region: on a viewport too short for every
+   row it scrolls inside the rail; the logo, sign out and healthcheck stay
+   visible. */
+.sidebar-nav { flex: 1; min-height: 0; overflow-y: auto; margin-top: 24px; }
+
+.nav-items { list-style: none; margin: 0; padding: 0; }
+
+.nav-item { margin-bottom: 4px; }
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.nav-link:hover { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+
+/* The router marks the link whose href is the current URL (or a prefix of
+   it, so /accounts/:id keeps Accounts lit) with aria-current="page";
+   highlighting off that attribute keeps the mark and the styling in one
+   place and works for screen readers too. Placed after the hover rule so
+   hovering the active row cannot wash the highlight out. */
+.nav-link[aria-current="page"] {
+    background: rgba(183, 65, 14, 0.14);
+    box-shadow: inset 3px 0 0 var(--accent);
+    color: var(--text);
+}
+
+.nav-link[aria-current="page"]:hover { background: rgba(183, 65, 14, 0.2); }
+
+.nav-icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* A nav row's count: the 999px pill the status chips use, filled rather than
+   outlined so it reads as a number and not a label. Its outer box stays under
+   the 18px nav icon, so a badge can never grow its row. On the active row it
+   takes the accent tint, because the white wash goes muddy on rust. */
+.nav-badge {
+    margin-left: auto;
+    padding: 1px 7px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1;
+}
+
+/* Above the row's own rust wash at rest (0.14) and on hover (0.2), or the
+   badge would vanish into the active row. */
+.nav-link[aria-current="page"] .nav-badge {
+    border-color: rgba(183, 65, 14, 0.4);
+    background: rgba(183, 65, 14, 0.28);
+    color: var(--accent);
+}
+
+.sidebar-footer { margin-top: auto; }
+
+.sidebar-divider { border-top: 1px solid var(--border); margin: 12px 0; }
+
+/* `min-width: 0` so wide content (tables) shrinks into the scroll box
+   instead of pushing the rail off screen. */
+.main-content { flex: 1; min-width: 0; overflow-y: auto; }
+
+.main-inner { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+.page-title { margin: 0 0 24px; font-size: 24px; }
+
+/* A page title with a page-level action (the dashboard's Refresh) sits in a
+   row; the title keeps its own size, the row owns the spacing below. */
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-header .page-title { margin-bottom: 0; }
+
+/* ---- cards ----
+   The panel fill the dashboard tiles, the section cards and the modal use,
+   as one class so show pages group their content the same way. */
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* ---- dashboard metrics ---- */
+.metric-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.metric-label { font-size: 13px; color: var(--muted); }
+.metric-value { font-size: 32px; font-weight: 600; }
+.metric-note { font-size: 12px; color: var(--muted); }
+
+.metrics-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.metrics-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+.metrics-table th,
+.metrics-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.metrics-table th { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+/* Counts read down the column when they are right-aligned and fixed-width. */
+.metrics-table th:not(:first-child),
+.metrics-table td:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.metrics-table tbody tr:last-child td { border-bottom: none; }
+
+.metrics-note { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+/* ---- create rows ---- */
+.create-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    /* Inside a section card a narrow window used to push the button over
+       the border; wrapping keeps the row inside its container. */
+    flex-wrap: wrap;
+}
+
+.create-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ---- inputs ----
+   Password included: without it the login page's secret field kept the
+   browser's native light box on this dark theme. */
+input[type="text"],
+input[type="search"],
+input[type="password"],
+textarea {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="password"]:focus,
+textarea:focus { border-color: var(--accent); outline: none; }
+
+/* ---- selects ----
+   A select is drawn like the inputs and buttons beside it. `appearance: none`
+   drops the native arrow, which reads as a light box on this dark theme, and a
+   chevron in the muted ink takes its place; that chevron takes the accent while
+   the field is focused, exactly as an input's border does. The open list is a
+   platform popup whose only reachable property is its colours, so it gets the
+   panel palette too. */
+select {
+    appearance: none;
+    padding: 8px 30px 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%238a8a8e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+
+select:hover { border-color: var(--accent); }
+
+select:focus {
+    border-color: var(--accent);
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23b7410e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+select option {
+    background: var(--panel);
+    color: var(--text);
+}
+
+/* ---- combo pickers ----
+   The autocomplete that replaces a pick-list's select (roles, permissions,
+   authorities on the grant rows). The closed field is drawn exactly like
+   the select it replaces — same box, same chevron, rust while focused —
+   and the open list wears the panel colours an opened select's popup
+   gets. `input.combo-input` rather than the class alone so the rules tie
+   with `input[type="text"]` and win on order. */
+.combo {
+    position: relative;
+    display: inline-flex;
+    min-width: 240px;
+}
+
+input.combo-input {
+    width: 100%;
+    padding: 8px 30px 8px 10px;
+    background-color: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%238a8a8e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+input.combo-input:hover { border-color: var(--accent); }
+
+input.combo-input:focus {
+    border-color: var(--accent);
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23b7410e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.combo-list {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.combo-option {
+    padding: 7px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* The mouse hover and the keyboard highlight wear the same row, so the
+   two pointers never read as two different states. */
+.combo-option:hover,
+.combo-option[data-active="true"] {
+    background: var(--bg);
+    color: var(--accent);
+}
+
+.combo-hint {
+    padding: 7px 8px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* ---- toggle ----
+   A boolean choice in this app is a switch, never a tickbox. The element
+   stays a native checkbox (see the owner switch on the add-member row and on
+   every member row), so only the appearance is replaced: `appearance: none`
+   drops the box and the track and thumb are drawn from the element and its
+   ::after.
+
+   34x20 with a 1px border, so the 14px thumb sits 2px inside a 32x18 track
+   and travels the 14px between the two insets. */
+.toggle {
+    appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    /* In a member row the switch shares its cell with the row's text, and the
+       baseline would drop the track below the words beside it. */
+    vertical-align: middle;
+    width: 34px;
+    height: 20px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.toggle:hover { border-color: var(--accent); }
+
+.toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: transform 120ms ease, background-color 120ms ease;
+}
+
+/* On: the rust the primary buttons use, with the thumb pressed through to
+   their paper ink so the lit track reads as a filled well, not a badge. */
+.toggle:checked { background: var(--accent); border-color: var(--accent); }
+
+.toggle:checked::after { transform: translateX(14px); background: var(--accent-ink); }
+
+/* Keyboard focus, since the native box — which carried the ring — is gone. */
+.toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- select input (text field that doubles as a dropdown) ----
+   The list is absolute so it floats over the rows below instead of pushing
+   the page down, and it stops at 260px so a long user list stays scrollable.
+   Clicking a row is a mousedown with its default prevented, which is what
+   keeps the field focused (and the list open) through the pick. */
+.select-input { position: relative; flex: 1; min-width: 220px; }
+
+.select-input input { width: 100%; }
+
+.select-list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.select-option {
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.select-option:hover,
+.select-option.is-active { background: rgba(183, 65, 14, 0.14); }
+
+.select-detail {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    word-break: break-all;
+}
+
+.select-empty,
+.select-more { padding: 8px 10px; font-size: 12px; color: var(--muted); }
+
+/* ---- buttons (match the admin .btn / .btn-primary / .btn-danger) ---- */
+button {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.create-row button {
+    /* The logo's own paper, not near-black: lighter to read, AA (4.9:1) on the rust. */
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+}
+
+.btn-danger { color: var(--danger); }
+.btn-danger:hover { border-color: var(--danger); }
+
+.error { color: var(--danger); font-size: 14px; margin: 4px 0; }
+
+/* ---- status chips and ids (list rows, show pages, member rows) ---- */
+
+.status {
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 8px;
+}
+
+.record-id { font-size: 12px; color: var(--muted); word-break: break-all; }
+
+/* ---- healthcheck ---- */
+.sidebar-healthcheck {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.healthcheck-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.healthcheck-ok { background: var(--ok); }
+.healthcheck-error { background: var(--danger); }
+.healthcheck-warning { background: #facc15; }
+.healthcheck-loading { background: var(--accent); }
+
+.healthcheck-version { margin-left: auto; }
+
+/* ---- list tables (users, accounts) ---- */
+.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+.data-table th,
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+
+.data-table th { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+.row-link { cursor: pointer; }
+.row-link:hover { background: rgba(255, 255, 255, 0.03); }
+
+.cell-muted { color: var(--muted); }
+.row-actions { width: 1%; text-align: right; white-space: nowrap; }
+
+/* Row actions sit right-aligned in their own cell; the cell stays a table
+   cell — flexing it lets a wide action set ride over the column to its left. */
+.row-actions > * + * { margin-left: 6px; }
+
+/* ---- expanded member editors ----
+   The role and the two JSON documents do not fit a cell, so they open in a row
+   of their own: the role as a show page shows it (`.detail`), the documents as
+   a form page edits them (`.form`). One column, so the blocks line up with each
+   other and not with the table's. */
+.member-editors {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 640px;
+}
+
+/* ---- pager ---- */
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0 24px; }
+.pager-status { font-size: 13px; color: var(--muted); }
+
+/* ---- list filter ----
+   The narrowing above every paginated list: free text matched against the id
+   or the name, plus one status. Text applies on submit rather than per
+   keystroke, so the controls and the button that applies them share one row
+   that wraps when the page is narrow. */
+.list-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.list-filter label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* An id is 36 characters, so the field is wide enough to read a pasted one. */
+.list-filter input[type="search"] { width: 240px; }
+
+/* ---- button-styled links / primary buttons ---- */
+a.button {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+}
+
+/* A link that wears the plain `button` box, so a row's Edit and Detail
+   navigations read as one set of actions with its Delete. */
+a.btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+a.btn:hover { border-color: var(--accent); }
+
+/* Every create affordance is one `+`, so the eye learns it once and the row
+   or header stays narrow however long the entity's name is. The words the
+   glyph cannot say ride `aria-label`. */
+a.plus-action,
+button.plus-action {
+    min-width: 36px;
+    padding: 6px 10px;
+    font-size: 18px;
+    line-height: 1.2;
+    text-align: center;
+}
+
+button.button {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+}
+
+/* ---- confirmation modal ---- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: min(420px, calc(100vw - 32px));
+}
+
+.modal-title { margin: 0 0 8px; font-size: 18px; }
+.modal-message { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---- forms (new / edit pages) ---- */
+.form { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
+
+.form label,
+.login-card label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.form textarea {
+    min-height: 120px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+}
+
+.form button { align-self: flex-start; }
+
+/* ---- detail (show pages) ---- */
+.detail { display: grid; grid-template-columns: 140px 1fr; gap: 12px 16px; font-size: 14px; }
+.detail dt { color: var(--muted); font-size: 13px; }
+.detail dd { margin: 0; }
+
+/* A full-width row inside the detail grid, splitting the identity fields
+   from the JSON blocks so the eye meets groups, not one long list. */
+.detail-rule { grid-column: 1 / -1; border-top: 1px solid var(--border); }
+
+.detail pre {
+    margin: 0;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+}
+
+.back-link { margin: 0 0 16px; font-size: 14px; }
+.page-actions { display: flex; align-items: center; gap: 16px; }
+
+/* ---- nested sections on show pages (user -> linked accounts) ---- */
+/* Mounted as `class="section card"`: the card groups the section, the
+   title's underline keeps the header off the content. */
+.section { margin-top: 32px; }
+
+.section-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+/* ---- login ----
+   The card is assembled from the app's own vocabulary: `.logo` carries the
+   wordmark, `.login-card label` shares the form labels, and the submit is
+   the primary `button.button` treatment. */
+.login-page {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    width: 340px;
+    display: grid;
+    gap: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+}
+
+.login-card .page-title { margin: 0 0 8px; }
+
+/* The submit reads as the page's one primary action: the rust the
+   button-styled links use, edge to edge under the fields. */
+.login-card button { width: 100%; margin-top: 4px; }
+
+.form-errors { margin-bottom: 16px; }
+.form-error { color: var(--danger); font-size: 14px; margin: 4px 0; }

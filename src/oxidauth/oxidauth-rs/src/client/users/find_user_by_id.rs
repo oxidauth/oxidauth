@@ -8,14 +8,16 @@ use super::*;
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "find_user_by_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FindUserByIdTrait {
     async fn find_user_by_id<T>(&self, params: T) -> Result<FindUserByIdRes, BoxedError>
     where
         T: Into<FindUserByIdReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindUserByIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn find_user_by_id<T>(&self, params: T) -> Result<FindUserByIdRes, BoxedError>
@@ -38,7 +40,8 @@ impl FindUserByIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindUserByIdTrait for ClientMock {
     async fn find_user_by_id<T>(&self, params: T) -> Result<FindUserByIdRes, BoxedError>
     where

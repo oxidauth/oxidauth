@@ -9,7 +9,8 @@ use super::*;
 const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "find_public_key_by_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FindPublicKeyByIdTrait {
     async fn find_public_key_by_id<T>(
         &self,
@@ -19,7 +20,8 @@ pub trait FindPublicKeyByIdTrait {
         T: Into<Uuid> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindPublicKeyByIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn find_public_key_by_id<T>(
@@ -45,7 +47,8 @@ impl FindPublicKeyByIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindPublicKeyByIdTrait for ClientMock {
     async fn find_public_key_by_id<T>(
         &self,

@@ -8,14 +8,16 @@ use super::*;
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "list_all_users";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ListAllUsersTrait {
     async fn list_all_users<T>(&self, params: T) -> Result<ListAllUsersRes, BoxedError>
     where
         T: Into<ListAllUsersReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListAllUsersTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn list_all_users<T>(&self, params: T) -> Result<ListAllUsersRes, BoxedError>
@@ -38,7 +40,8 @@ impl ListAllUsersTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListAllUsersTrait for ClientMock {
     async fn list_all_users<T>(&self, params: T) -> Result<ListAllUsersRes, BoxedError>
     where

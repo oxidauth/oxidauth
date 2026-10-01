@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::UserAuthority;
 const METHOD: &str = "find_user_authority_by_user_id_and_authority_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FindUserAuthorityByUserIdAndAuthorityIdTrait {
     async fn find_user_authority_by_user_id_and_authority_id<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait FindUserAuthorityByUserIdAndAuthorityIdTrait {
         T: Into<FindUserAuthorityByUserIdAndAuthorityIdReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindUserAuthorityByUserIdAndAuthorityIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn find_user_authority_by_user_id_and_authority_id<T>(
@@ -53,7 +55,8 @@ impl FindUserAuthorityByUserIdAndAuthorityIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindUserAuthorityByUserIdAndAuthorityIdTrait for ClientMock {
     async fn find_user_authority_by_user_id_and_authority_id<T>(
         &self,

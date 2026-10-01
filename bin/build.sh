@@ -17,9 +17,10 @@ echo ""
 export REGISTRY="registry.vizerapp.cloud/oxidauth"
 export RUST_BASE_IMAGE_VERSION="v1.89.0"
 export DEBIAN_BASE_IMAGE_VERSION="12.12"
+export NGINX_BASE_IMAGE_VERSION="1.27.3"
 
 # Find all build.sh files and execute them
-# (oxidauth-api/build/build.sh ships with plan 12)
+# (oxidauth-api + oxidauth-web each ship a build/build.sh)
 find ./src -type f -name "build.sh" -print0 | while IFS= read -r -d '' file; do
     echo -e "${YELLOW}================================================================================${NC}"
     echo -e "${GREEN}Executing: $file${NC}"

@@ -1,9 +1,10 @@
 # oxidauth — stack
 
 The authentication & identity stack: axum HTTP server, PostgreSQL storage,
-and the published reqwest-based Rust client (`oxidauth`). No web layer — this
-service ships no UI (the helm chart keeps `web.enabled: false` for a future
-admin-UI stack).
+the published reqwest-based Rust client (`oxidauth`), and the Leptos CSR
+admin console (`oxidauth-web`). The helm chart still ships api-only
+(`web.enabled: false`) until the console image is pushed — the `web-*`
+templates and the `build/` lane are in place for the flip.
 
 ## Architecture
 
@@ -21,11 +22,13 @@ oxidauth-postgres     -> kernel, repository, xlib/postgres   (Pg repositories + 
 oxidauth-services     -> kernel, repository, xlib/provider  (UseCases — NO postgres edge)
 oxidauth-http         -> kernel, xlib/http            (wire DTOs + Response re-export)
 oxidauth-api          -> http, kernel, permission, postgres, services, xlib/provider, xlib/telemetry
-oxidauth (rs)         -> http, kernel, permission, services¹  (the published client crate)
-seedz                 -> kernel, postgres, xlib/telemetry     (project-level, not in this dir)
+oxidauth (rs)         -> http, kernel, permission           (the published client crate)
+oxidauth-web          -> rs, http, kernel, permission, xlib/http   (Leptos CSR admin console)
 
-¹ only for re-exported strategy param types (auth::strategies::*); a 2.0
-  cleanup candidate so the client stops pulling the services layer.
+`oxidauth-rs` no longer edges on `services`: the strategy param types the
+client wrappers re-exported moved to `oxidauth-kernel::auth::*`. Client-only
+and wasm builds also drop the kernel's `jwt` feature (jsonwebtoken/ring), so
+the console bundle links no crypto backend — see `Jwt::decode_unverified`.
 ```
 
 Spot-check it yourself (path deps in the tree *are* the workspace/xlib
@@ -33,7 +36,7 @@ edges):
 
 ```bash
 for c in oxidauth-permission oxidauth-kernel oxidauth-repository oxidauth-postgres \
-         oxidauth-services oxidauth-http oxidauth-api oxidauth seedz; do
+         oxidauth-services oxidauth-http oxidauth-api oxidauth; do
   deps=$(cargo tree -e normal -p "$c" --depth 1 | sed -nE 's/^[├└]── ([^ ]+) [^ ]+ \(.*\/src\/(.*)\)$/\2/p' | tr '\n' ' ')
   printf '%-22s -> %s\n' "$c" "${deps:-<none>}"
 done
@@ -63,18 +66,48 @@ done
 
 | Crate                       | Purpose                                                                          |
 |-----------------------------|-----------------------------------------------------------------------------------|
-| `oxidauth-kernel`           | domain types, named `<Op>ServiceTrait`s, errors, JWT/crypto helpers                |
+| `oxidauth-kernel`           | domain types, named `<Op>ServiceTrait`s, errors, JWT helpers (`jwt` feature = crypto backend; off in wasm graphs) |
 | `oxidauth-permission`       | permission-token parse/validate (`oxidauth:**:**` style); kernel depends on it    |
 | `oxidauth-repository`       | query traits, one per operation (`InsertUserQuery`, …)                            |
 | `oxidauth-postgres`         | `Pg<Entity>Repository` impls, `.sql` files per query, sqlx migrations             |
 | `oxidauth-services`         | `<Op>UseCase`s implementing kernel traits over query traits (pre-0.9 "usecases" crate) |
 | `oxidauth-http`             | DTO-only wire crate: `XxxReq`/`XxxRes` per endpoint + `Response` envelope         |
 | `oxidauth-api`              | axum server, handlers, middleware, provider wiring, `build/` image script         |
-| `oxidauth-rs`               | the **published client, package name `oxidauth`** (`OxidAuthClient`, axum extractors, mock feature) |
+| `oxidauth-rs`               | the **published client, package name `oxidauth`** (`OxidAuthClient`, axum extractors under `server`, LocalStorage session persistence under `wasm`, mock feature) |
+| `oxidauth-web`              | Leptos CSR admin console (authorities/users/roles/permissions/invitations), trunk-built, gated on SDK session (package `oxidauth-web`, `publish = false`) |
 | `oxidauth-cli`              | stub — kept for a future CLI                                                      |
 | `oxidauth-import-export`    | stub — kept for a future feature                                                  |
-| `helm/`                     | chart (api only; `web.enabled: false`) — see [`helm/README.md`](helm/README.md)   |
+| `helm/`                     | chart (api only; `web.enabled: false` until the console image ships) — see [`helm/README.md`](helm/README.md)   |
 | `hurl/`                     | live-API test suite — see below                                                   |
+
+## Admin console (oxidauth-web)
+
+Leptos 0.8 pure-CSR SPA built with trunk — same posture as the
+stack-template/rolodex web crates. It authenticates through the published
+SDK (`oxidauth` with `default-features = false, features = ["wasm"]`): the
+SDK persists the JWT/refresh pair to LocalStorage and re-validates them on
+page load, so the console survives reloads without touching tokens itself.
+Pages gate mutating buttons on the JWT's own entitlements
+(`AppState::can`) — the api re-checks every request regardless.
+
+```shell
+# dev console — in-container `trunk serve`, routed by the proxy (part of `up`)
+docker compose up -d oxidauth-web              # http://app.oxidauth.localhost
+
+# host-native dev loop instead (Trunk.toml binds :80, which aka owns — pass
+# any free port; key = OXIDAUTH_DEFAULT_CLIENT_KEY from .env)
+cd src/oxidauth/oxidauth-web
+OXIDAUTH_API_URL=http://api.oxidauth.localhost OXIDAUTH_CLIENT_KEY=<uuid> trunk serve --port 8081
+
+# production-posture console image from compose (own virtual host)
+docker compose up oxidauth-web-prod               # http://web.oxidauth.localhost
+
+# production image (multi-arch wasm bundle + nginx, PUSH=1 to publish)
+OXIDAUTH_CLIENT_KEY=<uuid> src/oxidauth/oxidauth-web/build/build.sh
+```
+
+`OXIDAUTH_API_URL` / `OXIDAUTH_CLIENT_KEY` are compile-time (`option_env!`)
+and end up in the served JS — by design; see the Dockerfile header.
 
 ## Adding an entity
 
@@ -117,8 +150,12 @@ coverage file.
 
 Everything runs from the **repo root** — this stack's compose file is pulled
 in by the root `docker-compose.yml` (`include:`), so `docker compose up -d`
-there starts postgres (:5434) + api (ephemeral host port). Run from the root:
-`.env`, `bin/hurl.sh`, `bin/unit_test.sh`, `bin/database_test.sh`.
+there starts postgres + api + the dev console (in-container `trunk serve`).
+**Nothing publishes a host port**: aka (or any dory/nginx-proxy-compatible
+proxy) routes `VIRTUAL_HOST` — the api answers on
+`http://api.oxidauth.localhost`, the console on `http://app.oxidauth.localhost`,
+postgres on `postgres.oxidauth.localhost:5432` (aka tcp route). Run from the
+root: `.env`, `bin/hurl.sh`, `bin/unit_test.sh`, `bin/database_test.sh`.
 
 Run the server natively (outside the watchexec dev container):
 

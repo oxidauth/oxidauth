@@ -10,14 +10,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "create_permission";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreatePermissionTrait {
     async fn create_permission<T>(&self, permission: T) -> Result<CreatePermissionRes, BoxedError>
     where
         T: Into<CreatePermissionReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreatePermissionTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_permission<T>(&self, permission: T) -> Result<CreatePermissionRes, BoxedError>
@@ -43,7 +45,8 @@ impl CreatePermissionTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreatePermissionTrait for ClientMock {
     async fn create_permission<T>(&self, permission: T) -> Result<CreatePermissionRes, BoxedError>
     where

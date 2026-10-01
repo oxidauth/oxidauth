@@ -5,7 +5,6 @@ resolver = "2"
 members = [
     "src/xlib/*",
     "src/oxidauth/*",
-    "src/seedz",
 ]
 
 exclude = [

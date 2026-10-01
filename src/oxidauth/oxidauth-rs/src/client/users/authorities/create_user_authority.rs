@@ -13,7 +13,8 @@ use super::*;
 const RESOURCE: Resource = Resource::UserAuthority;
 const METHOD: &str = "create_user_authority";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreateUserAuthorityTrait {
     async fn create_user_authority<T, U>(
         &self,
@@ -25,7 +26,8 @@ pub trait CreateUserAuthorityTrait {
         U: Into<CreateUserAuthorityBodyReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateUserAuthorityTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_user_authority<T, U>(
@@ -54,7 +56,8 @@ impl CreateUserAuthorityTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateUserAuthorityTrait for ClientMock {
     async fn create_user_authority<T, U>(
         &self,

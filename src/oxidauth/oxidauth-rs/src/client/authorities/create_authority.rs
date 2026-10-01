@@ -11,14 +11,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "create_authority";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreateAuthorityTrait {
     async fn create_authority<T>(&self, authority: T) -> Result<CreateAuthorityRes, BoxedError>
     where
         T: Into<CreateAuthorityReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateAuthorityTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_authority<T>(&self, authority: T) -> Result<CreateAuthorityRes, BoxedError>
@@ -41,7 +43,8 @@ impl CreateAuthorityTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateAuthorityTrait for ClientMock {
     async fn create_authority<T>(&self, authority: T) -> Result<CreateAuthorityRes, BoxedError>
     where

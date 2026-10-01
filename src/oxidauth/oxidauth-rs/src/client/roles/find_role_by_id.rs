@@ -9,14 +9,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "find_role_by_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FindRoleByIdTrait {
     async fn find_role_by_id<T>(&self, role_id: T) -> Result<FindRoleByIdRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindRoleByIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn find_role_by_id<T>(&self, role_id: T) -> Result<FindRoleByIdRes, BoxedError>
@@ -39,7 +41,8 @@ impl FindRoleByIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl FindRoleByIdTrait for ClientMock {
     async fn find_role_by_id<T>(&self, role_id: T) -> Result<FindRoleByIdRes, BoxedError>
     where

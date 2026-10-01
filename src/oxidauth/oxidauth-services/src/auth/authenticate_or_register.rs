@@ -139,7 +139,9 @@ where
 
         // VERIFY THE STATE HASH VALUE
         let Ok(parsed_state_hash) = PasswordHash::new(&params.state) else {
-            return Err("could not hash state".to_string().into());
+            return Err("could not hash state"
+                .to_string()
+                .into());
         };
 
         let is_state_hash_verified = Argon2::default()
@@ -152,7 +154,9 @@ where
             .is_ok();
 
         if !is_state_hash_verified {
-            return Err("Invalid state hash".to_string().into());
+            return Err("Invalid state hash"
+                .to_string()
+                .into());
         }
 
         // GET PARAMS

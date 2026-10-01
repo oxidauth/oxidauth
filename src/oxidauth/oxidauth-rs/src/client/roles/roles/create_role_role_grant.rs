@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::RoleRoleGrant;
 const METHOD: &str = "create_role_role_grant";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreateRoleRoleGrantTrait {
     async fn create_role_role_grant<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait CreateRoleRoleGrantTrait {
         T: Into<CreateRoleRoleGrantReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateRoleRoleGrantTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_role_role_grant<T>(
@@ -53,7 +55,8 @@ impl CreateRoleRoleGrantTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateRoleRoleGrantTrait for ClientMock {
     async fn create_role_role_grant<T>(
         &self,

@@ -13,14 +13,16 @@ use crate::{Client, Resource, client::handle_response};
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "create_invitation";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreateInvitationTrait {
     async fn create_invitation<T>(&self, user: T) -> Result<CreateInvitationRes, BoxedError>
     where
         T: Into<CreateInvitationReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateInvitationTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_invitation<T>(&self, user: T) -> Result<CreateInvitationRes, BoxedError>
@@ -43,7 +45,8 @@ impl CreateInvitationTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateInvitationTrait for ClientMock {
     async fn create_invitation<T>(&self, user: T) -> Result<CreateInvitationRes, BoxedError>
     where

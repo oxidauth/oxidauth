@@ -8,14 +8,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Setting;
 const METHOD: &str = "save_setting";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait SaveSettingTrait {
     async fn save_setting<T>(&self, params: T) -> Result<SaveSettingRes, BoxedError>
     where
         T: Into<SaveSettingReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl SaveSettingTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn save_setting<T>(&self, params: T) -> Result<SaveSettingRes, BoxedError>
@@ -38,7 +40,8 @@ impl SaveSettingTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl SaveSettingTrait for ClientMock {
     async fn save_setting<T>(&self, params: T) -> Result<SaveSettingRes, BoxedError>
     where

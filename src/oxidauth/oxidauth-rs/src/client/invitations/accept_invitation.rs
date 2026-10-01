@@ -1,13 +1,15 @@
-use async_trait::async_trait;
 pub use oxidauth_http::invitations::accept_invitation::AcceptInvitationRes;
 use oxidauth_http::{Response, invitations::accept_invitation::AcceptInvitationBodyReq};
 use oxidauth_kernel::error::BoxedError;
 pub use oxidauth_kernel::{
-    auth::{authenticate::AuthenticateParams, register::RegisterParams},
+    auth::{
+        authenticate::AuthenticateParams,
+        register::RegisterParams,
+        username_password::registrar::UsernamePasswordRegisterParams,
+    },
     invitations::accept_invitation::{AcceptInvitationParams, AcceptInvitationUserParams},
     users::create_user::CreateUser,
 };
-pub use oxidauth_services::auth::strategies::username_password::registrar::UsernamePasswordRegisterParams;
 
 use super::*;
 use crate::{Client, Resource, client::handle_response};
@@ -15,14 +17,16 @@ use crate::{Client, Resource, client::handle_response};
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "accept_invitation";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 pub trait AcceptInvitationTrait {
     async fn accept_invitation<T>(&self, params: T) -> Result<AcceptInvitationRes, BoxedError>
     where
         T: Into<AcceptInvitationParams> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl AcceptInvitationTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn accept_invitation<T>(&self, params: T) -> Result<AcceptInvitationRes, BoxedError>
@@ -54,7 +58,8 @@ impl AcceptInvitationTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl AcceptInvitationTrait for ClientMock {
     async fn accept_invitation<T>(&self, params: T) -> Result<AcceptInvitationRes, BoxedError>
     where

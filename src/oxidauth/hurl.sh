@@ -6,9 +6,10 @@ set -euo pipefail
 # Target resolution, in order:
 #   1. OXIDAUTH_HURL_HOST (+ OXIDAUTH_HURL_PORT / OXIDAUTH_HURL_SCHEME) —
 #      for CI or any run without the local compose stack.
-#   2. `docker compose port oxidauth-api 80` at the repo root — the stack
-#      publishes the API on an EPHEMERAL host port, so it must be read from
-#      compose at run time, never hardcoded.
+#   2. The stack's virtual host: `api.oxidauth.localhost`, served by the dev
+#      proxy (aka/dory) — nothing publishes a host port anymore, so the
+#      target is the VIRTUAL_HOST the compose api service registers.
+
 #
 # The login secrets (client key + admin password) are NEVER stored in the
 # tracked variables file: they come from the gitignored repo-root .env
@@ -28,14 +29,14 @@ if [ -n "${OXIDAUTH_HURL_HOST:-}" ]; then
     target="${OXIDAUTH_HURL_HOST}${OXIDAUTH_HURL_PORT:+:${OXIDAUTH_HURL_PORT}}"
 else
     scheme="${OXIDAUTH_HURL_SCHEME:-http}"
-    mapping="$(cd "$repo_root" && docker compose port oxidauth-api 80 2>/dev/null | head -1)" || true
-    if [ -z "$mapping" ]; then
-        echo "hurl.sh: no OXIDAUTH_HURL_HOST set and oxidauth-api is not published by docker compose." >&2
-        echo "  start the stack (docker compose up -d) or point me at one:" >&2
+    if [ -n "$(cd "$repo_root" && docker compose ps -q oxidauth-api 2>/dev/null)" ]; then
+        target="api.oxidauth.localhost"
+    else
+        echo "hurl.sh: no OXIDAUTH_HURL_HOST set and the oxidauth-api stack is not running." >&2
+        echo "  start it (docker compose up -d; aka must be up to route it) or point me at one:" >&2
         echo "  OXIDAUTH_HURL_HOST=api.example.com OXIDAUTH_HURL_SCHEME=https ./src/oxidauth/hurl.sh" >&2
         exit 1
     fi
-    target="127.0.0.1:${mapping##*:}"
 fi
 
 # Login secrets: prefer an exported environment, fall back to the repo .env.

@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::RoleRoleGrant;
 const METHOD: &str = "list_role_role_grants_by_parent_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ListRoleRoleGrantsByParentIdTrait {
     async fn list_role_role_grants_by_parent_id<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait ListRoleRoleGrantsByParentIdTrait {
         T: Into<ListRoleRoleGrantsByParentIdReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListRoleRoleGrantsByParentIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn list_role_role_grants_by_parent_id<T>(
@@ -50,7 +52,8 @@ impl ListRoleRoleGrantsByParentIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListRoleRoleGrantsByParentIdTrait for ClientMock {
     async fn list_role_role_grants_by_parent_id<T>(
         &self,

@@ -9,14 +9,16 @@ use super::*;
 const RESOURCE: Resource = Resource::User;
 const METHOD: &str = "create_user";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreateUserTrait {
     async fn create_user<T>(&self, user: T) -> Result<CreateUserRes, BoxedError>
     where
         T: Into<CreateUserReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateUserTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_user<T>(&self, user: T) -> Result<CreateUserRes, BoxedError>
@@ -39,7 +41,8 @@ impl CreateUserTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateUserTrait for ClientMock {
     async fn create_user<T>(&self, user: T) -> Result<CreateUserRes, BoxedError>
     where

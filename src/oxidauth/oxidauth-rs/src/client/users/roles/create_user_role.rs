@@ -16,14 +16,16 @@ pub struct CreateUserRole {
 const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "create_user_role";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreateUserRoleTrait {
     async fn create_user_role<T>(&self, params: T) -> Result<CreateUserRoleRes, BoxedError>
     where
         T: Into<CreateUserRole> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateUserRoleTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_user_role<T>(&self, params: T) -> Result<CreateUserRoleRes, BoxedError>
@@ -46,7 +48,8 @@ impl CreateUserRoleTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreateUserRoleTrait for ClientMock {
     async fn create_user_role<T>(&self, params: T) -> Result<CreateUserRoleRes, BoxedError>
     where

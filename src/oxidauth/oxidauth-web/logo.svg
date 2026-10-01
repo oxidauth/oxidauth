@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="47.25 21 414.9 89.91" width="414.9" height="89.91">
+  <title>oxidauth — crossbuck lockup (reverse)</title>
+  <!-- REVERSE swap vs primary: letter strokes + i-dot #26262B -> #F5F1EA; the sign stroke is rust #B7410E in BOTH variants (no swap - the sign is the color moment). Board fills + bolt holes #F5F1EA -> #26262B: ink occluder + rivet holes on paper planks. -->
+  <desc>Reverse variant for dark grounds: paper wordmark, rust sign - ink-filled boards and rivet holes. The house wordmark, all-lowercase, with the x slot occupied by a two-board railroad crossbuck — outlined monoline boards with chevron-cut ends, no words on the sign.</desc>
+  <!-- Geometry v5: uniform tracking +3 on every gap again (v4's 8.09/7.99/8/13/8/8/11 become 11.09/10.99/11/16/11/11/14). The v4 cluster nesting is flattened: every letter now carries its own net translate (on top of the outer 7.75): o 0, sign -1.5 -> +1.5 (center (129.5,78)), i 12.4 -> 18.4 (dot travels with the stem), d -> 21.4 (bowl 190 / stem 208), a -> 24.4 (249 / 267), u -> 18.4, t -> 21.4 (stem 355, bar 348..362), h -> 14.4. Unchanged: o (true lowercase circle (68.5,78) r18, stroke 10), the crossbuck shape (k=1.2, stroke 8, boards 15.6u, bolts r1.6) - the sign stays RUST #B7410E in BOTH lockup variants (the wordmark's only color; "oxid" = oxidation); board fills + bolt holes stay ground (paper primary, ink here): occluder + rivets. Canvas trimmed to ink + 6u: absolute ink (outer translate 7.75) x 53.25..456.15, y 27..104.91; viewBox 47.25 21 414.9 89.91 (width 414.9, height 89.91), margins exactly 6 all round; ink fills 86.7% of render height. -->
+  <g transform="translate(7.75,0)">
+    <g fill="none" stroke="#F5F1EA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <!-- o: true lowercase, x-band only (circle (68.5,78) r18) -->
+      <circle cx="68.5" cy="78" r="18"/>
+      <!-- i stem -->
+      <g transform="translate(18.4,0)">
+        <path d="M 154 60 L 154 96"/>
+      </g>
+      <!-- d -->
+      <g transform="translate(21.4,0)">
+        <circle cx="190" cy="78" r="18"/>
+        <path d="M 208 32 L 208 96"/>
+      </g>
+      <!-- a: single-storey, mirror of d - bowl r18 cy78 + right stem, x-band only -->
+      <g transform="translate(24.4,0)">
+        <circle cx="249" cy="78" r="18"/>
+        <path d="M 267 60 L 267 96"/>
+      </g>
+      <!-- u -->
+      <g transform="translate(18.4,0)">
+        <path d="M 294 60 L 294 78 A 18 18 0 0 0 330 78 L 330 60"/>
+      </g>
+      <!-- t -->
+      <g transform="translate(21.4,0)">
+        <path d="M 355 32 L 355 96"/>
+        <path d="M 348 60 L 362 60"/>
+      </g>
+      <!-- h -->
+      <g transform="translate(14.4,0)">
+        <path d="M 393 32 L 393 96"/>
+        <path d="M 393 78 A 18 18 0 0 1 429 78 L 429 96"/>
+      </g>
+    </g>
+    <!-- i dot (rides with the stem at 18.4) -->
+    <g transform="translate(18.4,0)">
+      <circle cx="154" cy="46" r="5" fill="#F5F1EA"/>
+    </g>
+    <!-- crossbuck x: rust stroke, translate +1.5 -> center (129.5,78); the backslash board is drawn first, the slash board occludes it -->
+    <g id="crossbuck" transform="translate(1.5,0)" stroke="#B7410E" stroke-width="8" stroke-linejoin="round">
+      <path fill="#26262B" d="M 150.91 100.91 L 150.91 89.88 L 116.12 55.09 L 105.09 55.09 L 105.09 66.12 L 139.88 100.91 Z"/>
+      <path fill="#26262B" d="M 150.91 55.09 L 139.88 55.09 L 105.09 89.88 L 105.09 100.91 L 116.12 100.91 L 150.91 66.12 Z"/>
+      <circle cx="140.73" cy="65.27" r="1.6" fill="#26262B" stroke="none"/>
+      <circle cx="115.27" cy="90.73" r="1.6" fill="#26262B" stroke="none"/>
+      <circle cx="140.73" cy="90.73" r="1.6" fill="#26262B" stroke="none"/>
+      <circle cx="115.27" cy="65.27" r="1.6" fill="#26262B" stroke="none"/>
+    </g>
+  </g>
+</svg>

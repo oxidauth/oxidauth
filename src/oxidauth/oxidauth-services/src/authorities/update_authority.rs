@@ -5,7 +5,6 @@ use oxidauth_kernel::{
     totp_secrets::create_totp_secrets_by_authority_id::{
         CreateTotpSecrets,
         CreateTotpSecretsService,
-        CreateTotpSecretsTrait,
     },
 };
 use oxidauth_repository::authorities::{
@@ -90,7 +89,11 @@ mod tests {
         time::Duration,
     };
 
-    use oxidauth_kernel::{JsonValue, jwt::EntitlementsEncoding};
+    use oxidauth_kernel::{
+        JsonValue,
+        jwt::EntitlementsEncoding,
+        totp_secrets::create_totp_secrets_by_authority_id::CreateTotpSecretsTrait,
+    };
     use serde_json::json;
     use url::Url;
 

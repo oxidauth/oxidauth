@@ -5,6 +5,12 @@ pub struct OxidauthClientBuilder {
     config: Option<Config>,
 }
 
+impl Default for OxidauthClientBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OxidauthClientBuilder {
     pub fn new() -> Self {
         Self {

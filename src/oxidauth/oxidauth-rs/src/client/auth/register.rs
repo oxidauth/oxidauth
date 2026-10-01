@@ -9,14 +9,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Auth;
 const METHOD: &str = "register";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait RegisterTrait {
     async fn register<T>(&self, params: T) -> Result<RegisterRes, BoxedError>
     where
         T: Into<RegisterReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl RegisterTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn register<T>(&self, params: T) -> Result<RegisterRes, BoxedError>
@@ -39,7 +41,8 @@ impl RegisterTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl RegisterTrait for ClientMock {
     async fn register<T>(&self, params: T) -> Result<RegisterRes, BoxedError>
     where

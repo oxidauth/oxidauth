@@ -11,14 +11,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "list_all_authorities";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ListAllAuthoritiesTrait {
     async fn list_all_authorities<T>(&self, params: T) -> Result<ListAllAuthoritiesRes, BoxedError>
     where
         T: Into<ListAllAuthoritiesReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListAllAuthoritiesTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn list_all_authorities<T>(&self, params: T) -> Result<ListAllAuthoritiesRes, BoxedError>
@@ -41,7 +43,8 @@ impl ListAllAuthoritiesTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListAllAuthoritiesTrait for ClientMock {
     async fn list_all_authorities<T>(&self, params: T) -> Result<ListAllAuthoritiesRes, BoxedError>
     where

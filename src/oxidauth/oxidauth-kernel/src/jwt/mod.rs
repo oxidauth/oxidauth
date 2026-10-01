@@ -9,6 +9,7 @@ use std::{
 
 use base64::Engine;
 use flate2::{Compression, read::GzDecoder, write::GzEncoder};
+#[cfg(feature = "jwt")]
 use jsonwebtoken::{
     Algorithm,
     DecodingKey,
@@ -21,7 +22,9 @@ use jsonwebtoken::{
 };
 use serde::de::{self, Visitor};
 
-use crate::{base64, base64::BASE64_STANDARD, dev_prelude::*, public_keys::PublicKey};
+#[cfg(feature = "jwt")]
+use crate::public_keys::PublicKey;
+use crate::{base64, base64::BASE64_STANDARD, dev_prelude::*};
 
 pub const DEFAULT_EXP_IN_SEC: u64 = 60 * 300;
 
@@ -49,6 +52,9 @@ impl Jwt {
         JwtBuilder::default()
     }
 
+    /// Sign with an RSA private key (PEM). Needs the `jwt` feature — the
+    /// jsonwebtoken backend (ring) is compiled out of wasm builds.
+    #[cfg(feature = "jwt")]
     pub fn encode(&self, key: &[u8]) -> Result<String, JwtError> {
         let key = EncodingKey::from_rsa_pem(key).map_err(JwtError::new)?;
 
@@ -57,6 +63,38 @@ impl Jwt {
         Ok(result)
     }
 
+    /// Read claims out of a compact JWT WITHOUT verifying the signature.
+    /// Display / expiry heuristics only — never an authorization decision:
+    /// every api call re-verifies server-side. The wasm client (browser
+    /// admin consoles) has no ring backend, and LocalStorage-held tokens
+    /// were user-writable to begin with.
+    pub fn decode_unverified(token: &str) -> Result<Jwt, JwtError> {
+        let malformed = || {
+            JwtError {
+                message: "malformed jwt: expected header.payload.signature".to_string(),
+            }
+        };
+
+        let (_, rest) = token
+            .split_once('.')
+            .ok_or_else(malformed)?;
+        let (payload, _) = rest
+            .split_once('.')
+            .ok_or_else(malformed)?;
+
+        // JWT segments are base64url *without* padding (RFC 7515). The padded
+        // prelude engine rejected both halves of reality: '=' itself, and any
+        // unpadded segment whose length is not a multiple of 4 — i.e. most
+        // real tokens. Strip padding a non-conforming producer appended and
+        // decode the unpadded form.
+        let json = crate::base64::BASE64_URL_SAFE_NO_PAD
+            .decode(payload.trim_end_matches('='))
+            .map_err(JwtError::new)?;
+
+        serde_json::from_slice(&json).map_err(JwtError::new)
+    }
+
+    #[cfg(feature = "jwt")]
     pub fn decode(token: &str, key: &[u8]) -> Result<Jwt, JwtError> {
         let key = DecodingKey::from_rsa_pem(key).map_err(JwtError::new)?;
 
@@ -66,6 +104,7 @@ impl Jwt {
         Ok(result.claims)
     }
 
+    #[cfg(feature = "jwt")]
     pub fn decode_with_public_keys(token: &str, keys: &[PublicKey]) -> Result<Jwt, JwtError> {
         for key in keys {
             let res = Jwt::decode(token, key.public_key.as_ref());
@@ -86,6 +125,7 @@ impl Jwt {
     /// create / find-by-id format), so the SDK works against any endpoint
     /// encoding or version skew without ever trusting an unverifiable key —
     /// a key is only ever accepted by actually validating the token.
+    #[cfg(feature = "jwt")]
     pub fn decode_with_flexible_public_keys(
         token: &str,
         keys: &[PublicKey],
@@ -439,7 +479,7 @@ pub fn epoch_from_time(t: time::SystemTime) -> Result<usize, JwtError> {
     Ok(epoch)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "jwt"))]
 mod tests {
     use serde_json::json;
 
@@ -939,5 +979,67 @@ mod tests {
 
         // gz prefix with non-base64 payload
         assert!(Entitlements::decode("gz !!!not-base64!!!").is_err());
+    }
+
+    #[test]
+    fn decode_unverified_roundtrips_and_rejects_malformed() {
+        let KeyPair { public: _, private } = keypair();
+
+        let claims = Jwt::builder()
+            .with_subject(Uuid::new_v4())
+            .with_issuer("oxidauth".to_string())
+            .build()
+            .unwrap();
+
+        let token = claims
+            .encode(&private)
+            .unwrap();
+
+        // same claims the signature path would yield — the wasm client reads
+        // through this fn, so the payload segment must parse identically
+        assert_eq!(Jwt::decode_unverified(&token).unwrap(), claims);
+
+        assert!(Jwt::decode_unverified("nonsense").is_err());
+        assert!(Jwt::decode_unverified("only.two").is_err());
+        assert!(Jwt::decode_unverified("e34.not-base64-yes!.sig").is_err());
+        // structurally valid segments, payload is not Jwt-shaped json
+        use ::base64::engine::general_purpose::URL_SAFE_NO_PAD;
+
+        let junk = format!(
+            "{}.{}.sig",
+            URL_SAFE_NO_PAD.encode(b"{\"alg\":\"RS256\"}"),
+            URL_SAFE_NO_PAD.encode(b"{\"nope\":1}")
+        );
+        assert!(Jwt::decode_unverified(&junk).is_err());
+    }
+
+    #[test]
+    fn decode_unverified_accepts_any_segment_length_and_padding() {
+        use ::base64::engine::general_purpose::URL_SAFE_NO_PAD;
+
+        // Payloads of 18/19/20 bytes base64url-encode to 24/26/27 unpadded
+        // chars. The 26- and 27-char lengths are ≢ 0 (mod 4) — the padded
+        // engine's regression: it rejected every real token shaped like
+        // these, though RFC 7515 defines JWT segments as unpadded.
+        for json in [
+            br#"{"exp":1700000000}"#.to_vec(),
+            br#"{"exp": 1700000000}"#.to_vec(),
+            br#"{"iat":1,"exp":1700000000}"#.to_vec(),
+        ] {
+            let seg = URL_SAFE_NO_PAD.encode(&json);
+
+            let claims = Jwt::decode_unverified(&format!("h.{seg}.s")).unwrap();
+            assert_eq!(claims.exp, 1700000000);
+
+            // ...and the same segment with padding a non-conforming
+            // producer may have appended
+            let mut padded = seg;
+            while padded.len() % 4 != 0 {
+                padded.push('=');
+            }
+
+            let claims = Jwt::decode_unverified(&format!("h.{padded}.s")).unwrap();
+            assert_eq!(claims.exp, 1700000000);
+        }
     }
 }

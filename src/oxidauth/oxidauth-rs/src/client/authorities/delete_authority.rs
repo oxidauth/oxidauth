@@ -9,14 +9,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Authority;
 const METHOD: &str = "delete_authority";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait DeleteAuthorityTrait {
     async fn delete_authority<T>(&self, authority_id: T) -> Result<DeleteAuthorityRes, BoxedError>
     where
         T: Into<Uuid> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeleteAuthorityTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn delete_authority<T>(&self, authority_id: T) -> Result<DeleteAuthorityRes, BoxedError>
@@ -39,7 +41,8 @@ impl DeleteAuthorityTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeleteAuthorityTrait for ClientMock {
     async fn delete_authority<T>(&self, authority_id: T) -> Result<DeleteAuthorityRes, BoxedError>
     where

@@ -9,7 +9,8 @@ use super::*;
 const RESOURCE: Resource = Resource::Role;
 const METHOD: &str = "update_role";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait UpdateRoleTrait {
     async fn update_role<T, U>(&self, role_id: T, role: U) -> Result<UpdateRoleRes, BoxedError>
     where
@@ -17,7 +18,8 @@ pub trait UpdateRoleTrait {
         U: Into<UpdateRoleReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl UpdateRoleTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn update_role<T, U>(&self, role_id: T, role: U) -> Result<UpdateRoleRes, BoxedError>
@@ -42,7 +44,8 @@ impl UpdateRoleTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl UpdateRoleTrait for ClientMock {
     async fn update_role<T, U>(&self, role_id: T, role: U) -> Result<UpdateRoleRes, BoxedError>
     where

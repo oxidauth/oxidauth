@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::UserPermissionGrant;
 const METHOD: &str = "list_user_permission_grants_by_user_id";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ListUserPermissionGrantsByUserIdTrait {
     async fn list_user_permission_grants_by_user_id<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait ListUserPermissionGrantsByUserIdTrait {
         T: Into<ListUserPermissionGrantsByUserIdReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListUserPermissionGrantsByUserIdTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn list_user_permission_grants_by_user_id<T>(
@@ -50,7 +52,8 @@ impl ListUserPermissionGrantsByUserIdTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListUserPermissionGrantsByUserIdTrait for ClientMock {
     async fn list_user_permission_grants_by_user_id<T>(
         &self,

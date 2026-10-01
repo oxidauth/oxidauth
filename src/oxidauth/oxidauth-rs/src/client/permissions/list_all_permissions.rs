@@ -11,14 +11,16 @@ use super::*;
 const RESOURCE: Resource = Resource::Permission;
 const METHOD: &str = "list_all_permissions";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ListAllPermissionsTrait {
     async fn list_all_permissions<T>(&self, params: T) -> Result<ListAllPermissionsRes, BoxedError>
     where
         T: Into<ListAllPermissionsReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListAllPermissionsTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn list_all_permissions<T>(&self, params: T) -> Result<ListAllPermissionsRes, BoxedError>
@@ -41,7 +43,8 @@ impl ListAllPermissionsTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ListAllPermissionsTrait for ClientMock {
     async fn list_all_permissions<T>(&self, params: T) -> Result<ListAllPermissionsRes, BoxedError>
     where

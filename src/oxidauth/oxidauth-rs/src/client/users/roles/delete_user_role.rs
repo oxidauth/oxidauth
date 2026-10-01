@@ -9,7 +9,8 @@ use super::*;
 const RESOURCE: Resource = Resource::UserRole;
 const METHOD: &str = "delete_user_role";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait DeleteUserRoleTrait {
     async fn delete_user_role<T, R>(
         &self,
@@ -21,7 +22,8 @@ pub trait DeleteUserRoleTrait {
         R: Into<Uuid> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeleteUserRoleTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn delete_user_role<T, R>(
@@ -50,7 +52,8 @@ impl DeleteUserRoleTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DeleteUserRoleTrait for ClientMock {
     async fn delete_user_role<T, R>(
         &self,

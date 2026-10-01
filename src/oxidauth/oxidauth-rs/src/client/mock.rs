@@ -50,6 +50,7 @@ use oxidauth_http::{
     },
     invitations::{
         create_invitation::{CreateInvitationReq, CreateInvitationRes},
+        delete_invitation::{DeleteInvitationReq, DeleteInvitationRes},
         find_invitation::{FindInvitationReq, FindInvitationRes},
     },
     permissions::{
@@ -379,5 +380,8 @@ pub struct ClientMock {
     >,
     pub find_invitation_fn: Option<
         Arc<dyn Fn(FindInvitationReq) -> Result<FindInvitationRes, BoxedError> + Send + Sync>,
+    >,
+    pub delete_invitation_fn: Option<
+        Arc<dyn Fn(DeleteInvitationReq) -> Result<DeleteInvitationRes, BoxedError> + Send + Sync>,
     >,
 }

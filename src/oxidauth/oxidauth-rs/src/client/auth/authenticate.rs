@@ -3,12 +3,14 @@ use oxidauth_kernel::error::BoxedError;
 
 use super::*;
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait AuthenticateTrait {
     async fn authenticate(&self, username: &str, password: &str) -> Result<bool, BoxedError>;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl AuthenticateTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn authenticate(&self, username: &str, password: &str) -> Result<bool, BoxedError> {
@@ -22,7 +24,8 @@ impl AuthenticateTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl AuthenticateTrait for ClientMock {
     async fn authenticate(&self, _username: &str, _password: &str) -> Result<bool, BoxedError> {
         let Some(func) = self.authenticate_fn.clone() else {

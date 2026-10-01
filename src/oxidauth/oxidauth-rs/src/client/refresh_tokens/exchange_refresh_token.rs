@@ -11,7 +11,8 @@ use super::*;
 const RESOURCE: Resource = Resource::RefreshToken;
 const METHOD: &str = "exchange_refresh_token";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ExchangeRefreshTokenTrait {
     async fn exchange_refresh_token<T>(
         &self,
@@ -21,7 +22,8 @@ pub trait ExchangeRefreshTokenTrait {
         T: Into<ExchangeRefreshTokenReq> + fmt::Debug + Send;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ExchangeRefreshTokenTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn exchange_refresh_token<T>(
@@ -47,7 +49,8 @@ impl ExchangeRefreshTokenTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ExchangeRefreshTokenTrait for ClientMock {
     async fn exchange_refresh_token<T>(
         &self,

@@ -8,12 +8,14 @@ use super::*;
 const RESOURCE: Resource = Resource::PublicKey;
 const METHOD: &str = "create_public_key";
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait CreatePublicKeyTrait {
     async fn create_public_key(&self) -> Result<CreatePublicKeyRes, BoxedError>;
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreatePublicKeyTrait for Client {
     #[tracing::instrument(skip(self))]
     async fn create_public_key(&self) -> Result<CreatePublicKeyRes, BoxedError> {
@@ -31,7 +33,8 @@ impl CreatePublicKeyTrait for Client {
 use crate::mock::ClientMock;
 
 #[cfg(feature = "mock")]
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl CreatePublicKeyTrait for ClientMock {
     async fn create_public_key(&self) -> Result<CreatePublicKeyRes, BoxedError> {
         let Some(func) = self
