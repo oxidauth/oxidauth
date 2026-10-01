@@ -53,6 +53,7 @@ use uuid::Uuid;
 
 use crate::{
     features::auth::signals::{handle_feature_error, logout_callback},
+    json::json_text,
     state::AppState,
 };
 
@@ -111,11 +112,6 @@ fn report_load(
         set_errors.set(Some(vec![message.clone()]));
         set_failed(message);
     }
-}
-
-/// The profile as the form textarea and the detail `<pre>` both show it.
-pub fn profile_text(profile: &Value) -> String {
-    serde_json::to_string_pretty(profile).unwrap_or_else(|_| profile.to_string())
 }
 
 /// The names as one cell: `Ada Lovelace`, or nothing when neither half is
@@ -578,7 +574,7 @@ pub fn handle_user_edit_signals(state: AppState, id: Signal<String>) -> HandleUs
                         first_name: res.user.first_name.clone(),
                         last_name: res.user.last_name.clone(),
                         status: res.user.status.clone(),
-                        profile: profile_text(&res.user.profile),
+                        profile: json_text(&res.user.profile),
                     }));
 
                     set_user.set(LoadingState::Loaded(res.user));
@@ -1235,7 +1231,7 @@ mod tests {
             first_name: Some("Ada".to_string()),
             last_name: None,
             status: UserStatus::Enabled,
-            profile: profile_text(&profile()),
+            profile: json_text(&profile()),
         }
     }
 

@@ -30,9 +30,9 @@ use crate::{
         handle_user_permissions_signals,
         handle_user_roles_signals,
         handle_users_list_signals,
-        profile_text,
         user_matches,
     },
+    json::json_text,
     state::AppState,
     time::format_local,
 };
@@ -393,7 +393,7 @@ fn UserEditForm(user_id: Signal<String>) -> impl IntoView {
                     let email = user.email.clone().unwrap_or_default();
                     let first_name = user.first_name.clone().unwrap_or_default();
                     let last_name = user.last_name.clone().unwrap_or_default();
-                    let profile = profile_text(&user.profile);
+                    let profile = json_text(&user.profile);
 
                     view! {
                         <h1 class="page-title">"Edit user"</h1>
@@ -561,7 +561,7 @@ pub fn UserDetailPage() -> impl IntoView {
                     let status: &'static str = (&user.status).into();
                     let name = full_name(user);
                     let email = user.email.clone().unwrap_or_default();
-                    let profile = profile_text(&user.profile);
+                    let profile = json_text(&user.profile);
                     let created = format_local(&user.created_at);
                     let updated = format_local(&user.updated_at);
 

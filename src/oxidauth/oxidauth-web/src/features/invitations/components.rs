@@ -262,36 +262,30 @@ pub fn InvitationDetailPage() -> impl IntoView {
                 },
                 LoadingState::Error(err) => view! { <p class="form-error">{err}</p> }.into_any(),
                 LoadingState::Loaded(invitation) => view! {
-                    <div class="card detail">
-                        <div class="detail-list">
-                            <div class="detail-row">
-                                <span class="detail-label">"Invitation"</span>
-                                <span class="detail-value record-id">{invitation.id.to_string()}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">"User"</span>
-                                <span class="detail-value record-id">{invitation.user_id.to_string()}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">"Expires"</span>
-                                <span class="detail-value">
-                                    {format_local(&invitation.expires_at)}
-                                    {if invitation.expires_at < Utc::now() {
-                                        view! { <span class="form-error">" (expired)"</span> }.into_any()
-                                    } else {
-                                        ().into_any()
-                                    }}
-                                </span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">"Created"</span>
-                                <span class="detail-value">{format_local(&invitation.created_at)}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">"Updated"</span>
-                                <span class="detail-value">{format_local(&invitation.updated_at)}</span>
-                            </div>
-                        </div>
+                    <div class="card">
+                        <dl class="detail">
+                            <dt>"Invitation"</dt>
+                            <dd class="record-id">{invitation.id.to_string()}</dd>
+
+                            <dt>"User"</dt>
+                            <dd class="record-id">{invitation.user_id.to_string()}</dd>
+
+                            <dt>"Expires"</dt>
+                            <dd>
+                                {format_local(&invitation.expires_at)}
+                                {if invitation.expires_at < Utc::now() {
+                                    view! { <span class="form-error">" (expired)"</span> }.into_any()
+                                } else {
+                                    ().into_any()
+                                }}
+                            </dd>
+
+                            <dt>"Created"</dt>
+                            <dd>{format_local(&invitation.created_at)}</dd>
+
+                            <dt>"Updated"</dt>
+                            <dd>{format_local(&invitation.updated_at)}</dd>
+                        </dl>
                     </div>
                 }
                 .into_any(),

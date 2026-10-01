@@ -507,6 +507,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .healthcheck-warning { background: #facc15; }
 .healthcheck-loading { background: var(--accent); }
 
+/* The state sentence keeps its own line: a narrow rail truncates it with an
+   ellipsis rather than wrapping the row or pushing the version out. */
+.healthcheck-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.healthcheck-label-danger { color: var(--danger); }
+
 .healthcheck-version { margin-left: auto; }
 
 /* ---- list tables (users, accounts) ---- */
@@ -669,6 +674,32 @@ button.button {
     border-radius: 8px;
     overflow-x: auto;
     font-size: 13px;
+}
+
+/* ---- session (dashboard "This session" card) ----
+   The console's own token gets the roomiest card on the page: the claim
+   rows run the `.detail` grid at wider gutters than the record show
+   pages, and the grants wear chips so a long tree wraps inside the card
+   instead of trailing off. */
+.session-card { padding: 28px; }
+.session-card .detail { gap: 16px 24px; }
+
+/* Permission codes and other short machine tokens, as wrapping chips. */
+.chip-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip-list li {
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 8px;
 }
 
 .back-link { margin: 0 0 16px; font-size: 14px; }

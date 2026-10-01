@@ -21,9 +21,11 @@ impl From<HealthcheckRes> for Health {
     }
 }
 
-/// Sidebar liveness dot: the api's own version + database health, fetched
-/// once through the SDK (so the request carries the session bearer and its
-/// auto-refresh applies like every other call).
+/// Sidebar liveness row: a dot plus the words that explain it, fed by the
+/// api's own version + database health, fetched once through the SDK (so the
+/// request carries the session bearer and its auto-refresh applies like every
+/// other call). Every state — checking, connected, degraded, unreachable —
+/// reads as text; a bare dot is never the only signal.
 #[component]
 pub fn Healthcheck() -> impl IntoView {
     let state = expect_context::<AppState>();
@@ -63,16 +65,43 @@ pub fn Healthcheck() -> impl IntoView {
         }
     };
 
+    // The sentence beside the dot. A response carrying `healthy: false` is
+    // the api answering *about* a dead database, so it reads as degraded, not
+    // unreachable; only a request that never lands is unreachable.
+    let label = move || match status.get() {
+        LoadingState::Loaded(res) if res.healthy => "API connected",
+        LoadingState::Loaded(_) => "API degraded",
+        LoadingState::Error(_) => "API unreachable",
+        LoadingState::Loading | LoadingState::Pending => "Checking…",
+    };
+
+    let label_class = move || match status.get() {
+        LoadingState::Loaded(res) if res.healthy => "healthcheck-label",
+        LoadingState::Loaded(_) | LoadingState::Error(_) => {
+            "healthcheck-label healthcheck-label-danger"
+        },
+        LoadingState::Loading | LoadingState::Pending => "healthcheck-label",
+    };
+
     view! {
         <div
             class="sidebar-healthcheck"
             title=move || match status.get() {
-                LoadingState::Error(err) => err,
-                LoadingState::Loaded(res) => format!("healthy: {}", res.healthy),
+                LoadingState::Loaded(res) => format!(
+                    "version {} · database {}",
+                    res.version,
+                    if res.healthy { "healthy" } else { "unreachable" }
+                ),
+                // One line only: the sdk error drags a js fetch backtrace
+                // behind its first sentence, and a tooltip is no place for it.
+                LoadingState::Error(err) => {
+                    err.lines().next().unwrap_or("api unreachable").to_string()
+                },
                 _ => "checking…".to_string(),
             }
         >
             <span class=dot></span>
+            <span class=label_class>{label}</span>
 
             <span class="healthcheck-version">
                 {move || match status.get() {
