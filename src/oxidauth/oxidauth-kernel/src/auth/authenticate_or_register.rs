@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
-use super::{authenticate::AuthenticateParams, register::RegisterParams};
+use super::{AuthEntry, authenticate::AuthenticateParams, register::RegisterParams};
 use crate::{JsonValue, dev_prelude::BoxedError};
 
 #[async_trait]
@@ -53,11 +53,15 @@ pub struct AuthenticateOrRegisterParams {
     pub params: JsonValue,
 }
 
+// The oauth2 callback flow is the only producer of these params; its hops
+// into the generic pipeline are in-process and follow a completed IdP code
+// exchange, hence `Internal` (OXA-000004 step 1).
 impl From<&AuthenticateOrRegisterParams> for AuthenticateParams {
     fn from(value: &AuthenticateOrRegisterParams) -> Self {
         Self {
             client_key: value.client_key,
             params: value.params.clone(),
+            entry: AuthEntry::Internal,
         }
     }
 }
@@ -67,6 +71,7 @@ impl From<&AuthenticateOrRegisterParams> for RegisterParams {
         Self {
             client_key: value.client_key,
             params: value.params.clone(),
+            entry: AuthEntry::Internal,
         }
     }
 }

@@ -4,7 +4,9 @@ use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
 pub use oxidauth_kernel::{
     auth::{
+        AuthEntry,
         Authenticator,
+        StrategyEntryNotAllowedError,
         authenticate::{
             AuthenticateParams,
             AuthenticateResponse,
@@ -109,6 +111,22 @@ where
             .select_authority_by_client_key(&params.into())
             .await?
             .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
+
+        // OXA-000004 step 1: this pipeline only verifies credentials inside
+        // `build_authenticator`'s strategies. The oauth2 strategy's real
+        // verification (state consumption + IdP code exchange) lives in
+        // `AuthenticateOrRegisterUseCase`, which enters in-process with
+        // `AuthEntry::Internal` after the exchange; a caller-driven
+        // (`External`) request that reaches an oauth2 authority here would
+        // mint a session from `params.email` alone — a bypass — so the
+        // generic entry admits `username_password` only.
+        if params.entry == AuthEntry::External
+            && !matches!(authority.strategy, AuthorityStrategy::UsernamePassword)
+        {
+            return Err(
+                StrategyEntryNotAllowedError::new(params.client_key, authority.strategy).into(),
+            );
+        }
 
         let authenticator = build_authenticator(&authority).await?;
 
@@ -297,7 +315,9 @@ pub async fn build_authenticator(
 
     match authority.strategy {
         UsernamePassword => username_password::authenticator::new(authority).await,
-        SingleUseToken => unimplemented!(),
+        SingleUseToken => {
+            Err(format!("the {} strategy is not implemented", authority.strategy).into())
+        },
         Oauth2 => oauth2::authenticator::new(authority).await,
     }
 }
@@ -385,6 +405,8 @@ mod tests {
     enum AuthorityState {
         Found,
         TotpEnabled { webhook: Url },
+        Oauth2,
+        SingleUseToken,
         Missing,
         Fail,
     }
@@ -407,6 +429,13 @@ mod tests {
                 AuthorityState::Fail => Err("simulated authority failure".into()),
                 AuthorityState::Missing => Ok(None),
                 AuthorityState::Found => Ok(Some(fixtures_authority(TotpSettings::Disabled))),
+                AuthorityState::Oauth2 => Ok(Some(fixtures_oauth2_authority())),
+                AuthorityState::SingleUseToken => {
+                    Ok(Some(Authority {
+                        strategy: AuthorityStrategy::SingleUseToken,
+                        ..fixtures_authority(TotpSettings::Disabled)
+                    }))
+                },
                 AuthorityState::TotpEnabled { webhook } => {
                     Ok(Some(fixtures_authority(TotpSettings::Enabled {
                         totp_ttl: Duration::from_secs(TOTP_TTL_SECS),
@@ -416,6 +445,18 @@ mod tests {
                 },
             }
         }
+    }
+
+    fn fixtures_oauth2_authority() -> Authority {
+        let mut authority = crate::auth::strategies::username_password::fixtures::authority(
+            crate::auth::strategies::oauth2::fixtures::authority_params(
+                crate::auth::strategies::oauth2::OAuthFlavors::Google,
+            )
+            .as_json_value()
+            .expect("oauth2 fixture params serialize"),
+        );
+        authority.strategy = AuthorityStrategy::Oauth2;
+        authority
     }
 
     fn fixtures_authority(totp: TotpSettings) -> Authority {
@@ -694,6 +735,7 @@ mod tests {
                 "username": "test-user",
                 "password": password,
             })),
+            entry: AuthEntry::External,
         }
     }
 
@@ -971,6 +1013,7 @@ mod tests {
         case.authenticate(&AuthenticateParams {
             client_key: CLIENT_KEY,
             params: JsonValue::new(json!({ "passcode": 42 })),
+            entry: AuthEntry::External,
         })
         .await
         .expect_err("params without a username must error");
@@ -1026,15 +1069,117 @@ mod tests {
         assert_eq!(log.ops().len(), 1);
     }
     #[tokio::test]
-    #[should_panic(expected = "not implemented")]
-    async fn single_use_token_strategy_is_not_implemented() {
+    async fn single_use_token_strategy_errors_instead_of_panicking() {
+        // OXA-000004 step 1: the `unimplemented!()` panic arm became an error
         let authority = Authority {
             strategy: AuthorityStrategy::SingleUseToken,
             ..fixtures_authority(TotpSettings::Disabled)
         };
 
-        // build_authenticator hits unimplemented!() for this strategy
-        let _ = build_authenticator(&authority).await;
+        let err = build_authenticator(&authority)
+            .await
+            .err()
+            .expect("the unimplemented strategy must error, not panic");
+
+        assert!(
+            err.to_string()
+                .contains("single_use_token strategy is not implemented"),
+            "got {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn oauth2_authority_is_refused_at_the_generic_entry_before_any_lookup() {
+        // OXA-000004 step 1 regression: the bypass was
+        // POST /v1/auth/authenticate {"client_key": <oauth2 authority>,
+        // "params": {"email": "victim@…"}} → full session, no IdP involved.
+        let log = CallLog::default();
+        let case = use_case(
+            &log,
+            Wiring {
+                authority: Some(AuthorityState::Oauth2),
+                ..Default::default()
+            },
+        );
+
+        let err = case
+            .authenticate(&AuthenticateParams {
+                client_key: CLIENT_KEY,
+                params: JsonValue::new(json!({ "email": "victim@example.com" })),
+                entry: AuthEntry::External,
+            })
+            .await
+            .expect_err("an external request may not authenticate an oauth2 authority");
+
+        assert!(
+            err.to_string()
+                .contains("oauth2 authorities authenticate via GET /v1/auth/oauth2/callback"),
+            "got {err}"
+        );
+        assert_eq!(
+            log.ops().as_slice(),
+            &[format!("find_authority:{CLIENT_KEY}")],
+            "the gate must fire before the identifier path and any token mint"
+        );
+    }
+
+    #[tokio::test]
+    async fn internal_entry_from_the_oauth2_callback_flow_still_mints_a_session() {
+        // AuthenticateOrRegisterUseCase enters in-process (with `Internal`)
+        // only after consuming state and completing the IdP exchange; that
+        // hop must keep working exactly as before the gate.
+        let log = CallLog::default();
+        let case = use_case(
+            &log,
+            Wiring {
+                authority: Some(AuthorityState::Oauth2),
+                ..Default::default()
+            },
+        );
+
+        let res = case
+            .authenticate(&AuthenticateParams {
+                client_key: CLIENT_KEY,
+                params: JsonValue::new(json!({ "email": "test-user" })),
+                entry: AuthEntry::Internal,
+            })
+            .await
+            .expect("the in-process oauth2 callback hop must authenticate");
+
+        assert_eq!(res.user_id, USER_ID);
+        assert_eq!(res.refresh_token, NEW_TOKEN_ID);
+        assert!(log.has(&format!("find_user_authority:{AUTHORITY_ID}.test-user")));
+    }
+
+    #[tokio::test]
+    async fn single_use_token_authority_is_refused_at_the_generic_entry() {
+        let log = CallLog::default();
+        let case = use_case(
+            &log,
+            Wiring {
+                authority: Some(AuthorityState::SingleUseToken),
+                ..Default::default()
+            },
+        );
+
+        let err = case
+            .authenticate(&AuthenticateParams {
+                client_key: CLIENT_KEY,
+                params: JsonValue::new(json!({ "token": "x" })),
+                entry: AuthEntry::External,
+            })
+            .await
+            .expect_err("single_use_token must not be reachable through the generic endpoint");
+
+        assert!(
+            err.to_string()
+                .contains("single_use_token strategy may not authenticate or register"),
+            "got {err}"
+        );
+        assert_eq!(
+            log.ops().as_slice(),
+            &[format!("find_authority:{CLIENT_KEY}")]
+        );
     }
 
     #[tokio::test]

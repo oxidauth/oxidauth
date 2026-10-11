@@ -109,6 +109,7 @@ mod tests {
                             user_authority: RegisterParams {
                                 client_key: Uuid::new_v4(),
                                 params: JsonValue::new(json!({ "password": "hunter2" })),
+                                entry: oxidauth_kernel::auth::AuthEntry::External,
                             },
                         })
                         .await

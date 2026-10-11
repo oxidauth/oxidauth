@@ -352,6 +352,7 @@ mod tests {
             user_authority: RegisterParams {
                 client_key: authority_client_key(),
                 params: JsonValue::new(json!({ "password": "s3cret" })),
+                entry: oxidauth_kernel::auth::AuthEntry::External,
             },
         }
     }
@@ -418,6 +419,7 @@ mod tests {
             user_authority: RegisterParams {
                 client_key: authority_client_key(),
                 params: JsonValue::new(json!({ "password": "s3cret" })),
+                entry: oxidauth_kernel::auth::AuthEntry::External,
             },
         };
 
