@@ -562,6 +562,9 @@ impl Client {
                 "username": username,
                 "password": password,
             })),
+            // `entry` is `serde(skip)`ped — the server always treats a wire
+            // request as `External` (OXA-000004 step 1)
+            entry: oxidauth_kernel::auth::AuthEntry::External,
         };
 
         info!(message = "authenticating", params = ?json);

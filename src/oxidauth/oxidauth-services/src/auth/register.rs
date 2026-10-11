@@ -3,7 +3,9 @@ use base64::prelude::*;
 use chrono::DateTime;
 use oxidauth_kernel::{
     auth::{
+        AuthEntry,
         Registrar,
+        StrategyEntryNotAllowedError,
         register::{RegisterParams, RegisterResponse, RegisterServiceTrait},
     },
     authorities::{Authority, AuthorityNotFoundError, AuthorityStrategy, NbfOffset},
@@ -84,6 +86,21 @@ where
             .select_authority_by_client_key(&params.into())
             .await?
             .ok_or_else(|| AuthorityNotFoundError::client_key(params.client_key))?;
+
+        // OXA-000004 step 1: a caller-driven (`External`) register against an
+        // oauth2 authority would insert an arbitrary-email user + user_authority
+        // row through the no-password oauth2 registrar (account pre-hijack).
+        // The oauth2 register path is only reached in-process from
+        // `AuthenticateOrRegisterUseCase` with `AuthEntry::Internal` after a
+        // completed IdP exchange, so the generic entry admits
+        // `username_password` only.
+        if params.entry == AuthEntry::External
+            && !matches!(authority.strategy, AuthorityStrategy::UsernamePassword)
+        {
+            return Err(
+                StrategyEntryNotAllowedError::new(params.client_key, authority.strategy).into(),
+            );
+        }
 
         let registrar = build_registrar(&authority).await?;
 
@@ -172,7 +189,9 @@ pub async fn build_registrar(authority: &Authority) -> Result<Box<dyn Registrar>
     match authority.strategy {
         UsernamePassword => strategies::username_password::registrar::new(authority).await,
         Oauth2 => strategies::oauth2::registrar::new(authority).await,
-        SingleUseToken => unimplemented!(),
+        SingleUseToken => {
+            Err(format!("the {} strategy is not implemented", authority.strategy).into())
+        },
     }
 }
 
@@ -546,6 +565,7 @@ mod tests {
         let res = case
             .register(&RegisterParams {
                 client_key: CLIENT_KEY,
+                entry: AuthEntry::External,
                 params: JsonValue::new(json!({
                     "username": "new-user",
                     "password": PASSWORD,
@@ -619,12 +639,15 @@ mod tests {
 
     #[tokio::test]
     async fn oauth2_dispatch_maps_the_profile_to_a_passwordless_user_authority() {
+        // the in-process register fallback of AuthenticateOrRegisterUseCase —
+        // the ONLY way an oauth2 registration may happen (OXA-000004 step 1)
         let log = CallLog::default();
         let case = use_case(&log, Strategy::Oauth2, false);
 
         let res = case
             .register(&RegisterParams {
                 client_key: CLIENT_KEY,
+                entry: AuthEntry::Internal,
                 params: JsonValue::new(json!({
                     "username": "profile@example.com",
                     "email": "profile@example.com",
@@ -663,6 +686,7 @@ mod tests {
         let err = case
             .register(&RegisterParams {
                 client_key: CLIENT_KEY,
+                entry: AuthEntry::External,
                 params: JsonValue::new(json!({
                     "username": "new-user",
                     "password": "one",
@@ -694,6 +718,7 @@ mod tests {
         let err = case
             .register(&RegisterParams {
                 client_key: CLIENT_KEY,
+                entry: AuthEntry::External,
                 params: JsonValue::new(json!({
                     "username": "new-user",
                     "password": PASSWORD,
@@ -738,6 +763,7 @@ mod tests {
         let err = case
             .register(&RegisterParams {
                 client_key: CLIENT_KEY,
+                entry: AuthEntry::External,
                 params: JsonValue::new(json!({})),
             })
             .await
@@ -752,16 +778,76 @@ mod tests {
     }
 
     #[tokio::test]
-    #[should_panic(expected = "not implemented")]
-    async fn single_use_token_strategy_is_not_implemented() {
+    async fn single_use_token_strategy_errors_instead_of_panicking() {
+        // OXA-000004 step 1: the `unimplemented!()` panic arm became an error
+        let authority = authority(AuthorityStrategy::SingleUseToken, JsonValue::new(json!({})));
+
+        let err = build_registrar(&authority)
+            .await
+            .err()
+            .expect("the unimplemented strategy must error, not panic");
+
+        assert!(
+            err.to_string()
+                .contains("single_use_token strategy is not implemented"),
+            "got {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn oauth2_authority_is_refused_at_the_generic_entry_before_any_write() {
+        // OXA-000004 step 1: generic registration against an oauth2 authority
+        // would seed an arbitrary-email user + passwordless user_authority
+        // row through the no-password oauth2 registrar (account pre-hijack).
+        let log = CallLog::default();
+        let case = use_case(&log, Strategy::Oauth2, false);
+
+        let err = case
+            .register(&RegisterParams {
+                client_key: CLIENT_KEY,
+                entry: AuthEntry::External,
+                params: JsonValue::new(json!({
+                    "username": "victim@example.com",
+                    "email": "victim@example.com",
+                })),
+            })
+            .await
+            .expect_err("an external request may not register against an oauth2 authority");
+
+        assert!(
+            err.to_string()
+                .contains("oauth2 authorities authenticate via GET /v1/auth/oauth2/callback"),
+            "got {err}"
+        );
+        assert_eq!(
+            log.ops().as_slice(),
+            &[format!("find_authority:{CLIENT_KEY}")],
+            "the gate must fire before any registrar or insert work"
+        );
+    }
+
+    #[tokio::test]
+    async fn single_use_token_authority_is_refused_at_the_generic_entry() {
         let log = CallLog::default();
         let case = use_case(&log, Strategy::SingleUseToken, false);
 
-        let _ = case
+        let err = case
             .register(&RegisterParams {
                 client_key: CLIENT_KEY,
+                entry: AuthEntry::External,
                 params: JsonValue::new(json!({})),
             })
-            .await;
+            .await
+            .expect_err("single_use_token must not be reachable through the generic endpoint");
+
+        assert!(
+            err.to_string()
+                .contains("single_use_token strategy may not authenticate or register"),
+            "got {err}"
+        );
+        assert_eq!(
+            log.ops().as_slice(),
+            &[format!("find_authority:{CLIENT_KEY}")]
+        );
     }
 }

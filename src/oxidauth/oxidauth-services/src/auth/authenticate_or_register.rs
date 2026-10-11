@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use oxidauth_kernel::{
     JsonValue,
     auth::{
+        AuthEntry,
         authenticate::{AuthenticateParams, AuthenticateServiceTrait},
         authenticate_or_register::*,
         register::{RegisterParams, RegisterServiceTrait},
@@ -184,6 +185,9 @@ where
             .authenticate(&AuthenticateParams {
                 client_key: params.client_key,
                 params: JsonValue::new(auth_params),
+                // in-process hop AFTER a verified state + completed IdP code
+                // exchange — the trusted entry of OXA-000004 step 1
+                entry: AuthEntry::Internal,
             })
             .await;
 
@@ -219,6 +223,9 @@ where
                         .register(&RegisterParams {
                             client_key: params.client_key,
                             params: JsonValue::new(reg_params_json),
+                            // in-process register fallback for a profile that
+                            // just cleared the IdP exchange (OXA-000004 step 1)
+                            entry: AuthEntry::Internal,
                         })
                         .await?;
 
