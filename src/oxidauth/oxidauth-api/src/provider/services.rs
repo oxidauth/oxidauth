@@ -6,6 +6,7 @@ use oxidauth_postgres::{
     auth::PgAuthRepository,
     authorities::PgAuthorityRepository,
     invitations::PgInvitationRepository,
+    oauth_states::PgOAuthStateRepository,
     permissions::PgPermissionRepository,
     private_keys::PgPrivateKeyRepository,
     public_keys::PgPublicKeyRepository,
@@ -72,6 +73,7 @@ pub async fn init(provider: &mut Provider) -> Result<(), BoxedError> {
             authenticate_service,
             register_service,
             PgAuthorityRepository::new(db.clone()),
+            PgOAuthStateRepository::new(db.clone()),
         ));
 
         provider.store::<AuthenticateOrRegisterService>(authenticate_or_register_service);
@@ -83,6 +85,7 @@ pub async fn init(provider: &mut Provider) -> Result<(), BoxedError> {
 
         let oauth2_redirect_service = Arc::new(Oauth2RedirectUseCase::new(
             PgAuthorityRepository::new(db.clone()),
+            PgOAuthStateRepository::new(db.clone()),
         ));
 
         provider.store::<Oauth2RedirectService>(oauth2_redirect_service);
