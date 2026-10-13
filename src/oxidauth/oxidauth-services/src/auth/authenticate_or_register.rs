@@ -41,6 +41,7 @@ use super::{
     strategies::oauth2::{AuthorityParams, OAuthFlavors},
 };
 use crate::auth::strategies::oauth2::{
+    apple::{exchange_apple_token, retrieve_apple_profile},
     google::{exchange_google_token, retrieve_google_profile},
     microsoft::{exchange_microsoft_token, retrieve_microsoft_profile},
     registrar::Oauth2RegisterParams,
@@ -96,8 +97,22 @@ where
         &self,
         authority_params: &AuthorityParams,
         authenticate_params: &OAuth2AuthenticateParams,
+        // the raw, already-consumed state nonce — Apple requires it to check
+        // the id_token's nonce == sha256(state) (OXA-000072)
+        state: &str,
     ) -> Result<OAuth2Profile, BoxedError> {
         match authority_params.flavor {
+            OAuthFlavors::Apple => {
+                let id_token = exchange_apple_token(
+                    authenticate_params
+                        .code
+                        .clone(),
+                    authority_params,
+                )
+                .await?;
+
+                retrieve_apple_profile(id_token, state, authority_params).await
+            },
             OAuthFlavors::Google => {
                 let code = authenticate_params
                     .code
@@ -182,7 +197,7 @@ where
             .try_into()?;
 
         let profile = self
-            .fetch_profile(&authority_params, &authenticate_params)
+            .fetch_profile(&authority_params, &authenticate_params, &params.state)
             .await?;
 
         #[derive(Debug, Serialize)]
@@ -376,6 +391,17 @@ mod tests {
     }
 
     fn start_fake_idp() -> FakeIdp {
+        start_fake_idp_inner(None)
+    }
+
+    // OXA-000072: the apple flavor has no /me — its identity arrives inside
+    // the id_token the token endpoint returns, and is verified against the
+    // JWKS served at /keys.
+    fn start_fake_apple_idp(id_token: String) -> FakeIdp {
+        start_fake_idp_inner(Some(id_token))
+    }
+
+    fn start_fake_idp_inner(apple_id_token: Option<String>) -> FakeIdp {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind idp");
         let addr = listener
             .local_addr()
@@ -442,10 +468,18 @@ mod tests {
                     .expect("idp log")
                     .push(format!("{method} {path}"));
 
-                let body = if path.ends_with("/me") {
-                    PROFILE_BODY
+                let body: String = if path.ends_with("/keys") {
+                    use crate::auth::strategies::oauth2::apple::fixtures::jwks_json;
+
+                    jwks_json().to_string()
+                } else if let Some(id_token) = &apple_id_token {
+                    format!(
+                        r#"{{"id_token":"{id_token}","token_type":"Bearer","expires_in":3600}}"#
+                    )
+                } else if path.ends_with("/me") {
+                    PROFILE_BODY.to_owned()
                 } else {
-                    TOKEN_BODY
+                    TOKEN_BODY.to_owned()
                 };
                 let response = format!(
                     "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: \
@@ -521,17 +555,34 @@ mod tests {
             match &self.mode {
                 AuthorityMode::Missing => Ok(None),
                 AuthorityMode::Oauth2 { flavor, idp_base } => {
-                    Ok(Some(authority(json!({
+                    use crate::auth::strategies::oauth2::fixtures::{
+                        APPLE_KEY_ENV_VAR,
+                        APPLE_KEY_ID,
+                        APPLE_TEAM_ID,
+                    };
+
+                    let apple = *flavor == "Apple";
+                    let mut params = json!({
                         "exchange_url": format!("{idp_base}/token"),
                         "flavor": flavor,
                         "oauth2_id": "sso-client-id",
                         "oauth2_secret": "sso-client-secret",
-                        "profile_url": format!("{idp_base}/me"),
+                        // apple verifies id_tokens against the JWKS in this
+                        // slot instead of fetching a userinfo profile
+                        "profile_url": if apple { format!("{idp_base}/keys") } else { format!("{idp_base}/me") },
                         "scopes": "openid email profile",
                         "redirect_url": "https://authorize.example.com/oauth",
                         "client_base_url": CLIENT_BASE,
                         "redirect_uri": "https://app.example.com/cb",
-                    }))))
+                    });
+
+                    if apple {
+                        params["apple_team_id"] = json!(APPLE_TEAM_ID);
+                        params["apple_key_id"] = json!(APPLE_KEY_ID);
+                        params["apple_private_key_env_var"] = json!(APPLE_KEY_ENV_VAR);
+                    }
+
+                    Ok(Some(authority(params)))
                 },
                 AuthorityMode::GarbageParams => Ok(Some(authority(json!({ "garbage": true })))),
             }
@@ -1404,5 +1455,113 @@ mod tests {
             "family_name maps from surname"
         );
         assert_eq!(res.user_id, EXISTING_USER_ID);
+    }
+
+    fn apple_claims(
+        nonce_state: &str,
+    ) -> crate::auth::strategies::oauth2::apple::fixtures::IdTokenClaims {
+        use crate::auth::strategies::oauth2::apple::{APPLE_ISSUER, fixtures::nonce_for};
+
+        let now = Utc::now().timestamp() as u64;
+
+        crate::auth::strategies::oauth2::apple::fixtures::IdTokenClaims {
+            iss: APPLE_ISSUER.to_owned(),
+            aud: "sso-client-id".to_owned(),
+            exp: now + 300,
+            iat: now,
+            sub: "001487.8f718d0da2a0432994da98a1e41151cb.1447".to_owned(),
+            email: Some("ann@relay.myapplemail.com".to_owned()),
+            nonce: Some(nonce_for(nonce_state)),
+            email_verified: Some(json!(true)),
+        }
+    }
+
+    #[tokio::test]
+    async fn apple_flavor_exchanges_verifies_the_bound_id_token_and_authenticates() {
+        // OXA-000072 end-to-end: consumed state -> signed client secret ->
+        // token exchange -> JWKS-verified id_token whose nonce is sha256 of
+        // THE consumed state -> authenticate with the token's email
+        use crate::{
+            EnvGuard,
+            auth::strategies::oauth2::{apple::fixtures::EC_PEM, fixtures::APPLE_KEY_ENV_VAR},
+        };
+
+        let state = valid_state();
+        let idp = start_fake_apple_idp(
+            crate::auth::strategies::oauth2::apple::fixtures::sign_id_token(apple_claims(&state)),
+        );
+
+        let log = CallLog::default();
+        let _env = EnvGuard::set(APPLE_KEY_ENV_VAR, EC_PEM);
+        let case = use_case(
+            &log,
+            oauth2_mode("Apple", idp.base.clone()),
+            LookupOutcome::Found,
+        );
+
+        let res = case
+            .authenticate_or_register(&req(state))
+            .await
+            .expect("the apple flavor must complete");
+
+        assert_eq!(res.email, "ann@relay.myapplemail.com");
+        assert!(
+            res.given_name.is_none() && res.family_name.is_none(),
+            "apple profiles carry no display names"
+        );
+        assert_eq!(res.user_id, EXISTING_USER_ID);
+
+        assert_eq!(
+            idp.requests(),
+            vec!["POST /token".to_owned(), "GET /keys".to_owned()],
+            "apple exchanges the code, then fetches the JWKS — never a /me"
+        );
+        assert!(
+            log.has("consume_state"),
+            "the state is consumed before the exchange: {:?}",
+            log.ops()
+        );
+    }
+
+    #[tokio::test]
+    async fn apple_id_token_from_a_different_login_attempt_never_authenticates() {
+        // replay shape: a genuine, correctly signed Apple token captured
+        // from ANOTHER flow carries the wrong nonce — it must die at the
+        // nonce gate and never touch the authenticate pipeline
+        use crate::{
+            EnvGuard,
+            auth::strategies::oauth2::{apple::fixtures::EC_PEM, fixtures::APPLE_KEY_ENV_VAR},
+        };
+
+        let state = valid_state();
+        let idp = start_fake_apple_idp(
+            crate::auth::strategies::oauth2::apple::fixtures::sign_id_token(apple_claims(
+                "stateOfAnEntirelyDifferentLogin",
+            )),
+        );
+
+        let log = CallLog::default();
+        let _env = EnvGuard::set(APPLE_KEY_ENV_VAR, EC_PEM);
+        let case = use_case(
+            &log,
+            oauth2_mode("Apple", idp.base.clone()),
+            LookupOutcome::Found,
+        );
+
+        let err = case
+            .authenticate_or_register(&req(state))
+            .await
+            .expect_err("a token bound to another state must not authenticate");
+
+        assert!(
+            err.to_string()
+                .contains("nonce"),
+            "expected the typed nonce mismatch error, got: {err}"
+        );
+        assert!(
+            !log.has("find_user_authority"),
+            "the authenticate step must never start: got {:?}",
+            log.ops()
+        );
     }
 }

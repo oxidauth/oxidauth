@@ -88,6 +88,20 @@ where
             .await?;
 
         let redirect_url = match oauth_params.flavor {
+            OAuthFlavors::Apple => {
+                let mut redirect_url = oauth_params.redirect_url;
+
+                // Apple answers this flow as a form POST to the redirect_uri
+                // (OXA-000072); the `user` prompt rides on scope=name, but
+                // names are deliberately ignored server-side.
+                redirect_url
+                    .query_pairs_mut()
+                    .append_pair("response_type", "code")
+                    .append_pair("response_mode", "form_post")
+                    .append_pair("state", state.as_str())
+                    .finish()
+                    .to_owned()
+            },
             OAuthFlavors::Google => {
                 let mut redirect_url = oauth_params.redirect_url;
 
@@ -422,6 +436,36 @@ mod tests {
                 .iter()
                 .any(|(k, _)| k == "login_hint"),
             "no email means no login_hint"
+        );
+
+        let state = state_of(&pairs);
+        assert_state_shape(&state);
+        assert_store_row(&inserts, 0, &state);
+    }
+
+    #[tokio::test]
+    async fn apple_redirect_appends_form_post_response_mode_and_state() {
+        let (case, _, inserts) = use_case(true, OAuthFlavors::Apple, false, false);
+
+        let res = case
+            .oauth2_redirect(&Oauth2RedirectParams {
+                client_key: CLIENT_KEY,
+                email: None,
+            })
+            .await
+            .expect("apple redirect builds");
+
+        let pairs = query_pairs(&res.redirect_url);
+        assert!(pairs.contains(&("response_type".to_owned(), "code".to_owned())));
+        assert!(
+            pairs.contains(&("response_mode".to_owned(), "form_post".to_owned())),
+            "apple must get its callback POSTed back as a form (OXA-000072), got {pairs:?}"
+        );
+        assert!(
+            !pairs
+                .iter()
+                .any(|(k, _)| k == "include_granted_scopes"),
+            "google-only flags must not leak into apple urls"
         );
 
         let state = state_of(&pairs);

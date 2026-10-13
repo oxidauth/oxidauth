@@ -1,3 +1,4 @@
+pub mod apple;
 pub mod authenticator;
 pub mod google;
 pub mod microsoft;
@@ -19,6 +20,7 @@ pub struct OAuth2 {
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum OAuthFlavors {
+    Apple,
     Google,
     Microsoft,
 }
@@ -37,6 +39,34 @@ pub struct AuthorityParams {
     pub client_base_url: Url, /* Client frontend url that callback should redirect the user to
                             * after authenticating */
     pub redirect_uri: Url, /* Included in redirect url but used throughout the process as an extra security measure, required to match settings on oauth config */
+
+    // OXA-000072: Sign in with Apple replaces the static `oauth2_secret` with
+    // a client-secret JWT this server signs per request. Key material is
+    // never authority-JSONB material (same reasoning as the pepper
+    // indirection): the row only *names* the env var that holds the PEM.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub apple_team_id: Option<String>, // Apple Team ID — the `iss` claim
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub apple_key_id: Option<String>, // Services-key Key ID — the `kid` header
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub apple_private_key_env_var: Option<String>, // NAME of the env var holding the PKCS#8 PEM
+}
+
+impl AuthorityParams {
+    /// Attaches the Sign in with Apple signing identity (OXA-000072). Additive
+    /// by design: Google/Microsoft rows never carry these fields.
+    pub fn with_apple(
+        mut self,
+        apple_team_id: String,
+        apple_key_id: String,
+        apple_private_key_env_var: String,
+    ) -> Self {
+        self.apple_team_id = Some(apple_team_id);
+        self.apple_key_id = Some(apple_key_id);
+        self.apple_private_key_env_var = Some(apple_private_key_env_var);
+
+        self
+    }
 }
 
 impl AuthorityParams {
@@ -61,6 +91,9 @@ impl AuthorityParams {
             redirect_url,
             client_base_url,
             redirect_uri,
+            apple_team_id: None,
+            apple_key_id: None,
+            apple_private_key_env_var: None,
         }
     }
 
@@ -106,6 +139,20 @@ pub(crate) mod fixtures {
             .expect("valid url"),
             Url::parse("https://app.example.com").expect("valid url"),
             Url::parse("https://app.example.com/cb").expect("valid url"),
+        )
+    }
+
+    /// The env var the apple fixture points at; tests bind it with
+    /// `EnvGuard` (OXA-000072) and no test ever sets it process-wide.
+    pub(crate) const APPLE_KEY_ENV_VAR: &str = "OXIDAUTH_TEST_APPLE_PRIVATE_KEY_PEM";
+    pub(crate) const APPLE_TEAM_ID: &str = "TEAM123456";
+    pub(crate) const APPLE_KEY_ID: &str = "KEY987654";
+
+    pub(crate) fn apple_authority_params() -> AuthorityParams {
+        authority_params(OAuthFlavors::Apple).with_apple(
+            APPLE_TEAM_ID.to_owned(),
+            APPLE_KEY_ID.to_owned(),
+            APPLE_KEY_ENV_VAR.to_owned(),
         )
     }
 
