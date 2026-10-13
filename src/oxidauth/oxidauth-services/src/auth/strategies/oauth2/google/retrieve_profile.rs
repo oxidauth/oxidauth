@@ -22,9 +22,8 @@ pub async fn retrieve_google_profile(
         .json()
         .await?;
 
-    Ok(OAuth2Profile {
-        email: profile.email,
-        given_name: profile.given_name,
-        family_name: profile.family_name,
-    })
+    // OXA-000073: `verified_email` is enforced here, not discarded
+    profile
+        .into_oauth_profile()
+        .map_err(Into::into)
 }

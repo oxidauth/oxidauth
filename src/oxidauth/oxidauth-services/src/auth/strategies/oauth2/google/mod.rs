@@ -1,10 +1,38 @@
 pub mod exchange_token;
 pub mod retrieve_profile;
 
+use std::{error::Error, fmt};
+
 pub use exchange_token::exchange_google_token;
-use oxidauth_kernel::{JsonValue, error::BoxedError};
+use oxidauth_kernel::{
+    JsonValue,
+    auth::authenticate_or_register::OAuth2Profile,
+    error::BoxedError,
+};
 pub use retrieve_profile::retrieve_google_profile;
 use serde::{Deserialize, Serialize};
+
+/// Raised when Google itself flags the account email as unverified
+/// (OXA-000073). Sanitized display — the address is the user's own, but
+/// the error stays free of payload prose, in the `OAuth2StateError` /
+/// `AppleAuthError` family.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum GoogleProfileError {
+    EmailUnverified,
+}
+
+impl fmt::Display for GoogleProfileError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use GoogleProfileError::*;
+
+        match self {
+            EmailUnverified => write!(f, "google account email is not verified"),
+        }
+    }
+}
+
+impl Error for GoogleProfileError {
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleExchangeTokenReq {
@@ -42,6 +70,25 @@ impl TryFrom<JsonValue> for GoogleProfile {
         let profile = serde_json::from_value(value.inner_value())?;
 
         Ok(profile)
+    }
+}
+
+impl GoogleProfile {
+    /// Maps the userinfo payload onto the flow's profile, refusing addresses
+    /// Google itself flags unverified (OXA-000072 did for Apple). The parse
+    /// boundary (`TryFrom<JsonValue>`) stays wire-shape-only; this is where
+    /// the flag stops being decorative — before any authenticate/register
+    /// hop can create or touch a `user_authorities` row.
+    pub fn into_oauth_profile(self) -> Result<OAuth2Profile, GoogleProfileError> {
+        if !self.verified_email {
+            return Err(GoogleProfileError::EmailUnverified);
+        }
+
+        Ok(OAuth2Profile {
+            email: self.email,
+            given_name: self.given_name,
+            family_name: self.family_name,
+        })
     }
 }
 
@@ -132,14 +179,23 @@ mod tests {
         assert_eq!(profile.given_name.as_deref(), Some("Ann"));
         assert_eq!(profile.family_name.as_deref(), Some("Lee"));
         assert!(profile.name.is_none());
-        // pinned: `verified_email` must be present but is never checked —
-        // unverified addresses pass this boundary
+
+        // OXA-000073 (flipped pin): the TRY boundary stays wire-shape-only,
+        // but `false` no longer passes the profile boundary itself — see
+        // `unverified_emails_are_refused_at_the_profile_boundary`
+        let unverified: GoogleProfile = GoogleProfile::try_from(JsonValue::new(json!({
+            "email": "ghost@example.com",
+            "verified_email": false,
+        })))
+        .expect("the flag is deserialized at the parse boundary");
+        assert!(!unverified.verified_email);
 
         assert!(
             GoogleProfile::try_from(JsonValue::new(json!({
                 "email": "no-flags@example.com",
             })))
-            .is_err()
+            .is_err(),
+            "`verified_email` stays required on the wire (presence pins unchanged)"
         );
         assert!(
             GoogleProfile::try_from(JsonValue::new(json!({
@@ -147,5 +203,44 @@ mod tests {
             })))
             .is_err()
         );
+    }
+
+    #[test]
+    fn unverified_emails_are_refused_at_the_profile_boundary() {
+        // OXA-000073: the flag is no longer decorative — an address Google
+        // itself flags unverified never reaches the authenticate/register
+        // hops as a profile (Apple got the same bar from day one in
+        // OXA-000072)
+        let err = GoogleProfile::try_from(JsonValue::new(json!({
+            "email": "ghost@example.com",
+            "verified_email": false,
+        })))
+        .expect("parses")
+        .into_oauth_profile()
+        .expect_err("unverified email must be refused");
+
+        assert!(
+            matches!(err, GoogleProfileError::EmailUnverified),
+            "expected the typed error, got: {err:?}"
+        );
+        assert!(
+            err.to_string()
+                .contains("not verified"),
+            "got: {err}"
+        );
+
+        let profile = GoogleProfile::try_from(JsonValue::new(json!({
+            "email": "ann@example.com",
+            "verified_email": true,
+            "given_name": "Ann",
+            "family_name": "Lee",
+        })))
+        .expect("parses")
+        .into_oauth_profile()
+        .expect("verified email maps through");
+
+        assert_eq!(profile.email, "ann@example.com");
+        assert_eq!(profile.given_name.as_deref(), Some("Ann"));
+        assert_eq!(profile.family_name.as_deref(), Some("Lee"));
     }
 }

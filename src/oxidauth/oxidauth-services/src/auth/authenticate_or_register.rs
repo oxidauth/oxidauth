@@ -391,17 +391,25 @@ mod tests {
     }
 
     fn start_fake_idp() -> FakeIdp {
-        start_fake_idp_inner(None)
+        start_fake_idp_inner(None, None)
     }
 
     // OXA-000072: the apple flavor has no /me — its identity arrives inside
     // the id_token the token endpoint returns, and is verified against the
     // JWKS served at /keys.
     fn start_fake_apple_idp(id_token: String) -> FakeIdp {
-        start_fake_idp_inner(Some(id_token))
+        start_fake_idp_inner(Some(id_token), None)
     }
 
-    fn start_fake_idp_inner(apple_id_token: Option<String>) -> FakeIdp {
+    // OXA-000073: serve a custom /me document (e.g. verified_email: false)
+    fn start_fake_idp_profile(profile_body: String) -> FakeIdp {
+        start_fake_idp_inner(None, Some(profile_body))
+    }
+
+    fn start_fake_idp_inner(
+        apple_id_token: Option<String>,
+        profile_body: Option<String>,
+    ) -> FakeIdp {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind idp");
         let addr = listener
             .local_addr()
@@ -477,7 +485,9 @@ mod tests {
                         r#"{{"id_token":"{id_token}","token_type":"Bearer","expires_in":3600}}"#
                     )
                 } else if path.ends_with("/me") {
-                    PROFILE_BODY.to_owned()
+                    profile_body
+                        .clone()
+                        .unwrap_or_else(|| PROFILE_BODY.to_owned())
                 } else {
                     TOKEN_BODY.to_owned()
                 };
@@ -1562,6 +1572,54 @@ mod tests {
             !log.has("find_user_authority"),
             "the authenticate step must never start: got {:?}",
             log.ops()
+        );
+    }
+
+    #[tokio::test]
+    async fn google_unverified_email_is_refused_before_any_authentication() {
+        // OXA-000073: the state is spent and the code exchanged, but an
+        // address Google itself flags unverified never becomes a profile —
+        // no lookup, no registration, no session
+        use crate::auth::strategies::oauth2::google::GoogleProfileError;
+
+        let idp = start_fake_idp_profile(
+            r#"{"email":"ghost@example.com","verified_email":false,"given_name":"Ghost","family_name":"Squad"}"#
+                .to_owned(),
+        );
+
+        let log = CallLog::default();
+        let case = use_case(
+            &log,
+            oauth2_mode("Google", idp.base.clone()),
+            LookupOutcome::Found,
+        );
+
+        let err = case
+            .authenticate_or_register(&req(valid_state()))
+            .await
+            .expect_err("an unverified google email must not log in");
+
+        assert!(
+            matches!(
+                err.downcast_ref::<GoogleProfileError>(),
+                Some(GoogleProfileError::EmailUnverified)
+            ),
+            "expected the typed EmailUnverified error, got: {err:?}"
+        );
+        assert!(
+            !log.has("find_user_authority"),
+            "the authenticate step must never start: got {:?}",
+            log.ops()
+        );
+        assert!(
+            !log.has("insert_user:"),
+            "an unverified address must never be registered: got {:?}",
+            log.ops()
+        );
+        assert_eq!(
+            idp.requests(),
+            vec!["POST /token".to_owned(), "GET /me".to_owned()],
+            "the profile was fetched — the refusal happens on its way out"
         );
     }
 }
