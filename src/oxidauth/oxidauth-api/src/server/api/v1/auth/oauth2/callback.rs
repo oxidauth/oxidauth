@@ -1,5 +1,7 @@
 use axum::{
+    Form,
     extract::{Path, Query, State},
+    http::StatusCode,
     response::{IntoResponse, Redirect, Response},
 };
 use oxidauth_kernel::{
@@ -32,13 +34,89 @@ pub async fn handle(
     Path(path_params): Path<PathParams>,
     Query(auth_response): Query<OAuth2AuthenticatePathParams>,
 ) -> Response {
+    run_flow(
+        provider,
+        path_params.client_key,
+        auth_response.code,
+        auth_response.state,
+        auth_response.scope,
+    )
+    .await
+}
+
+/// Sign in with Apple answers the flow with a form POST to the redirect URI
+/// (`response_mode=form_post`, OXA-000072) instead of a query string. The
+/// form's `id_token` and first-consent `user` JSON are deliberately ignored:
+/// identity is re-derived from the server-side code exchange and a JWKS-
+/// verified token — whatever a browser posts is not trusted. An `error`
+/// field (user denied consent, account revoked, …) is logged and mapped to
+/// the same static error text.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct AppleCallbackForm {
+    #[serde(default)]
+    pub code: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub scope: Option<String>,
+    #[serde(default)]
+    pub id_token: Option<String>,
+    #[serde(default)]
+    pub user: Option<String>,
+    #[serde(default)]
+    pub error: Option<String>,
+    #[serde(default)]
+    pub error_description: Option<String>,
+}
+
+#[tracing::instrument(name = "oauth2_apple_callback_handler", skip(provider))]
+pub async fn handle_form(
+    State(provider): State<Provider>,
+    Path(path_params): Path<PathParams>,
+    Form(auth_response): Form<AppleCallbackForm>,
+) -> Response {
+    if let Some(error) = &auth_response.error {
+        error!(
+            message = "apple callback carried an authorization error",
+            error = error.as_str(),
+            error_description = auth_response
+                .error_description
+                .as_deref()
+                .unwrap_or("none"),
+        );
+
+        return ERROR_RESPONSE.into_response();
+    }
+
+    let (Some(code), Some(state)) = (auth_response.code.clone(), auth_response.state.clone())
+    else {
+        return (StatusCode::BAD_REQUEST, "missing field `code` or `state`").into_response();
+    };
+
+    run_flow(
+        provider,
+        path_params.client_key,
+        code,
+        state,
+        auth_response.scope,
+    )
+    .await
+}
+
+async fn run_flow(
+    provider: Provider,
+    client_key: Uuid,
+    code: String,
+    state: String,
+    scope: Option<String>,
+) -> Response {
     let service = provider.fetch_unchecked::<AuthenticateOrRegisterService>();
 
     let params = {
         let params = OAuth2AuthenticateParams {
-            code: auth_response.code,
-            scope: auth_response.scope.clone(),
-            client_key: path_params.client_key,
+            code,
+            scope: scope.clone(),
+            client_key,
         };
 
         let params = match serde_json::to_value(&params) {
@@ -58,8 +136,8 @@ pub async fn handle(
 
     let result = service
         .authenticate_or_register(&AuthenticateOrRegisterParams {
-            client_key: path_params.client_key,
-            state: auth_response.state,
+            client_key,
+            state,
             params,
         })
         .await;
@@ -147,21 +225,22 @@ fn gen_redirect_url(
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex};
 
     use async_trait::async_trait;
     use axum::{
         Router,
         body::Body,
         extract::Request,
-        http::{StatusCode, header::LOCATION},
+        http::{
+            StatusCode,
+            header::{CONTENT_TYPE, LOCATION},
+        },
     };
     use http_body_util::BodyExt;
     use oxidauth_kernel::{
         auth::authenticate_or_register::{
-            AuthenticateOrRegisterParams,
             AuthenticateOrRegisterResponse,
-            AuthenticateOrRegisterService,
             AuthenticateOrRegisterServiceTrait,
         },
         error::BoxedError,
@@ -182,6 +261,7 @@ mod tests {
         given_name: Option<String>,
         family_name: Option<String>,
         user_id: Uuid,
+        captured: Arc<Mutex<Vec<AuthenticateOrRegisterParams>>>,
     }
 
     impl MockAuthenticateOrRegister {
@@ -194,6 +274,7 @@ mod tests {
                 given_name: Some("Ada".to_string()),
                 family_name: Some("Lovelace".to_string()),
                 user_id: Uuid::nil(),
+                captured: Arc::default(),
             }
         }
 
@@ -206,6 +287,7 @@ mod tests {
                 given_name: None,
                 family_name: None,
                 user_id: Uuid::nil(),
+                captured: Arc::default(),
             }
         }
     }
@@ -214,8 +296,17 @@ mod tests {
     impl AuthenticateOrRegisterServiceTrait for MockAuthenticateOrRegister {
         async fn authenticate_or_register(
             &self,
-            _params: &AuthenticateOrRegisterParams,
+            params: &AuthenticateOrRegisterParams,
         ) -> Result<AuthenticateOrRegisterResponse, BoxedError> {
+            self.captured
+                .lock()
+                .expect("captured")
+                .push(AuthenticateOrRegisterParams {
+                    client_key: params.client_key,
+                    state: params.state.clone(),
+                    params: params.params.clone(),
+                });
+
             if self.fail {
                 // stands in for the strategy-lookup failure (no authority for
                 // client_key, or exchange/profile rejection inside the service)
@@ -251,6 +342,19 @@ mod tests {
             Request::builder()
                 .uri(uri)
                 .body(Body::empty())
+                .expect("should be able to build a request"),
+        )
+        .await
+        .expect("should be able to serve the request")
+    }
+
+    async fn post_form(app: Router, key: &str, body: &str) -> axum::response::Response {
+        app.oneshot(
+            Request::builder()
+                .method("POST")
+                .uri(format!("/auth/oauth2/callback/{key}"))
+                .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(body.to_owned()))
                 .expect("should be able to build a request"),
         )
         .await
@@ -401,6 +505,107 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         assert_eq!(body_text(response).await, ERROR_RESPONSE);
+    }
+
+    #[tokio::test]
+    async fn apple_style_form_post_completes_the_flow_like_the_get_path() {
+        // OXA-000072: the same pipeline behind a form_post callback — code
+        // and state arrive in the body instead of the query string
+        let mock = MockAuthenticateOrRegister::success("https://app.example.com/");
+        let captured = mock.captured.clone();
+
+        let response = post_form(
+            app(mock),
+            &client_key(),
+            "code=apple-code&state=apple-state&scope=openid%20email",
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+
+        let captured = captured
+            .lock()
+            .expect("captured");
+        let first = captured
+            .first()
+            .expect("the service was called exactly once");
+        assert_eq!(captured.len(), 1);
+        assert_eq!(first.state, "apple-state");
+
+        let wire = serde_json::to_value(&first.params).expect("params serialize");
+        assert_eq!(wire["code"], "apple-code");
+        assert_eq!(wire["scope"], "openid email");
+    }
+
+    #[tokio::test]
+    async fn form_post_never_forwards_apple_form_id_token_or_user() {
+        // anything the browser posts under `id_token`/`user` is untrusted
+        // noise: identity is re-derived server-side from the code exchange,
+        // so those fields must not reach the service params (OXA-000072)
+        let mock = MockAuthenticateOrRegister::success("https://app.example.com/");
+        let captured = mock.captured.clone();
+
+        let response = post_form(
+            app(mock),
+            &client_key(),
+            "code=real-code&state=s&id_token=attacker.jwt&user=%7B%22name%22%3A%22evil%22%7D",
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+
+        let captured = captured
+            .lock()
+            .expect("captured");
+        let wire = serde_json::to_value(&captured[0].params).expect("params serialize");
+
+        assert_eq!(wire["code"], "real-code");
+        assert!(
+            !wire
+                .to_string()
+                .contains("attacker")
+                && !wire
+                    .to_string()
+                    .contains("evil"),
+            "form-supplied identity material leaked into the service params: {wire}"
+        );
+    }
+
+    #[tokio::test]
+    async fn form_post_without_code_or_state_is_rejected_with_400() {
+        let response = post_form(
+            app(MockAuthenticateOrRegister::fail()),
+            &client_key(),
+            "state=apple-state",
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(body_text(response).await, "missing field `code` or `state`");
+    }
+
+    #[tokio::test]
+    async fn form_post_carrying_apple_error_never_reaches_the_service() {
+        // user denial: logged and mapped to the static error text (200-on-
+        // error shape stays pinned to the GET behavior until OXA-000037)
+        let mock = MockAuthenticateOrRegister::success("https://app.example.com/");
+        let captured = mock.captured.clone();
+
+        let response = post_form(
+            app(mock),
+            &client_key(),
+            "error=user_consented&error_description=nope&state=apple-state",
+        )
+        .await;
+
+        assert_eq!(body_text(response).await, ERROR_RESPONSE);
+        assert!(
+            captured
+                .lock()
+                .expect("captured")
+                .is_empty(),
+            "a denied authorization must not drive the pipeline"
+        );
     }
 
     #[test]

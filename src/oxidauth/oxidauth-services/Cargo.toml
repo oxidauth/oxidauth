@@ -18,10 +18,14 @@ async-trait = "0.1.92"
 base64 = "0.22.1"
 boringauth = "0.9.0"
 chrono = "0.4.45"
+# OXA-000072: Sign in with Apple client-secret JWTs (ES256) and id_token
+# verification (RS256). Same version the kernel pins (its `jwt` feature).
+jsonwebtoken = "9.3.1"
 rand = "0.8.5"
 rand_core = { version = "0.6.4", features = ["std"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
+sha2 = "0.10"
 tracing = "0.1.44"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.23", features = [

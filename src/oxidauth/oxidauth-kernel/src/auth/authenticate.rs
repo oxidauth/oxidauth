@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     JsonValue,
+    auth::AuthEntry,
     authorities::find_authority_by_client_key::FindAuthorityByClientKey,
     dev_prelude::BoxedError,
 };
@@ -24,6 +25,12 @@ pub type AuthenticateService = Arc<dyn AuthenticateServiceTrait>;
 pub struct AuthenticateParams {
     pub client_key: Uuid,
     pub params: JsonValue,
+    /// `serde(skip)` on purpose: wire input can only ever produce
+    /// `AuthEntry::External` (OXA-000004 step 1). In-process callers that
+    /// legitimately drive another strategy (e.g. the oauth2 callback flow)
+    /// set `AuthEntry::Internal` at construction.
+    #[serde(skip)]
+    pub entry: AuthEntry,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -67,4 +74,32 @@ pub struct WebhookReq {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WebhookRes {
     pub success: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn entry_is_never_readable_or_writable_through_the_wire_shape() {
+        // OXA-000004 step 1: `entry` is `serde(skip)`ped — a request body
+        // claiming `entry: "internal"` deserializes to `External`, and the
+        // field never appears in serialized output either.
+        let params: AuthenticateParams = serde_json::from_value(json!({
+            "client_key": "7f92aedd-d5db-4f8e-8162-9baaf1ce0f05",
+            "params": { "email": "someone@example.com" },
+            "entry": "internal",
+        }))
+        .expect("wire body parses");
+
+        assert_eq!(params.entry, AuthEntry::External);
+
+        let value = serde_json::to_value(&params).expect("serializes");
+        assert!(
+            value.get("entry").is_none(),
+            "entry must not round-trip: {value}"
+        );
+    }
 }

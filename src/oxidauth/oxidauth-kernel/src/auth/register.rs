@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::{
     JsonValue,
+    auth::AuthEntry,
     authorities::find_authority_by_client_key::FindAuthorityByClientKey,
     dev_prelude::BoxedError,
 };
@@ -21,6 +22,12 @@ pub type RegisterService = Arc<dyn RegisterServiceTrait>;
 pub struct RegisterParams {
     pub client_key: Uuid,
     pub params: JsonValue,
+    /// `serde(skip)` on purpose: wire input can only ever produce
+    /// `AuthEntry::External` (OXA-000004 step 1). In-process callers that
+    /// legitimately drive another strategy (e.g. the oauth2 callback flow's
+    /// register fallback) set `AuthEntry::Internal` at construction.
+    #[serde(skip)]
+    pub entry: AuthEntry,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

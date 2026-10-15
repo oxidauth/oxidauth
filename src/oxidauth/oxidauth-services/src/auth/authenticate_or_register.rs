@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use async_trait::async_trait;
 use oxidauth_kernel::{
     JsonValue,
     auth::{
+        AuthEntry,
         authenticate::{AuthenticateParams, AuthenticateServiceTrait},
         authenticate_or_register::*,
+        oauth2::state::{ConsumeOAuthState, OAuth2StateError},
         register::{RegisterParams, RegisterServiceTrait},
     },
     authorities::{AuthorityNotFoundError, find_authority_by_client_key::FindAuthorityByClientKey},
@@ -17,6 +18,7 @@ use oxidauth_kernel::{
 use oxidauth_repository::{
     auth::tree::PermissionTreeQuery,
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
+    oauth_states::consume_oauth_state::ConsumeOAuthStateQuery,
     private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
     refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery,
     totp_secrets::select_totp_secret_by_user_id::SelectTOTPSecrețByUserIdQuery,
@@ -27,6 +29,11 @@ use oxidauth_repository::{
     users::{insert_user::InsertUserQuery, select_user_by_id_query::SelectUserByIdQuery},
 };
 use serde::Serialize;
+use sha2::{Digest, Sha256};
+
+/// A minted state is 22 base64url chars; anything larger is probing input and
+/// is rejected on shape before any hashing work happens (OXA-000010).
+const MAX_STATE_BYTES: usize = 256;
 
 use super::{
     authenticate::AuthenticateUseCase,
@@ -34,12 +41,13 @@ use super::{
     strategies::oauth2::{AuthorityParams, OAuthFlavors},
 };
 use crate::auth::strategies::oauth2::{
+    apple::{exchange_apple_token, retrieve_apple_profile},
     google::{exchange_google_token, retrieve_google_profile},
     microsoft::{exchange_microsoft_token, retrieve_microsoft_profile},
     registrar::Oauth2RegisterParams,
 };
 
-pub struct AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+pub struct AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU, OS>
 where
     A: InsertUserAuthorityQuery,
     M: SelectMostRecentPrivateKeyQuery,
@@ -50,13 +58,15 @@ where
     UI: InsertUserQuery,
     U: SelectUserAuthorityByAuthorityIdAndUserIdentifierQuery,
     UU: SelectUserByIdQuery,
+    OS: ConsumeOAuthStateQuery,
 {
     authenticate: Arc<AuthenticateUseCase<T, U, P, M, R, S, UU>>,
     register: Arc<RegisterUseCase<T, UI, A, P, M, R>>,
     authorities: T,
+    oauth_states: OS,
 }
 
-impl<A, M, P, R, S, T, UI, U, UU> AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+impl<A, M, P, R, S, T, UI, U, UU, OS> AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU, OS>
 where
     A: InsertUserAuthorityQuery,
     M: SelectMostRecentPrivateKeyQuery,
@@ -67,16 +77,19 @@ where
     UI: InsertUserQuery,
     U: SelectUserAuthorityByAuthorityIdAndUserIdentifierQuery,
     UU: SelectUserByIdQuery,
+    OS: ConsumeOAuthStateQuery,
 {
     pub fn new(
         authenticate: Arc<AuthenticateUseCase<T, U, P, M, R, S, UU>>,
         register: Arc<RegisterUseCase<T, UI, A, P, M, R>>,
         authorities: T,
+        oauth_states: OS,
     ) -> Self {
         Self {
             authenticate,
             register,
             authorities,
+            oauth_states,
         }
     }
 
@@ -84,8 +97,22 @@ where
         &self,
         authority_params: &AuthorityParams,
         authenticate_params: &OAuth2AuthenticateParams,
+        // the raw, already-consumed state nonce — Apple requires it to check
+        // the id_token's nonce == sha256(state) (OXA-000072)
+        state: &str,
     ) -> Result<OAuth2Profile, BoxedError> {
         match authority_params.flavor {
+            OAuthFlavors::Apple => {
+                let id_token = exchange_apple_token(
+                    authenticate_params
+                        .code
+                        .clone(),
+                    authority_params,
+                )
+                .await?;
+
+                retrieve_apple_profile(id_token, state, authority_params).await
+            },
             OAuthFlavors::Google => {
                 let code = authenticate_params
                     .code
@@ -106,8 +133,8 @@ where
 }
 
 #[async_trait]
-impl<A, M, P, R, S, T, UI, U, UU> AuthenticateOrRegisterServiceTrait
-    for AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+impl<A, M, P, R, S, T, UI, U, UU, OS> AuthenticateOrRegisterServiceTrait
+    for AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU, OS>
 where
     A: InsertUserAuthorityQuery,
     M: SelectMostRecentPrivateKeyQuery,
@@ -118,6 +145,7 @@ where
     UI: InsertUserQuery,
     U: SelectUserAuthorityByAuthorityIdAndUserIdentifierQuery,
     UU: SelectUserByIdQuery,
+    OS: ConsumeOAuthStateQuery,
 {
     #[tracing::instrument(
         name = "AuthenticateOrRegisterUseCase::authenticate_or_register",
@@ -137,26 +165,28 @@ where
             return Err(AuthorityNotFoundError::client_key(params.client_key).into());
         };
 
-        // VERIFY THE STATE HASH VALUE
-        let Ok(parsed_state_hash) = PasswordHash::new(&params.state) else {
-            return Err("could not hash state"
-                .to_string()
-                .into());
-        };
+        // OXA-000010: consume the single-use state nonce BEFORE any IdP
+        // contact. The old check verified an argon2 hash of the PUBLIC
+        // client_key — forgeable offline, valid forever, and it parsed
+        // attacker-chosen KDF cost parameters on an unauthenticated GET.
+        // This consume is atomic (unknown/expired/spent all collapse to one
+        // Invalid — no oracle), and the shape guard bounds hashing work.
+        if params.state.is_empty() || params.state.len() > MAX_STATE_BYTES {
+            return Err(OAuth2StateError::Malformed.into());
+        }
 
-        let is_state_hash_verified = Argon2::default()
-            .verify_password(
-                authority
-                    .client_key
-                    .as_bytes(),
-                &parsed_state_hash,
-            )
-            .is_ok();
+        let state_hash = Sha256::digest(params.state.as_bytes()).to_vec();
 
-        if !is_state_hash_verified {
-            return Err("Invalid state hash"
-                .to_string()
-                .into());
+        let state_consumed = self
+            .oauth_states
+            .consume_oauth_state(&ConsumeOAuthState {
+                state_hash,
+                client_key: params.client_key,
+            })
+            .await?;
+
+        if !state_consumed {
+            return Err(OAuth2StateError::Invalid.into());
         }
 
         // GET PARAMS
@@ -167,7 +197,7 @@ where
             .try_into()?;
 
         let profile = self
-            .fetch_profile(&authority_params, &authenticate_params)
+            .fetch_profile(&authority_params, &authenticate_params, &params.state)
             .await?;
 
         #[derive(Debug, Serialize)]
@@ -184,6 +214,9 @@ where
             .authenticate(&AuthenticateParams {
                 client_key: params.client_key,
                 params: JsonValue::new(auth_params),
+                // in-process hop AFTER a verified state + completed IdP code
+                // exchange — the trusted entry of OXA-000004 step 1
+                entry: AuthEntry::Internal,
             })
             .await;
 
@@ -219,6 +252,9 @@ where
                         .register(&RegisterParams {
                             client_key: params.client_key,
                             params: JsonValue::new(reg_params_json),
+                            // in-process register fallback for a profile that
+                            // just cleared the IdP exchange (OXA-000004 step 1)
+                            entry: AuthEntry::Internal,
                         })
                         .await?;
 
@@ -250,7 +286,6 @@ mod tests {
         time::Duration,
     };
 
-    use argon2::{PasswordHasher, password_hash::SaltString};
     use chrono::Utc;
     use oxidauth_kernel::{
         JsonValue,
@@ -310,14 +345,13 @@ mod tests {
         )
     });
 
-    // the state param must be an argon2 PHC hash of the authority's client_key
-    // bytes; hashing is deterministic with a fixed salt
-    fn state_hash(secret: &[u8]) -> String {
-        let salt = SaltString::new("TtHtIsSaLtVaLuE9").expect("salt");
-        Argon2::default()
-            .hash_password(secret, &salt)
-            .expect("hash")
-            .to_string()
+    // OXA-000010 (flipped pin): the state is now an opaque nonce; liveness is
+    // decided by the state store, not by hashing public data. `state_hash`
+    // mirrors the digest the use case computes for store lookups.
+    const VALID_STATE: &str = "nonce-minted-for-this-client-key";
+
+    fn state_hash(state: &str) -> Vec<u8> {
+        Sha256::digest(state.as_bytes()).to_vec()
     }
 
     // ------------------------------------------------------------------
@@ -357,6 +391,25 @@ mod tests {
     }
 
     fn start_fake_idp() -> FakeIdp {
+        start_fake_idp_inner(None, None)
+    }
+
+    // OXA-000072: the apple flavor has no /me — its identity arrives inside
+    // the id_token the token endpoint returns, and is verified against the
+    // JWKS served at /keys.
+    fn start_fake_apple_idp(id_token: String) -> FakeIdp {
+        start_fake_idp_inner(Some(id_token), None)
+    }
+
+    // OXA-000073: serve a custom /me document (e.g. verified_email: false)
+    fn start_fake_idp_profile(profile_body: String) -> FakeIdp {
+        start_fake_idp_inner(None, Some(profile_body))
+    }
+
+    fn start_fake_idp_inner(
+        apple_id_token: Option<String>,
+        profile_body: Option<String>,
+    ) -> FakeIdp {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind idp");
         let addr = listener
             .local_addr()
@@ -423,10 +476,20 @@ mod tests {
                     .expect("idp log")
                     .push(format!("{method} {path}"));
 
-                let body = if path.ends_with("/me") {
-                    PROFILE_BODY
+                let body: String = if path.ends_with("/keys") {
+                    use crate::auth::strategies::oauth2::apple::fixtures::jwks_json;
+
+                    jwks_json().to_string()
+                } else if let Some(id_token) = &apple_id_token {
+                    format!(
+                        r#"{{"id_token":"{id_token}","token_type":"Bearer","expires_in":3600}}"#
+                    )
+                } else if path.ends_with("/me") {
+                    profile_body
+                        .clone()
+                        .unwrap_or_else(|| PROFILE_BODY.to_owned())
                 } else {
-                    TOKEN_BODY
+                    TOKEN_BODY.to_owned()
                 };
                 let response = format!(
                     "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: \
@@ -502,17 +565,34 @@ mod tests {
             match &self.mode {
                 AuthorityMode::Missing => Ok(None),
                 AuthorityMode::Oauth2 { flavor, idp_base } => {
-                    Ok(Some(authority(json!({
+                    use crate::auth::strategies::oauth2::fixtures::{
+                        APPLE_KEY_ENV_VAR,
+                        APPLE_KEY_ID,
+                        APPLE_TEAM_ID,
+                    };
+
+                    let apple = *flavor == "Apple";
+                    let mut params = json!({
                         "exchange_url": format!("{idp_base}/token"),
                         "flavor": flavor,
                         "oauth2_id": "sso-client-id",
                         "oauth2_secret": "sso-client-secret",
-                        "profile_url": format!("{idp_base}/me"),
+                        // apple verifies id_tokens against the JWKS in this
+                        // slot instead of fetching a userinfo profile
+                        "profile_url": if apple { format!("{idp_base}/keys") } else { format!("{idp_base}/me") },
                         "scopes": "openid email profile",
                         "redirect_url": "https://authorize.example.com/oauth",
                         "client_base_url": CLIENT_BASE,
                         "redirect_uri": "https://app.example.com/cb",
-                    }))))
+                    });
+
+                    if apple {
+                        params["apple_team_id"] = json!(APPLE_TEAM_ID);
+                        params["apple_key_id"] = json!(APPLE_KEY_ID);
+                        params["apple_private_key_env_var"] = json!(APPLE_KEY_ENV_VAR);
+                    }
+
+                    Ok(Some(authority(params)))
                 },
                 AuthorityMode::GarbageParams => Ok(Some(authority(json!({ "garbage": true })))),
             }
@@ -693,6 +773,62 @@ mod tests {
         }
     }
 
+    // OXA-000010: in-memory stand-in for the oauth_states table — a nonce
+    // verifies iff it was minted for the requesting client_key and has not
+    // been spent yet (single-use, like the atomic DELETE ... RETURNING).
+    struct MockOAuthStates {
+        // raw state -> the client_key it was minted for
+        minted: Vec<(String, Uuid)>,
+        fail: bool,
+        spent: Arc<Mutex<Vec<Vec<u8>>>>,
+        log: CallLog,
+    }
+
+    #[async_trait]
+    impl ConsumeOAuthStateQuery for MockOAuthStates {
+        async fn consume_oauth_state(
+            &self,
+            params: &ConsumeOAuthState,
+        ) -> Result<bool, BoxedError> {
+            if self.fail {
+                return Err("simulated state store failure".into());
+            }
+
+            self.log
+                .push("consume_state".to_owned());
+
+            let live = self
+                .minted
+                .iter()
+                .any(|(raw, key)| {
+                    *key == params.client_key && state_hash(raw) == params.state_hash
+                });
+            if !live {
+                return Ok(false);
+            }
+
+            let mut spent = self
+                .spent
+                .lock()
+                .expect("spent");
+            if spent.contains(&params.state_hash) {
+                return Ok(false);
+            }
+            spent.push(params.state_hash.clone());
+
+            Ok(true)
+        }
+    }
+
+    fn live_states() -> MockOAuthStates {
+        MockOAuthStates {
+            minted: vec![(VALID_STATE.to_owned(), CLIENT_KEY)],
+            fail: false,
+            spent: Arc::default(),
+            log: CallLog::default(),
+        }
+    }
+
     struct MockInsertUser {
         log: CallLog,
     }
@@ -804,9 +940,19 @@ mod tests {
         MockInsertUser,
         MockUserAuthority,
         MockUserById,
+        MockOAuthStates,
     >;
 
     fn use_case(log: &CallLog, mode: AuthorityMode, lookup: LookupOutcome) -> AOR {
+        use_case_with_states(log, mode, lookup, live_states())
+    }
+
+    fn use_case_with_states(
+        log: &CallLog,
+        mode: AuthorityMode,
+        lookup: LookupOutcome,
+        states: MockOAuthStates,
+    ) -> AOR {
         let authenticate = Arc::new(AU::new(
             MockAuthority {
                 mode: mode.clone(),
@@ -841,6 +987,10 @@ mod tests {
                 mode,
                 log: log.clone(),
             },
+            MockOAuthStates {
+                log: log.clone(),
+                ..states
+            },
         )
     }
 
@@ -861,7 +1011,7 @@ mod tests {
     }
 
     fn valid_state() -> String {
-        state_hash(CLIENT_KEY.as_bytes())
+        VALID_STATE.to_owned()
     }
 
     #[tokio::test]
@@ -887,7 +1037,44 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn unparseable_state_is_rejected_before_any_token_exchange() {
+    async fn malformed_state_is_rejected_before_any_hashing_or_store_call() {
+        // OXA-000010 (flipped pin): shape violations — empty, or long enough
+        // to be probing input — are refused before any work at all.
+        let idp = start_fake_idp();
+
+        for state in [String::new(), "x".repeat(MAX_STATE_BYTES + 1)] {
+            let log = CallLog::default();
+            let case = use_case(
+                &log,
+                oauth2_mode("Google", idp.base.clone()),
+                LookupOutcome::Found,
+            );
+
+            let err = case
+                .authenticate_or_register(&req(state.clone()))
+                .await
+                .expect_err("a malformed state must error");
+
+            assert!(
+                matches!(
+                    err.downcast_ref::<OAuth2StateError>(),
+                    Some(OAuth2StateError::Malformed)
+                ),
+                "expected the typed Malformed error, got: {err:?}"
+            );
+            assert!(
+                !log.has("consume_state"),
+                "the shape guard runs before the store: {:?}",
+                log.ops()
+            );
+            assert!(idp.requests().is_empty(), "the idp must not be contacted");
+        }
+    }
+
+    #[tokio::test]
+    async fn unknown_state_is_rejected_before_any_token_exchange() {
+        // OXA-000010 (flipped pin): a nonce the store never minted (or one
+        // already expired/spent — the store collapses them) cannot pass.
         let log = CallLog::default();
         let idp = start_fake_idp();
         let case = use_case(
@@ -897,20 +1084,32 @@ mod tests {
         );
 
         let err = case
-            .authenticate_or_register(&req("not-a-phc-string".to_owned()))
+            .authenticate_or_register(&req("nonce-never-minted".to_owned()))
             .await
-            .expect_err("an unparseable state must error");
+            .expect_err("an unknown state must error");
 
         assert!(
-            err.to_string()
-                .contains("could not hash state"),
-            "got: {err}"
+            matches!(
+                err.downcast_ref::<OAuth2StateError>(),
+                Some(OAuth2StateError::Invalid)
+            ),
+            "expected the typed Invalid error, got: {err:?}"
+        );
+        assert_eq!(
+            log.ops(),
+            vec![
+                format!("find_authority:{CLIENT_KEY}"),
+                "consume_state".to_owned(),
+            ],
+            "state verification must happen after the authority lookup and before everything else"
         );
         assert!(idp.requests().is_empty(), "the idp must not be contacted");
     }
 
     #[tokio::test]
-    async fn state_hashing_a_different_secret_is_rejected() {
+    async fn spent_state_cannot_be_spent_again() {
+        // OXA-000010 replay regression: the whole point of the fix — the
+        // same state, twice, is exactly one login.
         let log = CallLog::default();
         let idp = start_fake_idp();
         let case = use_case(
@@ -919,14 +1118,89 @@ mod tests {
             LookupOutcome::Found,
         );
 
-        let err = case
-            .authenticate_or_register(&req(state_hash(b"not-the-client-key")))
+        case.authenticate_or_register(&req(valid_state()))
             .await
-            .expect_err("a state hash of the wrong secret must error");
+            .expect("the live state authenticates the first time");
+
+        let err = case
+            .authenticate_or_register(&req(valid_state()))
+            .await
+            .expect_err("the spent state must be refused on the second pass");
+
+        assert!(
+            matches!(
+                err.downcast_ref::<OAuth2StateError>(),
+                Some(OAuth2StateError::Invalid)
+            ),
+            "expected the typed Invalid error, got: {err:?}"
+        );
+        assert_eq!(
+            idp.requests(),
+            vec!["POST /token".to_owned(), "GET /me".to_owned()],
+            "the second pass must not touch the idp at all"
+        );
+        assert_eq!(
+            log.ops()
+                .iter()
+                .filter(|op| op.starts_with("insert_refresh"))
+                .count(),
+            1,
+            "exactly one session may exist for two callbacks: {:?}",
+            log.ops()
+        );
+    }
+
+    #[tokio::test]
+    async fn state_minted_for_another_authority_is_rejected() {
+        let log = CallLog::default();
+        let idp = start_fake_idp();
+        let case = use_case_with_states(
+            &log,
+            oauth2_mode("Google", idp.base.clone()),
+            LookupOutcome::Found,
+            MockOAuthStates {
+                minted: vec![(VALID_STATE.to_owned(), Uuid::new_v4())],
+                ..live_states()
+            },
+        );
+
+        let err = case
+            .authenticate_or_register(&req(valid_state()))
+            .await
+            .expect_err("a state bound to another client_key must error");
+
+        assert!(
+            matches!(
+                err.downcast_ref::<OAuth2StateError>(),
+                Some(OAuth2StateError::Invalid)
+            ),
+            "expected the typed Invalid error, got: {err:?}"
+        );
+        assert!(idp.requests().is_empty(), "the idp must not be contacted");
+    }
+
+    #[tokio::test]
+    async fn state_store_failure_propagates_without_idp_contact() {
+        let log = CallLog::default();
+        let idp = start_fake_idp();
+        let case = use_case_with_states(
+            &log,
+            oauth2_mode("Google", idp.base.clone()),
+            LookupOutcome::Found,
+            MockOAuthStates {
+                fail: true,
+                ..live_states()
+            },
+        );
+
+        let err = case
+            .authenticate_or_register(&req(valid_state()))
+            .await
+            .expect_err("a state store outage must fail closed");
 
         assert!(
             err.to_string()
-                .contains("Invalid state hash"),
+                .contains("simulated state store failure"),
             "got: {err}"
         );
         assert!(idp.requests().is_empty(), "the idp must not be contacted");
@@ -946,6 +1220,14 @@ mod tests {
             err.to_string()
                 .contains("missing field `exchange_url`"),
             "expected the serde missing-field error, got: {err}"
+        );
+        assert_eq!(
+            log.ops(),
+            vec![
+                format!("find_authority:{CLIENT_KEY}"),
+                "consume_state".to_owned(),
+            ],
+            "the live state is consumed first, then the params fail"
         );
     }
 
@@ -1032,6 +1314,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 "find_authority", // AOR's own lookup
+                "consume_state",  // the OXA-000010 single-use nonce gate
                 "find_authority", // the authenticate use case's lookup
                 "find_user_authority",
                 "find_user", // the OXA-000009 status gate
@@ -1092,6 +1375,7 @@ mod tests {
             heads,
             vec![
                 "find_authority", // AOR lookup
+                "consume_state",  // the OXA-000010 single-use nonce gate
                 "find_authority", // authenticate attempt
                 "find_user_authority",
                 "find_authority", // register lookup
@@ -1181,5 +1465,161 @@ mod tests {
             "family_name maps from surname"
         );
         assert_eq!(res.user_id, EXISTING_USER_ID);
+    }
+
+    fn apple_claims(
+        nonce_state: &str,
+    ) -> crate::auth::strategies::oauth2::apple::fixtures::IdTokenClaims {
+        use crate::auth::strategies::oauth2::apple::{APPLE_ISSUER, fixtures::nonce_for};
+
+        let now = Utc::now().timestamp() as u64;
+
+        crate::auth::strategies::oauth2::apple::fixtures::IdTokenClaims {
+            iss: APPLE_ISSUER.to_owned(),
+            aud: "sso-client-id".to_owned(),
+            exp: now + 300,
+            iat: now,
+            sub: "001487.8f718d0da2a0432994da98a1e41151cb.1447".to_owned(),
+            email: Some("ann@relay.myapplemail.com".to_owned()),
+            nonce: Some(nonce_for(nonce_state)),
+            email_verified: Some(json!(true)),
+        }
+    }
+
+    #[tokio::test]
+    async fn apple_flavor_exchanges_verifies_the_bound_id_token_and_authenticates() {
+        // OXA-000072 end-to-end: consumed state -> signed client secret ->
+        // token exchange -> JWKS-verified id_token whose nonce is sha256 of
+        // THE consumed state -> authenticate with the token's email
+        use crate::{
+            EnvGuard,
+            auth::strategies::oauth2::{apple::fixtures::EC_PEM, fixtures::APPLE_KEY_ENV_VAR},
+        };
+
+        let state = valid_state();
+        let idp = start_fake_apple_idp(
+            crate::auth::strategies::oauth2::apple::fixtures::sign_id_token(apple_claims(&state)),
+        );
+
+        let log = CallLog::default();
+        let _env = EnvGuard::set(APPLE_KEY_ENV_VAR, EC_PEM);
+        let case = use_case(
+            &log,
+            oauth2_mode("Apple", idp.base.clone()),
+            LookupOutcome::Found,
+        );
+
+        let res = case
+            .authenticate_or_register(&req(state))
+            .await
+            .expect("the apple flavor must complete");
+
+        assert_eq!(res.email, "ann@relay.myapplemail.com");
+        assert!(
+            res.given_name.is_none() && res.family_name.is_none(),
+            "apple profiles carry no display names"
+        );
+        assert_eq!(res.user_id, EXISTING_USER_ID);
+
+        assert_eq!(
+            idp.requests(),
+            vec!["POST /token".to_owned(), "GET /keys".to_owned()],
+            "apple exchanges the code, then fetches the JWKS — never a /me"
+        );
+        assert!(
+            log.has("consume_state"),
+            "the state is consumed before the exchange: {:?}",
+            log.ops()
+        );
+    }
+
+    #[tokio::test]
+    async fn apple_id_token_from_a_different_login_attempt_never_authenticates() {
+        // replay shape: a genuine, correctly signed Apple token captured
+        // from ANOTHER flow carries the wrong nonce — it must die at the
+        // nonce gate and never touch the authenticate pipeline
+        use crate::{
+            EnvGuard,
+            auth::strategies::oauth2::{apple::fixtures::EC_PEM, fixtures::APPLE_KEY_ENV_VAR},
+        };
+
+        let state = valid_state();
+        let idp = start_fake_apple_idp(
+            crate::auth::strategies::oauth2::apple::fixtures::sign_id_token(apple_claims(
+                "stateOfAnEntirelyDifferentLogin",
+            )),
+        );
+
+        let log = CallLog::default();
+        let _env = EnvGuard::set(APPLE_KEY_ENV_VAR, EC_PEM);
+        let case = use_case(
+            &log,
+            oauth2_mode("Apple", idp.base.clone()),
+            LookupOutcome::Found,
+        );
+
+        let err = case
+            .authenticate_or_register(&req(state))
+            .await
+            .expect_err("a token bound to another state must not authenticate");
+
+        assert!(
+            err.to_string()
+                .contains("nonce"),
+            "expected the typed nonce mismatch error, got: {err}"
+        );
+        assert!(
+            !log.has("find_user_authority"),
+            "the authenticate step must never start: got {:?}",
+            log.ops()
+        );
+    }
+
+    #[tokio::test]
+    async fn google_unverified_email_is_refused_before_any_authentication() {
+        // OXA-000073: the state is spent and the code exchanged, but an
+        // address Google itself flags unverified never becomes a profile —
+        // no lookup, no registration, no session
+        use crate::auth::strategies::oauth2::google::GoogleProfileError;
+
+        let idp = start_fake_idp_profile(
+            r#"{"email":"ghost@example.com","verified_email":false,"given_name":"Ghost","family_name":"Squad"}"#
+                .to_owned(),
+        );
+
+        let log = CallLog::default();
+        let case = use_case(
+            &log,
+            oauth2_mode("Google", idp.base.clone()),
+            LookupOutcome::Found,
+        );
+
+        let err = case
+            .authenticate_or_register(&req(valid_state()))
+            .await
+            .expect_err("an unverified google email must not log in");
+
+        assert!(
+            matches!(
+                err.downcast_ref::<GoogleProfileError>(),
+                Some(GoogleProfileError::EmailUnverified)
+            ),
+            "expected the typed EmailUnverified error, got: {err:?}"
+        );
+        assert!(
+            !log.has("find_user_authority"),
+            "the authenticate step must never start: got {:?}",
+            log.ops()
+        );
+        assert!(
+            !log.has("insert_user:"),
+            "an unverified address must never be registered: got {:?}",
+            log.ops()
+        );
+        assert_eq!(
+            idp.requests(),
+            vec!["POST /token".to_owned(), "GET /me".to_owned()],
+            "the profile was fetched — the refusal happens on its way out"
+        );
     }
 }

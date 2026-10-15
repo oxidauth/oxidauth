@@ -20,6 +20,7 @@ telemetry = { version = "0.9.0", path = "../../xlib/telemetry" }
 async-trait = "0.1.92"
 # template baseline: default features off, explicit feature list
 axum = { version = "0.8.9", default-features = false, features = [
+    "form",
     "http1",
     "json",
     "macros",

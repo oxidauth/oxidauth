@@ -3,7 +3,10 @@ use std::{env, time::Duration};
 use async_trait::async_trait;
 use oxidauth_kernel::{
     JsonValue,
-    auth::register::{RegisterParams, RegisterService},
+    auth::{
+        AuthEntry,
+        register::{RegisterParams, RegisterService},
+    },
     authorities::{
         Authority,
         AuthorityNotFoundError,
@@ -501,6 +504,8 @@ async fn first_or_register_user(
                     let register_params = RegisterParams {
                         client_key: authority.client_key,
                         params: JsonValue::new(username_password_params),
+                        // trusted in-process provisioning handoff
+                        entry: AuthEntry::Internal,
                     };
 
                     register_user
