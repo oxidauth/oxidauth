@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use base64::{Engine, prelude::BASE64_STANDARD};
-use boringauth::oath::TOTPBuilder;
 use chrono::DateTime;
 pub use oxidauth_kernel::{
     auth::{
@@ -33,10 +32,9 @@ use oxidauth_repository::{
     },
     users::select_user_by_id_query::SelectUserByIdQuery,
 };
-use reqwest::Client;
 use tracing::info;
 
-use crate::{auth::strategies::*, bootstrap::TOTP_VALIDATE_PERMISSION, dev_prelude::epoch};
+use crate::{auth::strategies::*, bootstrap::TOTP_VALIDATE_PERMISSION};
 
 pub struct AuthenticateUseCase<T, U, P, M, R, S, UU>
 where
@@ -167,6 +165,15 @@ where
             jwt_builder = jwt_builder.with_not_before_from(value);
         };
 
+        // Snapshot the second-factor state before the match below moves the webhook
+        // fields out of `authority.settings`: the refresh-token mint at the bottom
+        // needs both facts — is a code still owed, and for how long is that code
+        // alive.
+        let totp_pending_ttl = match &authority.settings.totp {
+            TotpSettings::Enabled { totp_ttl, .. } => Some(*totp_ttl),
+            TotpSettings::Disabled => None,
+        };
+
         match authority.settings.totp {
             TotpSettings::Enabled {
                 totp_ttl,
@@ -192,46 +199,15 @@ where
                     })
                     .await?;
 
-                let now = epoch()?;
-
-                let code = TOTPBuilder::new()
-                    .ascii_key(&secret_by_user_id.secret)
-                    .period(totp_ttl.as_secs() as u32)
-                    .timestamp(now)
-                    .finalize()
-                    .map_err(|err| format!("error generating totp: {:?}", err))?
-                    .generate();
-
-                let name = match (user.first_name, user.last_name) {
-                    (None, None) => None,
-                    (None, Some(last)) => Some(last),
-                    (Some(first), None) => Some(first),
-                    (Some(first), Some(last)) => Some(format!("{} {}", first, last)),
-                };
-
-                let email = user
-                    .email
-                    .ok_or("unable to send totp code - missing email")?;
-
-                let webhook_params = WebhookReq {
+                crate::totp::email_code(
+                    webhook,
                     webhook_key,
-                    name,
-                    email,
-                    code,
-                };
-
-                let client = Client::new();
-                let webhook_res: WebhookRes = client
-                    .post(webhook)
-                    .json(&webhook_params)
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
-
-                if !webhook_res.success {
-                    return Err(format!("unable to send totp code to: {}", user_identifier,).into());
-                }
+                    totp_ttl,
+                    &secret_by_user_id.secret,
+                    &user,
+                    &user_identifier,
+                )
+                .await?;
             },
             TotpSettings::Disabled => {
                 let permissions = self
@@ -251,13 +227,18 @@ where
             },
         }
 
-        let refresh_token_exp_at = epoch_from_now(
-            DurationDirection::Add,
-            authority
-                .settings
-                .refresh_token_ttl,
-        )
-        .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
+        // The token minted below is this session's only path to a JWT once the
+        // first one expires. On a TOTP authority the first JWT is deliberately
+        // entitled to nothing but `oxidauth:totp_code:validate`, so an ordinary
+        // token here would be the whole second factor walked around: `POST
+        // /refresh_tokens` answered with the full permission tree. A pending token
+        // therefore lives exactly as long as its code and carries the flag the
+        // exchange path reads to keep signing the limited JWT until
+        // `POST /totp/validate` clears it.
+        let token_ttl = totp_pending_ttl.unwrap_or(authority.settings.refresh_token_ttl);
+
+        let refresh_token_exp_at = epoch_from_now(DurationDirection::Add, token_ttl)
+            .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
 
         let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
             .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
@@ -267,6 +248,7 @@ where
             .insert_refresh_token(&CreateRefreshToken {
                 user_id: user_authority.user_id,
                 authority_id: authority.id,
+                totp_validated: totp_pending_ttl.is_none(),
                 expires_at: refresh_token_exp_at,
             })
             .await?;
@@ -305,8 +287,6 @@ pub async fn build_authenticator(
 #[cfg(test)]
 mod tests {
     use std::{
-        io::{BufRead, BufReader, Read, Write},
-        net::TcpListener,
         sync::{Arc, LazyLock, Mutex},
         time::Duration,
     };
@@ -322,6 +302,7 @@ mod tests {
         user_authorities::{UserAuthority, UserAuthorityNotFoundError},
         users::{User, UserKind, UserStatus},
     };
+    use boringauth::oath::TOTPBuilder;
     use serde_json::{Value, json};
     use url::Url;
     use uuid::Uuid;
@@ -338,6 +319,8 @@ mod tests {
             authority_params_json,
             stored_password_hash,
         },
+        dev_prelude::epoch,
+        test_support::spawn_webhook,
     };
 
     const PASSWORD: &str = "correct-password";
@@ -542,16 +525,18 @@ mod tests {
             req: &CreateRefreshToken,
         ) -> Result<RefreshToken, BoxedError> {
             self.log.push(format!(
-                "insert_refresh:{}.{}.{}",
+                "insert_refresh:{}.{}.{}.{}",
                 req.user_id,
                 req.authority_id,
-                req.expires_at.timestamp()
+                req.expires_at.timestamp(),
+                req.totp_validated
             ));
 
             Ok(RefreshToken {
                 id: NEW_TOKEN_ID,
                 user_id: req.user_id,
                 authority_id: req.authority_id,
+                totp_validated: req.totp_validated,
                 expires_at: req.expires_at,
                 created_at: Utc::now(),
                 updated_at: Utc::now(),
@@ -715,79 +700,6 @@ mod tests {
         {
             tokio::time::sleep(Duration::from_millis(1_100)).await;
         }
-    }
-
-    /// One-shot devserver answering every request with `response_body`,
-    /// capturing each request body. Stands in for the customer webhook.
-    fn spawn_webhook(response_body: &'static str) -> (Url, Arc<Mutex<Vec<String>>>) {
-        let listener = TcpListener::bind("127.0.0.1:0").expect("bind webhook");
-        let addr = listener
-            .local_addr()
-            .expect("addr");
-        let bodies: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![]));
-        let thread_bodies = bodies.clone();
-
-        std::thread::spawn(move || {
-            for stream in listener.incoming().flatten() {
-                let mut writer = stream
-                    .try_clone()
-                    .expect("clone stream");
-                let mut reader = BufReader::new(stream);
-                let mut content_length = 0usize;
-
-                loop {
-                    let mut line = String::new();
-                    if reader
-                        .read_line(&mut line)
-                        .unwrap_or(0)
-                        == 0
-                        || line.trim().is_empty()
-                    {
-                        break;
-                    }
-                    if line
-                        .to_ascii_lowercase()
-                        .starts_with("content-length:")
-                    {
-                        content_length = line[15..]
-                            .trim()
-                            .parse()
-                            .unwrap_or(0);
-                    }
-                }
-
-                let mut body = vec![0u8; content_length];
-                if reader
-                    .read_exact(&mut body)
-                    .is_err()
-                {
-                    break;
-                }
-                thread_bodies
-                    .lock()
-                    .expect("bodies")
-                    .push(String::from_utf8_lossy(&body).to_string());
-
-                let header = format!(
-                    "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: \
-                     {}\r\nconnection: close\r\n\r\n",
-                    response_body.len()
-                );
-                if writer
-                    .write_all(header.as_bytes())
-                    .and_then(|_| writer.write_all(response_body.as_bytes()))
-                    .is_err()
-                {
-                    break;
-                }
-                let _ = writer.flush();
-            }
-        });
-
-        (
-            Url::parse(&format!("http://{addr}/send")).expect("webhook url"),
-            bodies,
-        )
     }
 
     #[tokio::test]

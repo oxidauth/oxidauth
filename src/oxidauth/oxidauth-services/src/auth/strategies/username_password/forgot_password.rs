@@ -171,6 +171,7 @@ mod tests {
                 id: Uuid::new_v4(),
                 user_id: req.user_id,
                 authority_id: Uuid::new_v4(),
+                totp_validated: true,
                 expires_at: Utc::now(),
                 created_at: Utc::now(),
                 updated_at: Utc::now(),

@@ -5,7 +5,7 @@ use base64::prelude::{BASE64_STANDARD, Engine};
 use chrono::DateTime;
 use oxidauth_kernel::{
     auth::{authenticate::AuthenticateResponse, tree::PermissionSearch},
-    authorities::{NbfOffset, find_authority_by_id::FindAuthorityById},
+    authorities::{NbfOffset, TotpSettings, find_authority_by_id::FindAuthorityById},
     error::BoxedError,
     jwt::{DurationDirection, Jwt, epoch_from_now, epoch_from_time},
     private_keys::find_most_recent_private_key::FindMostRecentPrivateKey,
@@ -30,6 +30,7 @@ use oxidauth_repository::{
     user_authorities::select_user_authority_by_user_id_and_authority_id::SelectUserAuthorityByUserIdAndAuthorityIdQuery,
     users::select_user_by_id_query::SelectUserByIdQuery,
 };
+use crate::bootstrap::TOTP_VALIDATE_PERMISSION;
 
 pub struct ExchangeRefreshTokenUseCase<T, I, U, A, P, K, D, UU>
 where
@@ -110,6 +111,7 @@ where
         let RefreshToken {
             user_id,
             authority_id,
+            totp_validated,
             expires_at,
             ..
         } = self
@@ -165,11 +167,29 @@ where
             .select_authority_by_id(&FindAuthorityById { authority_id })
             .await?;
 
-        let permissions = self
-            .permission_tree
-            .permission_tree(&PermissionSearch::User(user_id))
-            .await?
-            .permissions;
+        // A refresh token is this session's only way to a JWT once the previous one
+        // expires, so on a TOTP authority the flag is what decides the shape of the
+        // answer below: `false` means the emailed code was never presented, and the
+        // caller keeps receiving the same limited JWT the first leg of the login
+        // carried, for the same short window, until `POST /totp/validate` rotates
+        // this row for a validated one. Signing the permission tree here instead
+        // made the phase-1 token of a TOTP login a complete bypass — refresh it and
+        // the whole tree is yours without ever opening the mail.
+        let (entitlements, jwt_ttl, token_ttl) = match (totp_validated, &authority.settings.totp) {
+            (false, TotpSettings::Enabled { totp_ttl, .. }) => (
+                vec![TOTP_VALIDATE_PERMISSION.to_owned()],
+                *totp_ttl,
+                *totp_ttl,
+            ),
+            _ => (
+                self.permission_tree
+                    .permission_tree(&PermissionSearch::User(user_id))
+                    .await?
+                    .permissions,
+                authority.settings.jwt_ttl,
+                authority.settings.refresh_token_ttl,
+            ),
+        };
 
         let private_key = self
             .private_keys
@@ -181,13 +201,8 @@ where
         let mut jwt_builder = Jwt::builder()
             .with_subject(user_id)
             .with_issuer("oxidauth".to_owned())
-            .with_expires_in(authority.settings.jwt_ttl)
-            .with_entitlements(
-                authority
-                    .settings
-                    .entitlements_encoding,
-                &permissions,
-            );
+            .with_expires_in(jwt_ttl)
+            .with_entitlements(authority.settings.entitlements_encoding, &entitlements);
 
         if let NbfOffset::Enabled(value) = authority
             .settings
@@ -202,13 +217,8 @@ where
             .encode(&private_key)
             .map_err(|err| format!("unable to encode jwt: {:?}", err))?;
 
-        let refresh_token_exp_at = epoch_from_now(
-            DurationDirection::Add,
-            authority
-                .settings
-                .refresh_token_ttl,
-        )
-        .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
+        let refresh_token_exp_at = epoch_from_now(DurationDirection::Add, token_ttl)
+            .map_err(|err| format!("unable to calculate refresh_token_exp_at: {:?}", err))?;
 
         let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
             .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
@@ -218,6 +228,7 @@ where
             .insert_refresh_token(&CreateRefreshToken {
                 user_id,
                 authority_id: authority.id,
+                totp_validated,
                 expires_at: refresh_token_exp_at,
             })
             .await?;
@@ -269,6 +280,7 @@ mod tests {
     const JWT_TTL_SECS: u64 = 900;
     const REFRESH_TTL_SECS: u64 = 86_400;
     const NBF_OFFSET_SECS: u64 = 30;
+    const TOTP_TTL_SECS: u64 = 180;
 
     static KEYS: LazyLock<(String, Vec<u8>)> = LazyLock::new(|| {
         let pair = KeyPair::new().expect("keypair");
@@ -315,6 +327,8 @@ mod tests {
 
     struct MockSelectToken {
         expired: bool,
+        /// the flag stored on the token being exchanged
+        totp_validated: bool,
         fail: bool,
         log: CallLog,
     }
@@ -342,6 +356,7 @@ mod tests {
                 id: req.refresh_token_id,
                 user_id: USER_ID,
                 authority_id: TOKEN_AUTHORITY_ID,
+                totp_validated: self.totp_validated,
                 expires_at: Utc::now() + chrono::Duration::try_seconds(offset).expect("valid"),
                 created_at: Utc::now(),
                 updated_at: Utc::now(),
@@ -368,16 +383,18 @@ mod tests {
             }
 
             self.log.push(format!(
-                "insert:{}.{}.{}",
+                "insert:{}.{}.{}.{}",
                 req.user_id,
                 req.authority_id,
-                req.expires_at.timestamp()
+                req.expires_at.timestamp(),
+                req.totp_validated
             ));
 
             Ok(RefreshToken {
                 id: NEW_TOKEN_ID,
                 user_id: req.user_id,
                 authority_id: req.authority_id,
+                totp_validated: req.totp_validated,
                 expires_at: req.expires_at,
                 created_at: Utc::now(),
                 updated_at: Utc::now(),
@@ -414,7 +431,7 @@ mod tests {
                     created_at: Utc::now(),
                     updated_at: Utc::now(),
                 },
-                authority: authority(UA_AUTHORITY_ID, false),
+                authority: authority(UA_AUTHORITY_ID, false, false),
             })
         }
     }
@@ -422,6 +439,7 @@ mod tests {
     struct MockSelectAuthority {
         fail: bool,
         nbf: bool,
+        totp: bool,
         log: CallLog,
     }
 
@@ -438,7 +456,7 @@ mod tests {
                 return Err("simulated authority failure".into());
             }
 
-            Ok(authority(req.authority_id, self.nbf))
+            Ok(authority(req.authority_id, self.nbf, self.totp))
         }
     }
 
@@ -528,6 +546,7 @@ mod tests {
                 id: req.refresh_token_id,
                 user_id: USER_ID,
                 authority_id: TOKEN_AUTHORITY_ID,
+                totp_validated: true,
                 expires_at: Utc::now(),
                 created_at: Utc::now(),
                 updated_at: Utc::now(),
@@ -558,7 +577,7 @@ mod tests {
         }
     }
 
-    fn authority(id: Uuid, nbf_enabled: bool) -> Authority {
+    fn authority(id: Uuid, nbf_enabled: bool, totp_enabled: bool) -> Authority {
         Authority {
             id,
             name: "rotating-authority".to_owned(),
@@ -573,7 +592,16 @@ mod tests {
                     NbfOffset::Disabled
                 },
                 refresh_token_ttl: Duration::from_secs(REFRESH_TTL_SECS),
-                totp: TotpSettings::Disabled,
+                totp: if totp_enabled {
+                    TotpSettings::Enabled {
+                        totp_ttl: Duration::from_secs(TOTP_TTL_SECS),
+                        webhook: url::Url::parse("https://customer.test/totp")
+                            .expect("webhook url"),
+                        webhook_key: "webhook-key".to_owned(),
+                    }
+                } else {
+                    TotpSettings::Disabled
+                },
                 entitlements_encoding: EntitlementsEncoding::Txt,
             },
             params: JsonValue::new(json!({})),
@@ -620,6 +648,16 @@ mod tests {
         user: false,
     };
 
+    /// The two second-factor knobs a refresh can arrive with: whether the stored
+    /// token's code was ever presented, and whether the authority asks for one.
+    /// `totp_validated` defaults to `false` because that flag only carries meaning
+    /// on a TOTP authority; every other authority signs the full tree either way.
+    #[derive(Clone, Copy, Default)]
+    struct Session {
+        totp_validated: bool,
+        totp_enabled: bool,
+    }
+
     fn use_case_with_key(
         log: &CallLog,
         expired: bool,
@@ -627,19 +665,31 @@ mod tests {
         private_key: Vec<u8>,
         nbf: bool,
         user_status: UserStatus,
-    ) -> ExchangeRefreshTokenUseCase<
-        MockSelectToken,
-        MockInsertToken,
-        MockSelectUserAuthority,
-        MockSelectAuthority,
-        MockPermissionTree,
-        MockPrivateKeys,
-        MockDeleteToken,
-        MockUserById,
-    > {
+    ) -> impl ExchangeRefreshTokenServiceTrait {
+        use_case_with_session(
+            log,
+            Session::default(),
+            expired,
+            fail,
+            private_key,
+            nbf,
+            user_status,
+        )
+    }
+
+    fn use_case_with_session(
+        log: &CallLog,
+        session: Session,
+        expired: bool,
+        fail: Fail,
+        private_key: Vec<u8>,
+        nbf: bool,
+        user_status: UserStatus,
+    ) -> impl ExchangeRefreshTokenServiceTrait {
         ExchangeRefreshTokenUseCase::new(
             MockSelectToken {
                 expired,
+                totp_validated: session.totp_validated,
                 fail: fail.select,
                 log: log.clone(),
             },
@@ -654,6 +704,7 @@ mod tests {
             MockSelectAuthority {
                 fail: fail.authority,
                 nbf,
+                totp: session.totp_enabled,
                 log: log.clone(),
             },
             MockPermissionTree {
@@ -1027,6 +1078,130 @@ mod tests {
             log.taken("private_key"),
             1,
             "the key was fetched exactly once before the abort"
+        );
+    }
+
+    /// The phase-1 refresh token of a TOTP login is the only thing standing between
+    /// a stolen password and a real session: it is handed out by the very
+    /// authenticate call that emailed the code. Signing the permission tree for it
+    /// here — which is all this path used to do — let the caller refresh its way
+    /// past the second factor without ever opening the mail.
+    #[tokio::test]
+    async fn pending_totp_token_refreshes_to_the_limited_jwt_without_reading_the_tree() {
+        let log = CallLog::default();
+        let case = use_case_with_session(
+            &log,
+            Session {
+                totp_validated: false,
+                totp_enabled: true,
+            },
+            false,
+            NO_FAIL,
+            KEYS.0.clone().into_bytes(),
+            false,
+            UserStatus::Enabled,
+        );
+
+        let res = case
+            .exchange_refresh_token(&req())
+            .await
+            .expect("a session still owed a code may keep refreshing");
+
+        let claims = Jwt::decode(&res.jwt, &KEYS.1).expect("the jwt must decode");
+        assert_eq!(
+            claims
+                .entitlements
+                .expect("entitlements")
+                .as_vec()
+                .expect("txt decodes"),
+            vec![TOTP_VALIDATE_PERMISSION.to_owned()],
+            "an unvalidated session may do nothing but present a code"
+        );
+        let iat = claims
+            .iat
+            .expect("iat is set");
+        assert_eq!(
+            claims.exp - iat,
+            TOTP_TTL_SECS as usize,
+            "the limited jwt dies with its code rather than living the jwt_ttl"
+        );
+        assert_eq!(
+            log.taken("permission_tree"),
+            0,
+            "the tree is not consulted at all, so it cannot leak into the jwt"
+        );
+
+        let insert = insert_capture(&log);
+        let parts: Vec<_> = insert.split('.').collect();
+        assert_eq!(
+            parts[3], "false",
+            "the replacement inherits the pending flag: rotating a half session must not \
+             complete it"
+        );
+        let exp_at: i64 = parts[2]
+            .parse()
+            .expect("epoch");
+        assert!(
+            (exp_at - (Utc::now().timestamp() + TOTP_TTL_SECS as i64)).abs() <= 2,
+            "the pending row expires with the code, not on the authority's refresh ttl"
+        );
+        assert_eq!(
+            log.taken(&format!("delete_token:{TOKEN_ID}")),
+            1,
+            "the old pending row is rotated out, so a captured code cannot be replayed on \
+             it after the swap"
+        );
+    }
+
+    /// The mirror case: once `POST /totp/validate` has rotated the row for a
+    /// validated one, a TOTP authority refreshes exactly like any other — the flag
+    /// gates the second factor, not the authority.
+    #[tokio::test]
+    async fn validated_token_on_a_totp_authority_is_signed_the_full_tree_again() {
+        let log = CallLog::default();
+        let case = use_case_with_session(
+            &log,
+            Session {
+                totp_validated: true,
+                totp_enabled: true,
+            },
+            false,
+            NO_FAIL,
+            KEYS.0.clone().into_bytes(),
+            false,
+            UserStatus::Enabled,
+        );
+
+        let res = case
+            .exchange_refresh_token(&req())
+            .await
+            .expect("a validated session rotates normally");
+
+        let claims = Jwt::decode(&res.jwt, &KEYS.1).expect("the jwt must decode");
+        assert_eq!(
+            claims
+                .entitlements
+                .expect("entitlements")
+                .as_vec()
+                .expect("txt decodes"),
+            vec!["oxidauth:**:**".to_owned(), "app:read:all".to_owned()],
+            "a completed second factor earns the tree on a TOTP authority"
+        );
+        let iat = claims
+            .iat
+            .expect("iat is set");
+        assert_eq!(claims.exp - iat, JWT_TTL_SECS as usize);
+        assert_eq!(log.taken("permission_tree"), 1);
+
+        let insert = insert_capture(&log);
+        let parts: Vec<_> = insert.split('.').collect();
+        assert_eq!(parts[3], "true", "validation survives the refresh rotation");
+        let exp_at: i64 = parts[2]
+            .parse()
+            .expect("epoch");
+        assert!(
+            (exp_at - (Utc::now().timestamp() + REFRESH_TTL_SECS as i64)).abs() <= 2,
+            "a validated row is back on the authority's refresh ttl"
         );
     }
 }

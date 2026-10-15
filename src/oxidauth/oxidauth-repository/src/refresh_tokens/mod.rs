@@ -11,6 +11,7 @@ pub struct RefreshTokenRow {
     pub id: Uuid,
     pub user_id: Uuid,
     pub authority_id: Uuid,
+    pub totp_validated: bool,
     pub expires_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

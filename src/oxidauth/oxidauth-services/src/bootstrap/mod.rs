@@ -12,6 +12,7 @@ use oxidauth_kernel::{
         NbfOffset,
         TotpSettings,
         create_authority::{CreateAuthority, CreateAuthorityService},
+        find_authority_by_client_key::{FindAuthorityByClientKey, FindAuthorityByClientKeyService},
         find_authority_by_strategy::{FindAuthorityByStrategy, FindAuthorityByStrategyService},
     },
     bootstrap::{BootstrapParams, BootstrapServiceTrait},
@@ -63,7 +64,7 @@ use oxidauth_kernel::{
 };
 use provider::Provider;
 use serde_json::json;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 use crate::{auth::strategies::username_password::AuthorityParams, random_string};
 
@@ -153,6 +154,9 @@ impl BootstrapServiceTrait for SudoUserBootstrapUseCase {
         }
 
         let authority = {
+            let authority_by_client_key = self
+                .provider
+                .fetch_unchecked();
             let authority_by_strategy = self
                 .provider
                 .fetch_unchecked();
@@ -160,7 +164,12 @@ impl BootstrapServiceTrait for SudoUserBootstrapUseCase {
                 .provider
                 .fetch_unchecked();
 
-            first_or_create_authority(authority_by_strategy, create_authority).await?
+            first_or_create_authority(
+                authority_by_client_key,
+                authority_by_strategy,
+                create_authority,
+            )
+            .await?
         };
 
         let user = {
@@ -239,7 +248,9 @@ async fn first_or_create_public_key(
 }
 
 pub const ADMIN_PERMISSION: &str = "oxidauth:**:**";
-pub const TOTP_VALIDATE_PERMISSION: &str = "oxidauth:totp_code:validate";
+// The marker itself lives in the kernel (see there for why); this is the seed step
+// that turns it into a row the tree can grant.
+pub use oxidauth_kernel::totp::TOTP_VALIDATE_PERMISSION;
 /// OXA-000005 Step 1: guards `POST /auth/username_password/forgot_password`
 /// (`oxidauth-api`'s forgot_password handler `PERMISSION`). Adding a new
 /// permission string always requires this seed step (or an equivalent
@@ -401,9 +412,65 @@ pub const DEFAULT_USERNAMEPASSWORD_NAME: &str = "oxidauth default username_passw
 
 #[tracing::instrument(skip_all)]
 async fn first_or_create_authority(
+    authority_by_client_key: &FindAuthorityByClientKeyService,
     authority_by_strategy: &FindAuthorityByStrategyService,
     create_authority: &CreateAuthorityService,
 ) -> Result<Authority, BoxedError> {
+    // The system authority is the one `OXIDAUTH_DEFAULT_CLIENT_KEY` names, and it
+    // is where `oxidauth:admin` lands — so it is asked for by key first. Resolving
+    // it by strategy was only ever safe while exactly one `username_password`
+    // authority existed: an app that seeds its own (the example stack seeds four,
+    // two of them `username_password`) turns a `LIMIT 1` into a lottery, and every
+    // login with the default key then dies on `authority not found by client_key`
+    // while the admin grant sits in someone else's authority (OXA-000022). The key
+    // is parsed once, because the create path below has to mint the same one.
+    let client_key = env::var(DEFAULT_CLIENT_KEY)
+        .ok()
+        .map(|key| key.parse())
+        .transpose()
+        .ok()
+        .flatten();
+
+    // A pinned key that fails to parse is still swallowed rather than fatal —
+    // OXA-000038, owner-deferred, and `unparseable_client_key_env_is_silently_dropped`
+    // pins it. It can no longer be *silent*, though: now that the strategy probe is
+    // a fallback instead of the only path, a typo in this variable quietly hands
+    // `oxidauth:admin` to whatever `username_password` authority is already there —
+    // the exact failure the key lookup above exists to prevent.
+    if client_key.is_none()
+        && let Ok(value) = env::var(DEFAULT_CLIENT_KEY)
+    {
+        warn!(message = "ignoring an unparseable default client key", value = %value);
+    }
+
+    if let Some(client_key) = client_key {
+        match authority_by_client_key
+            .find_authority_by_client_key(&FindAuthorityByClientKey { client_key })
+            .await
+        {
+            Ok(authority) => return Ok(authority),
+            // A miss is the expected state on the boot that creates the authority;
+            // anything else (a dead pool, a broken row) must not be mistaken for
+            // one, because the fall-through below would then CREATE a second
+            // authority carrying a key the database may already hold.
+            Err(err)
+                if err
+                    .downcast_ref::<Box<AuthorityNotFoundError>>()
+                    .is_some() =>
+            {
+                info!(message = "no authority carries the default client key yet", %client_key);
+            },
+            Err(err) => {
+                error!(message = "looking up the default client key failed", ?err);
+                return Err(err);
+            },
+        }
+    }
+
+    // No key pinned (or nothing carries it yet): the strategy fallback, which is
+    // deterministic — `select_authority_by_strategy.sql` orders — but still picks
+    // *an* authority rather than *this* one. Pin the key to own the authority you
+    // get.
     // TODO(dewey4iv): we should swap this for something
     // that can pull the authority by the name
     let authority = authority_by_strategy
@@ -420,13 +487,6 @@ async fn first_or_create_authority(
             match err.downcast_ref::<Box<AuthorityNotFoundError>>() {
                 Some(_) => {
                     info!("attempting to create authority");
-
-                    let client_key = env::var(DEFAULT_CLIENT_KEY)
-                        .ok()
-                        .map(|key| key.parse())
-                        .transpose()
-                        .ok()
-                        .flatten();
 
                     let authority_params_value =
                         AuthorityParams::new(random_string()).as_json_value()?;
@@ -584,6 +644,10 @@ mod tests {
             AuthorityStrategy,
             TotpSettings,
             create_authority::{CreateAuthority, CreateAuthorityServiceTrait},
+            find_authority_by_client_key::{
+                FindAuthorityByClientKey,
+                FindAuthorityByClientKeyServiceTrait,
+            },
             find_authority_by_strategy::{
                 FindAuthorityByStrategy,
                 FindAuthorityByStrategyServiceTrait,
@@ -655,6 +719,7 @@ mod tests {
     const ADMIN_USER_ID: Uuid = uuid::uuid!("6f1b2c3d-6666-4000-8000-000000000006");
     const CLIENT_KEY: Uuid = uuid::uuid!("6f1b2c3d-6666-4000-8000-000000000007");
     const ENV_CLIENT_KEY: Uuid = uuid::uuid!("6f1b2c3d-6666-4000-8000-000000000008");
+    const SYSTEM_AUTHORITY_ID: Uuid = uuid::uuid!("6f1b2c3d-6666-4000-8000-000000000009");
 
     /// Sets/removes multiple env vars under ONE acquisition of the
     /// non-reentrant `ENV_LOCK`; previous values are restored on drop.
@@ -733,6 +798,7 @@ mod tests {
         role: State,
         role_grant: State,
         authority: State,
+        authority_by_key: State,
         user: State,
         user_role: State,
         create_fails: bool,
@@ -745,6 +811,7 @@ mod tests {
         role: State::Hit,
         role_grant: State::Hit,
         authority: State::Hit,
+        authority_by_key: State::Hit,
         user: State::Hit,
         user_role: State::Hit,
         create_fails: false,
@@ -757,6 +824,7 @@ mod tests {
         role: State::Miss,
         role_grant: State::Miss,
         authority: State::Miss,
+        authority_by_key: State::Miss,
         user: State::Miss,
         user_role: State::Miss,
         create_fails: false,
@@ -1079,6 +1147,52 @@ mod tests {
         Err(AuthorityNotFoundError::strategy(*strategy))
     }
 
+    /// The row the client-key lookup answers with — deliberately a *different*
+    /// authority from `default_authority()`, which is what the strategy probe
+    /// answers with. Tell them apart or "the key wins" cannot be observed.
+    fn keyed_authority(client_key: Uuid) -> Authority {
+        Authority {
+            id: SYSTEM_AUTHORITY_ID,
+            client_key,
+            ..default_authority()
+        }
+    }
+
+    fn authority_missing_by_client_key(
+        client_key: Uuid,
+    ) -> Result<Authority, Box<AuthorityNotFoundError>> {
+        Err(AuthorityNotFoundError::client_key(client_key))
+    }
+
+    struct MockAuthorityByClientKeyService {
+        state: State,
+        log: Log,
+    }
+
+    #[async_trait]
+    impl FindAuthorityByClientKeyServiceTrait for MockAuthorityByClientKeyService {
+        async fn find_authority_by_client_key(
+            &self,
+            params: &FindAuthorityByClientKey,
+        ) -> Result<Authority, BoxedError> {
+            self.log.push(format!(
+                "find_authority_by_client_key:{}",
+                params.client_key
+            ));
+
+            match self.state {
+                State::Hit => Ok(keyed_authority(params.client_key)),
+                // boxed like the strategy mock above: bootstrap downcasts the
+                // `Box<AuthorityNotFoundError>` that `?` stored
+                State::Miss => {
+                    authority_missing_by_client_key(params.client_key)?;
+                    unreachable!("the helper always errors")
+                },
+                State::Fail => Err("simulated find_authority_by_client_key failure".into()),
+            }
+        }
+    }
+
     fn admin_user_missing() -> Result<User, Box<UserNotFoundError>> {
         Err(UserNotFoundError::username(
             &DEFAULT_ADMIN_USERNAME
@@ -1278,6 +1392,12 @@ mod tests {
             state: cfg.authority,
             log: log.clone(),
         }));
+        provider.store::<FindAuthorityByClientKeyService>(Arc::new(
+            MockAuthorityByClientKeyService {
+                state: cfg.authority_by_key,
+                log: log.clone(),
+            },
+        ));
         provider.store::<FindUserByUsernameService>(Arc::new(MockUserService {
             state: cfg.user,
             calls: AtomicUsize::new(0),
@@ -1386,6 +1506,46 @@ mod tests {
         );
     }
 
+    /// Two `username_password` authorities on one instance — an app that seeds its
+    /// own, like the example stack — used to hand bootstrap whichever row `LIMIT 1`
+    /// felt like, and `oxidauth:admin` landed there instead of in the authority
+    /// every client addresses by `OXIDAUTH_DEFAULT_CLIENT_KEY`. When both lookups
+    /// can answer, the key must win and the strategy probe must not run at all: a
+    /// probe that could return someone else's authority is the bug, not the tie.
+    #[tokio::test]
+    async fn the_pinned_client_key_outranks_a_preseeded_strategy_row() {
+        let client_key_env = ENV_CLIENT_KEY.to_string();
+        let _env = EnvBatch::apply(&[(DEFAULT_CLIENT_KEY, Some(client_key_env.as_str()))]);
+
+        let log = Log::default();
+        let case = SudoUserBootstrapUseCase::new(&provider(
+            Cfg {
+                // the sentinel must MISS or bootstrap returns before it reaches the
+                // authority step and there is nothing to observe
+                setting: State::Miss,
+                authority_by_key: State::Hit,
+                ..ALL_PRESENT
+            },
+            &log,
+        ));
+
+        case.bootstrap(&BootstrapParams)
+            .await
+            .expect("bootstrap completes against a present database");
+
+        let ops = log.ops();
+        assert!(
+            ops.contains(&format!("find_authority_by_client_key:{ENV_CLIENT_KEY}")),
+            "the pinned key is asked for first: {ops:?}"
+        );
+        assert!(
+            !ops.iter()
+                .any(|op| op.starts_with("find_authority_by_strategy")),
+            "once the key resolves, the probe that could answer with a pre-seeded \
+             authority must stay unused: {ops:?}"
+        );
+    }
+
     #[tokio::test]
     async fn empty_database_runs_every_creation_step_in_order_with_exact_params() {
         let client_key_env = ENV_CLIENT_KEY.to_string();
@@ -1426,6 +1586,7 @@ mod tests {
                 "create_role",
                 "list_role_permission_grants",
                 "create_role_permission_grant",
+                "find_authority_by_client_key",
                 "find_authority_by_strategy",
                 "create_authority",
                 "find_user_by_username",
@@ -1465,12 +1626,12 @@ mod tests {
             "the admin role is granted the whole-system permission by name"
         );
         assert_eq!(
-            ops[19],
+            ops[20],
             format!("create_user_role_grant:{ADMIN_USER_ID}.{ROLE_ID}"),
             "the registered admin receives the admin role"
         );
         assert_eq!(
-            ops[20],
+            ops[21],
             format!("save_setting:{BOOTSTRAP_SETTING_KEY}=true"),
             "the setting that gates every future boot is saved last"
         );

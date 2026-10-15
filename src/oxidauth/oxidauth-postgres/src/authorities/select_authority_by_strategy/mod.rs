@@ -35,7 +35,7 @@ mod tests {
         PgAuthorityRepository::new(Database::from_pool(pool.clone()))
     }
 
-    async fn seed_authority(pool: &PgPool, name: &str, strategy: AuthorityStrategy) {
+    async fn seed_authority(pool: &PgPool, name: &str, strategy: AuthorityStrategy) -> Authority {
         create_authority(
             pool,
             name,
@@ -45,15 +45,36 @@ mod tests {
             default_authority_settings(),
             json!({}),
         )
-        .await;
+        .await
     }
 
+    /// A strategy may name several rows — `strategy`'s UNIQUE constraint went away
+    /// in 20240523190325 — and bootstrap's fallback follows this query's answer
+    /// when it has no pinned client key to ask about, which is where `oxidauth:admin`
+    /// ends up. `ORDER BY created_at, id` is what turns that into the same row on
+    /// every boot and on every replica.
     #[sqlx::test(migrator = "crate::MIGRATOR")]
-    async fn it_should_return_exactly_one_of_multiple_matches(pool: PgPool) {
-        // the unique(strategy) constraint was dropped in migration
-        // 20240523190325 — several authorities may share a strategy
-        seed_authority(&pool, "oauth_one", AuthorityStrategy::Oauth2).await;
-        seed_authority(&pool, "oauth_two", AuthorityStrategy::Oauth2).await;
+    async fn multiple_matches_resolve_to_the_earliest_created(pool: PgPool) {
+        // seeded newest-first so physical/insertion order cannot pass for the rule
+        seed_authority(&pool, "oauth_newer", AuthorityStrategy::Oauth2).await;
+        seed_authority(&pool, "oauth_oldest", AuthorityStrategy::Oauth2).await;
+        seed_authority(&pool, "oauth_newest", AuthorityStrategy::Oauth2).await;
+
+        // `insert_authority.sql` stamps NOW(), and a #[sqlx::test] transaction pins
+        // that to one instant for every row — so the fixture ages them by hand,
+        // otherwise the id tie-break is on trial instead of the ordering.
+        for (name, age) in [
+            ("oauth_oldest", 300),
+            ("oauth_newer", 200),
+            ("oauth_newest", 100),
+        ] {
+            sqlx::query("UPDATE authorities SET created_at = NOW() - ($1 || ' seconds')::interval WHERE name = $2")
+                .bind(age.to_string())
+                .bind(name)
+                .execute(&pool)
+                .await
+                .expect("age the fixture row");
+        }
 
         let found = repo(&pool)
             .select_authority_by_strategy(&FindAuthorityByStrategy {
@@ -63,16 +84,58 @@ mod tests {
             .expect("query should succeed")
             .expect("an authority must be returned");
 
-        // BUG(pinned): the SQL is `LIMIT 1` without ORDER BY — with multiple matches
-        // exactly one arbitrary row is returned; the caller cannot tell that more
-        // exist.
-        assert!(
-            found.name == "oauth_one" || found.name == "oauth_two",
-            "unexpected authority returned: {}",
+        assert_eq!(
+            found.name, "oauth_oldest",
+            "the ordered query answers with the earliest row, got {}",
             found.name
         );
         assert_eq!(found.strategy.to_string(), "oauth2");
         assert_eq!(found.status.to_string(), "enabled");
+    }
+
+    /// The `, id` half of the ordering. Rows minted together share a `NOW()`, and
+    /// without a tiebreaker Postgres answers from whatever order the scan happens
+    /// to produce — the case the bootstrap bug actually lived in, since a seeded
+    /// install creates all of its authorities in one go. The expected row is the
+    /// smallest id, taken from the rows the repository returned, not from the query
+    /// under test.
+    #[sqlx::test(migrator = "crate::MIGRATOR")]
+    async fn a_created_at_tie_breaks_on_the_smallest_id(pool: PgPool) {
+        let seeded = [
+            seed_authority(&pool, "tied_one", AuthorityStrategy::Oauth2).await,
+            seed_authority(&pool, "tied_two", AuthorityStrategy::Oauth2).await,
+            seed_authority(&pool, "tied_three", AuthorityStrategy::Oauth2).await,
+        ];
+
+        sqlx::query("UPDATE authorities SET created_at = '2020-01-01T00:00:00Z'")
+            .execute(&pool)
+            .await
+            .expect("tie every fixture row");
+        let distinct_stamps: i64 =
+            sqlx::query_scalar("SELECT count(DISTINCT created_at) FROM authorities")
+                .fetch_one(&pool)
+                .await
+                .expect("count the distinct stamps");
+        assert_eq!(distinct_stamps, 1, "the fixture must actually be tied");
+
+        let expected = seeded
+            .iter()
+            .min_by_key(|authority| authority.id)
+            .expect("three seeded rows");
+
+        let found = repo(&pool)
+            .select_authority_by_strategy(&FindAuthorityByStrategy {
+                strategy: AuthorityStrategy::Oauth2,
+            })
+            .await
+            .expect("query should succeed")
+            .expect("an authority must be returned");
+
+        assert_eq!(
+            found.id, expected.id,
+            "a tie must resolve to the smallest id, not to scan order ({} returned)",
+            found.name
+        );
     }
 
     #[sqlx::test(migrator = "crate::MIGRATOR")]

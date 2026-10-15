@@ -17,6 +17,9 @@ pub mod user_permission_grants;
 pub mod user_role_grants;
 pub mod users;
 
+#[cfg(test)]
+mod test_support;
+
 use rand::{Rng, distributions, thread_rng};
 
 fn random_string() -> String {

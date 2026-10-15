@@ -22,5 +22,8 @@ pub type CreateRefreshTokenService = Arc<dyn CreateRefreshTokenServiceTrait>;
 pub struct CreateRefreshToken {
     pub user_id: Uuid,
     pub authority_id: Uuid,
+    /// See [`RefreshToken::totp_validated`]. Explicit, not defaulted: every mint
+    /// site must decide whether the session it is opening still owes a code.
+    pub totp_validated: bool,
     pub expires_at: DateTime<Utc>,
 }

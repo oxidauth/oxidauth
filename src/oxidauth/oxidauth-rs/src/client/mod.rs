@@ -12,6 +12,7 @@ use oxidauth_http::{
     auth::authenticate::{AuthenticateReq, AuthenticateRes},
     public_keys::list_all_public_keys::ListAllPublicKeysRes,
     refresh_tokens::exchange::{ExchangeRefreshTokenReq, ExchangeRefreshTokenRes},
+    totp::validate::{ValidateTOTPReq, ValidateTOTPRes},
 };
 use oxidauth_kernel::{JsonValue, jwt::Jwt, public_keys::PublicKey};
 use reqwest::{Method, header::HeaderMap};
@@ -161,7 +162,7 @@ fn verify_session_jwt(token: &str, _public_keys: &[PublicKey]) -> Result<Jwt, Cl
 }
 
 /// Builds the bearer-preloaded reqwest client every authenticated state
-/// transition installs (`auth`, `refresh`, `recover_jwt`).
+/// transition installs — see [`install_session`].
 fn bearer_client(raw_jwt: &str) -> Result<reqwest::Client, ClientError> {
     let bearer = format!("Bearer {}", raw_jwt)
         .parse()
@@ -184,6 +185,34 @@ fn bearer_client(raw_jwt: &str) -> Result<reqwest::Client, ClientError> {
                 Some(Box::new(err)),
             )
         })
+}
+
+/// The single place an authenticated pair is installed: verify the fresh jwt
+/// against the current keyset, keep the raw token for the bearer header, hand the
+/// state a client that already carries it, and mirror both into browser storage
+/// (wasm) so a reload lands in the same session — whole or half — the caller just
+/// earned.
+///
+/// `verify` differs by provenance, not by taste: a token handed over at a
+/// credential exchange (login, code validation) is verified strictly, one the
+/// client recovers or rotates leniently.
+fn install_session(
+    state: &mut State,
+    verify: fn(&str, &[PublicKey]) -> Result<Jwt, ClientError>,
+    raw_jwt: String,
+    refresh_token: Uuid,
+    public_keys: &[PublicKey],
+) -> Result<(), ClientError> {
+    let jwt = verify(&raw_jwt, public_keys)?;
+
+    state.raw_jwt = Some(raw_jwt.clone());
+    state.jwt = Some(jwt);
+    state.refresh_token = Some(refresh_token);
+
+    state.client = bearer_client(&raw_jwt)?;
+    session::persist(state);
+
+    Ok(())
 }
 
 /// The `GET /public_keys` behind every verification path, deliberately
@@ -283,16 +312,13 @@ async fn refresh_session(config: &Config, state: &RwLock<State>) -> Result<bool,
             success: true,
             payload: Some(payload),
             ..
-        } => {
-            let jwt = verify_session_jwt(&payload.jwt, &public_keys)?;
-
-            state.raw_jwt = Some(payload.jwt.clone());
-            state.jwt = Some(jwt);
-            state.refresh_token = Some(payload.refresh_token);
-
-            state.client = bearer_client(&payload.jwt)?;
-            session::persist(&state);
-        },
+        } => install_session(
+            &mut state,
+            verify_session_jwt,
+            payload.jwt,
+            payload.refresh_token,
+            &public_keys,
+        )?,
         _ => return Err(ClientError::new(ClientErrorKind::Other(""), None)),
     }
 
@@ -591,16 +617,13 @@ impl Client {
                 success: true,
                 payload: Some(payload),
                 ..
-            } => {
-                let jwt = verify_auth_jwt(&payload.jwt, &public_keys)?;
-
-                state.raw_jwt = Some(payload.jwt.clone());
-                state.jwt = Some(jwt);
-                state.refresh_token = Some(payload.refresh_token);
-
-                state.client = bearer_client(&payload.jwt)?;
-                session::persist(&state);
-            },
+            } => install_session(
+                &mut state,
+                verify_auth_jwt,
+                payload.jwt,
+                payload.refresh_token,
+                &public_keys,
+            )?,
             Response {
                 success: false,
                 errors: Some(errors),
@@ -651,6 +674,122 @@ impl Client {
 
         let mut state = self.state.write().await;
         session::clear(&mut state);
+    }
+
+    /// Adopt a refresh token this client did not mint: the oauth2 callback hands
+    /// the browser a *token*, not a session, because the code exchange runs
+    /// server-side behind a `state` value a wasm tab cannot be trusted with.
+    ///
+    /// Nothing is taken on faith. Whatever session was in hand is dropped (the two
+    /// never mix), the adopted token is spent immediately — `exchange` mints a
+    /// fresh jwt from it and rotates the pair — and that jwt is verified like every
+    /// other token before it becomes the session. On a TOTP authority the answer
+    /// the exchange returns is the limited token, so the caller's next question is
+    /// [`Jwt::is_totp_pending`], and the code it then presents completes the login
+    /// the callback started.
+    #[tracing::instrument(skip(self))]
+    pub async fn adopt_refresh_token(&self, refresh_token: Uuid) -> Result<bool, ClientError> {
+        {
+            let mut state = self.state.write().await;
+
+            session::clear(&mut state);
+            state.refresh_token = Some(refresh_token);
+            session::persist(&state);
+        }
+
+        let refreshed = refresh_session(&self.config, &self.state).await?;
+
+        self.arm_auto_refresh();
+
+        Ok(refreshed)
+    }
+
+    /// Present the emailed code for a session that is still owed one, and adopt the
+    /// pair the server mints in exchange for it.
+    ///
+    /// The call rides the pending jwt itself — on a TOTP authority that is the only
+    /// token the login leg hands out, and it is entitled to nothing else — which is
+    /// why this cannot go through [`Client::request`]: that path refreshes whatever
+    /// it finds, and the code belongs to the session it was emailed for.
+    ///
+    /// A rejected or mistyped code leaves the pending pair exactly as it was, so the
+    /// caller can retry inside the code's own window; a session whose code window has
+    /// passed is renewed by logging in again, which emails a fresh one.
+    #[tracing::instrument(skip(self))]
+    pub async fn validate_totp(&self, code: &str) -> Result<bool, ClientError> {
+        let mut state = self.state.write().await;
+
+        let public_keys = self.get_public_keys().await?;
+
+        let json = ValidateTOTPReq {
+            code: code.to_owned(),
+            client_key: self.config.client_key,
+        };
+
+        info!(message = "validating totp code", client_key = ?self.config.client_key);
+
+        let response: Response<ValidateTOTPRes> = state
+            .client
+            .post(format!("{}/totp/validate", self.config.base_url))
+            .json(&json)
+            .send()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to validate totp code"),
+                    Some(Box::new(err)),
+                )
+            })?
+            .json()
+            .await
+            .map_err(|err| {
+                ClientError::new(
+                    ClientErrorKind::Other("unable to deserialize totp validation"),
+                    Some(Box::new(err)),
+                )
+            })?;
+
+        match response {
+            Response {
+                success: true,
+                payload: Some(payload),
+                ..
+            } => install_session(
+                &mut state,
+                verify_auth_jwt,
+                payload.jwt,
+                payload.refresh_token,
+                &public_keys,
+            )?,
+            Response {
+                success: false,
+                errors: Some(errors),
+                ..
+            } => {
+                let errors = serde_json::to_string(&errors).map_err(|err| {
+                    ClientError::new(
+                        ClientErrorKind::Other("unable to serialize totp validation errors"),
+                        Some(Box::new(err)),
+                    )
+                })?;
+
+                return Err(ClientError::new(
+                    ClientErrorKind::Other("failed totp validation response"),
+                    Some(errors.into()),
+                ));
+            },
+            _ => {
+                return Err(ClientError::new(
+                    ClientErrorKind::Other("failed totp validation response"),
+                    None,
+                ));
+            },
+        }
+
+        // The pending pair is gone: reschedule against the full token's `exp`.
+        self.arm_auto_refresh();
+
+        Ok(true)
     }
 
     /// Restores a raw JWT loaded from storage (wasm page reload) by verifying
@@ -1077,7 +1216,9 @@ mod tests {
 
     use oxidauth_kernel::{
         base64::{BASE64_STANDARD, Engine as _},
+        jwt::EntitlementsEncoding,
         rsa::KeyPair,
+        totp::TOTP_VALIDATE_PERMISSION,
     };
     use wiremock::{
         Mock,
@@ -2658,5 +2799,147 @@ mod tests {
             "no hammering of the api on a dead session"
         );
         drop(client);
+    }
+
+    // ------------------------------------------------------ TOTP validation
+
+    const VALIDATE_PATH: &str = "/api/v1/totp/validate";
+
+    /// A token with the claims a TOTP authority actually mints: `mint()` above
+    /// carries none, and the pending/real distinction lives entirely in there.
+    fn mint_entitled(private_pem: &[u8], entitlements: &[&str]) -> String {
+        let entitlements: Vec<String> = entitlements
+            .iter()
+            .map(|entitlement| entitlement.to_string())
+            .collect();
+
+        Jwt::builder()
+            .with_subject(Uuid::new_v4())
+            .with_expires_at((Utc::now().timestamp() + 3600) as usize)
+            .with_entitlements(EntitlementsEncoding::Txt, &entitlements)
+            .build()
+            .unwrap()
+            .encode(private_pem)
+            .unwrap()
+    }
+
+    async fn validate_ok(server: &MockServer, jwt: &str, refresh_token: Uuid) {
+        mount_json(
+            server,
+            "POST",
+            VALIDATE_PATH,
+            200,
+            envelope(auth_payload(jwt, refresh_token)),
+        )
+        .await;
+    }
+
+    /// The half session a TOTP login hands out becomes a session through
+    /// `validate_totp`, and it becomes one *by spending the pending token*: the
+    /// code is asked of the jwt the login leg issued (never a refreshed or
+    /// unrelated one), the pair the answer carries replaces it everywhere the
+    /// client keeps state, and the next call rides the new token.
+    #[tokio::test]
+    async fn validating_a_code_replaces_the_half_session_with_a_session() {
+        let server = MockServer::start().await;
+        let kp = keypair();
+
+        let pending = mint_entitled(&kp.private, &[TOTP_VALIDATE_PERMISSION]);
+        authenticate_ok(&server, &kp, &pending, Uuid::new_v4()).await;
+
+        let (client, client_key) = client_for(&server).await;
+        client
+            .authenticate("malreynolds", "password123")
+            .await
+            .unwrap();
+        assert!(
+            client.get_jwt_decoded().await.unwrap().is_totp_pending(),
+            "the fixture must start in a half session"
+        );
+
+        let full = mint_entitled(&kp.private, &["app:read:all"]);
+        validate_ok(&server, &full, Uuid::new_v4()).await;
+
+        assert!(client.validate_totp("123456").await.unwrap());
+
+        let calls = received(&server, "POST", VALIDATE_PATH).await;
+        assert_eq!(calls.len(), 1);
+        assert_eq!(
+            body(&calls[0]),
+            json!({ "code": "123456", "client_key": client_key.to_string() }),
+        );
+        assert_eq!(
+            calls[0]
+                .headers
+                .get("authorization")
+                .and_then(|value| value.to_str().ok()),
+            Some(format!("Bearer {pending}").as_str()),
+            "the code belongs to the session it was emailed for"
+        );
+        assert!(
+            received(&server, "POST", REFRESH_PATH)
+                .await
+                .is_empty(),
+            "answering the code must not launder the pending token into another one"
+        );
+
+        assert_eq!(client.get_jwt().await.unwrap(), full);
+        assert!(
+            !client.get_jwt_decoded().await.unwrap().is_totp_pending(),
+            "the session the code bought is not still owed a code"
+        );
+    }
+
+    /// A refused code must not cost the caller what it has: the pending pair stays
+    /// installed — so the caller can ask again inside the code's window — and the
+    /// code that is eventually accepted still completes the same login.
+    #[tokio::test]
+    async fn a_refused_code_leaves_the_half_session_retryable() {
+        let server = MockServer::start().await;
+        let kp = keypair();
+
+        let pending = mint_entitled(&kp.private, &[TOTP_VALIDATE_PERMISSION]);
+        authenticate_ok(&server, &kp, &pending, Uuid::new_v4()).await;
+
+        let (client, client_key) = client_for(&server).await;
+        client
+            .authenticate("malreynolds", "password123")
+            .await
+            .unwrap();
+
+        Mock::given(method("POST"))
+            .and(path(VALIDATE_PATH))
+            .and(body_json(json!(
+                { "code": "000000", "client_key": client_key.to_string() }
+            )))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!(
+                { "success": false, "errors": ["could not validate TOTP"] }
+            )))
+            .mount(&server)
+            .await;
+
+        let err = client
+            .validate_totp("000000")
+            .await
+            .expect_err("a refused code is an error, not a session");
+        assert!(matches!(
+            err.kind,
+            ClientErrorKind::Other("failed totp validation response")
+        ));
+        assert_eq!(
+            client.get_jwt().await.unwrap(),
+            pending,
+            "a refused code must not cost the caller its session"
+        );
+        assert!(client.get_jwt_decoded().await.unwrap().is_totp_pending());
+
+        let full = mint_entitled(&kp.private, &["app:read:all"]);
+        validate_ok(&server, &full, Uuid::new_v4()).await;
+
+        assert!(
+            client.validate_totp("123456").await.unwrap(),
+            "a refusal must not dead-end the half session"
+        );
+        assert_eq!(client.get_jwt().await.unwrap(), full);
     }
 }

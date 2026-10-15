@@ -39,6 +39,7 @@ pub async fn init(provider: &mut Provider) -> Result<(), BoxedError> {
             PgAuthRepository::new(db.clone()),
             PgPrivateKeyRepository::new(db.clone()),
             PgRefreshTokenRepository::new(db.clone()),
+            PgTotpSecretRepository::new(db.clone()),
         ));
         provider.store::<RegisterService>(register_service.clone());
 
@@ -619,6 +620,16 @@ pub async fn init(provider: &mut Provider) -> Result<(), BoxedError> {
             PgAuthorityRepository::new(db.clone()),
         ));
         provider.store::<FindAuthorityByStrategyService>(find_authority_by_strategy_service);
+    }
+
+    {
+        use oxidauth_kernel::authorities::find_authority_by_client_key::FindAuthorityByClientKeyService;
+        use oxidauth_services::authorities::find_authority_by_client_key::FindAuthorityByClientKeyUseCase;
+
+        let find_authority_by_client_key_service = Arc::new(FindAuthorityByClientKeyUseCase::new(
+            PgAuthorityRepository::new(db.clone()),
+        ));
+        provider.store::<FindAuthorityByClientKeyService>(find_authority_by_client_key_service);
     }
 
     // region public keys (cont.)

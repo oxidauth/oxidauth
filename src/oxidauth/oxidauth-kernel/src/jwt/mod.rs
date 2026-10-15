@@ -24,7 +24,12 @@ use serde::de::{self, Visitor};
 
 #[cfg(feature = "jwt")]
 use crate::public_keys::PublicKey;
-use crate::{base64, base64::BASE64_STANDARD, dev_prelude::*};
+use crate::{
+    base64,
+    base64::BASE64_STANDARD,
+    dev_prelude::*,
+    totp::TOTP_VALIDATE_PERMISSION,
+};
 
 pub const DEFAULT_EXP_IN_SEC: u64 = 60 * 300;
 
@@ -92,6 +97,23 @@ impl Jwt {
             .map_err(JwtError::new)?;
 
         serde_json::from_slice(&json).map_err(JwtError::new)
+    }
+
+    /// True when the only thing this token's holder is entitled to do is present a
+    /// TOTP code: a session a TOTP authority opened, but has not yet accepted a
+    /// second factor for.
+    ///
+    /// The answer is read out of the claims rather than kept beside the token, so
+    /// it survives everything a client-side "which step am I on" flag would not: a
+    /// page reload that rehydrates a raw jwt, a second tab, or the rotation of the
+    /// half session itself.
+    pub fn is_totp_pending(&self) -> bool {
+        self.entitlements
+            .as_ref()
+            .and_then(Entitlements::as_vec)
+            .is_some_and(|entitlements| {
+                entitlements.len() == 1 && entitlements[0] == TOTP_VALIDATE_PERMISSION
+            })
     }
 
     #[cfg(feature = "jwt")]
@@ -1041,5 +1063,52 @@ mod tests {
             let claims = Jwt::decode_unverified(&format!("h.{padded}.s")).unwrap();
             assert_eq!(claims.exp, 1700000000);
         }
+    }
+
+    /// `is_totp_pending` is how a holder tells a half session from a real one, and
+    /// the authority's encoding choice must not decide the answer: a gz-encoded
+    /// single marker is the same half session as a txt one, while one entitlement
+    /// more — or none at all — is not a half session.
+    #[test]
+    fn is_totp_pending_reads_the_marker_under_both_entitlement_encodings() {
+        let pending_txt = Jwt::builder()
+            .with_entitlements(
+                EntitlementsEncoding::Txt,
+                &[TOTP_VALIDATE_PERMISSION.to_string()],
+            )
+            .build()
+            .unwrap();
+        assert!(pending_txt.is_totp_pending());
+
+        let pending_gz = Jwt::builder()
+            .with_entitlements(
+                EntitlementsEncoding::Gz,
+                &[TOTP_VALIDATE_PERMISSION.to_string()],
+            )
+            .build()
+            .unwrap();
+        assert!(
+            matches!(pending_gz.entitlements, Some(Entitlements::Gz(_))),
+            "the fixture must actually exercise the compressed form"
+        );
+        assert!(
+            pending_gz.is_totp_pending(),
+            "the gz encoding must not hide a half session"
+        );
+
+        let validated = Jwt::builder()
+            .with_entitlements(
+                EntitlementsEncoding::Txt,
+                &[TOTP_VALIDATE_PERMISSION.to_string(), "app:read:all".to_string()],
+            )
+            .build()
+            .unwrap();
+        assert!(
+            !validated.is_totp_pending(),
+            "a token that can do more than present a code is a session"
+        );
+
+        let no_entitlements = Jwt::builder().build().unwrap();
+        assert!(!no_entitlements.is_totp_pending());
     }
 }

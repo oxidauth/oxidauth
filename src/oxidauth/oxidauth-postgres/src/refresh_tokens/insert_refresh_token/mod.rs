@@ -14,6 +14,7 @@ impl InsertRefreshTokenQuery for PgRefreshTokenRepository {
                 .bind(None::<Uuid>)
                 .bind(params.user_id)
                 .bind(params.authority_id)
+                .bind(params.totp_validated)
                 .bind(params.expires_at)
                 .fetch_one(&self.db.write_pool())
                 .await?;
@@ -48,6 +49,7 @@ mod tests {
             .insert_refresh_token(&CreateRefreshToken {
                 user_id: user,
                 authority_id: authority,
+                totp_validated: true,
                 expires_at,
             })
             .await
@@ -85,6 +87,7 @@ mod tests {
             .insert_refresh_token(&CreateRefreshToken {
                 user_id: Uuid::new_v4(),
                 authority_id: authority,
+                totp_validated: true,
                 expires_at,
             })
             .await
@@ -96,6 +99,7 @@ mod tests {
             .insert_refresh_token(&CreateRefreshToken {
                 user_id: user,
                 authority_id: Uuid::new_v4(),
+                totp_validated: true,
                 expires_at,
             })
             .await
@@ -110,5 +114,60 @@ mod tests {
             .await
             .expect("count should run");
         assert_eq!(count, 0);
+    }
+
+    /// The phase-1 token of a TOTP login is the only thing standing between an
+    /// attacker holding it and a full-entitlement JWT, so the flag must survive
+    /// both the INSERT and the read the exchange path performs — and rows written
+    /// without the column (migrations, fixtures) must arrive validated, since the
+    /// default is what keeps every pre-existing session alive across the deploy.
+    #[sqlx::test(migrator = "crate::MIGRATOR")]
+    async fn it_should_round_trip_the_totp_validated_flag(pool: PgPool) {
+        use oxidauth_repository::refresh_tokens::select_refresh_token_by_id::{
+            FindRefreshTokenById, SelectRefreshTokenByIdQuery as _,
+        };
+
+        use crate::test_fixtures::seed_refresh_token;
+
+        let user = seed_user(&pool).await;
+        let authority = seed_authority(&pool, "refresh-totp-flag").await;
+        let expires_at = DateTime::from_timestamp(1_800_000_000, 0).expect("valid ts");
+
+        let pending = repo(&pool)
+            .insert_refresh_token(&CreateRefreshToken {
+                user_id: user,
+                authority_id: authority,
+                totp_validated: false,
+                expires_at,
+            })
+            .await
+            .expect("pending insert");
+        assert!(
+            !pending.totp_validated,
+            "a phase-1 token must come back unvalidated from its own INSERT"
+        );
+
+        let found = repo(&pool)
+            .select_refresh_token_by_id(&FindRefreshTokenById {
+                refresh_token_id: pending.id,
+            })
+            .await
+            .expect("select pending");
+        assert!(
+            !found.totp_validated,
+            "the exchange path reads the flag through select: an unvalidated token must stay unvalidated"
+        );
+
+        let legacy = seed_refresh_token(&pool, user, authority, expires_at).await;
+        let found = repo(&pool)
+            .select_refresh_token_by_id(&FindRefreshTokenById {
+                refresh_token_id: legacy,
+            })
+            .await
+            .expect("select legacy");
+        assert!(
+            found.totp_validated,
+            "a row written without the column must default to validated, or the deploy strands live sessions"
+        );
     }
 }

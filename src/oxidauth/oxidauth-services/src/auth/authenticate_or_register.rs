@@ -16,6 +16,7 @@ use oxidauth_kernel::{
 };
 use oxidauth_repository::{
     auth::tree::PermissionTreeQuery,
+    totp_secrets::insert_totp_secret::InsertTotpSecretQuery,
     authorities::select_authority_by_client_key::SelectAuthorityByClientKeyQuery,
     private_keys::select_most_recent_private_key::SelectMostRecentPrivateKeyQuery,
     refresh_tokens::insert_refresh_token::InsertRefreshTokenQuery,
@@ -39,30 +40,32 @@ use crate::auth::strategies::oauth2::{
     registrar::Oauth2RegisterParams,
 };
 
-pub struct AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+pub struct AuthenticateOrRegisterUseCase<A, M, P, R, S, TS, T, UI, U, UU>
 where
     A: InsertUserAuthorityQuery,
     M: SelectMostRecentPrivateKeyQuery,
     P: PermissionTreeQuery,
     R: InsertRefreshTokenQuery,
     S: SelectTOTPSecrețByUserIdQuery,
+    TS: InsertTotpSecretQuery,
     T: SelectAuthorityByClientKeyQuery,
     UI: InsertUserQuery,
     U: SelectUserAuthorityByAuthorityIdAndUserIdentifierQuery,
     UU: SelectUserByIdQuery,
 {
     authenticate: Arc<AuthenticateUseCase<T, U, P, M, R, S, UU>>,
-    register: Arc<RegisterUseCase<T, UI, A, P, M, R>>,
+    register: Arc<RegisterUseCase<T, UI, A, P, M, R, TS>>,
     authorities: T,
 }
 
-impl<A, M, P, R, S, T, UI, U, UU> AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+impl<A, M, P, R, S, TS, T, UI, U, UU> AuthenticateOrRegisterUseCase<A, M, P, R, S, TS, T, UI, U, UU>
 where
     A: InsertUserAuthorityQuery,
     M: SelectMostRecentPrivateKeyQuery,
     P: PermissionTreeQuery,
     R: InsertRefreshTokenQuery,
     S: SelectTOTPSecrețByUserIdQuery,
+    TS: InsertTotpSecretQuery,
     T: SelectAuthorityByClientKeyQuery,
     UI: InsertUserQuery,
     U: SelectUserAuthorityByAuthorityIdAndUserIdentifierQuery,
@@ -70,7 +73,7 @@ where
 {
     pub fn new(
         authenticate: Arc<AuthenticateUseCase<T, U, P, M, R, S, UU>>,
-        register: Arc<RegisterUseCase<T, UI, A, P, M, R>>,
+        register: Arc<RegisterUseCase<T, UI, A, P, M, R, TS>>,
         authorities: T,
     ) -> Self {
         Self {
@@ -106,14 +109,15 @@ where
 }
 
 #[async_trait]
-impl<A, M, P, R, S, T, UI, U, UU> AuthenticateOrRegisterServiceTrait
-    for AuthenticateOrRegisterUseCase<A, M, P, R, S, T, UI, U, UU>
+impl<A, M, P, R, S, TS, T, UI, U, UU> AuthenticateOrRegisterServiceTrait
+    for AuthenticateOrRegisterUseCase<A, M, P, R, S, TS, T, UI, U, UU>
 where
     A: InsertUserAuthorityQuery,
     M: SelectMostRecentPrivateKeyQuery,
     P: PermissionTreeQuery,
     R: InsertRefreshTokenQuery,
     S: SelectTOTPSecrețByUserIdQuery,
+    TS: InsertTotpSecretQuery,
     T: SelectAuthorityByClientKeyQuery,
     UI: InsertUserQuery,
     U: SelectUserAuthorityByAuthorityIdAndUserIdentifierQuery,
@@ -653,12 +657,37 @@ mod tests {
                 id: NEW_TOKEN_ID,
                 user_id: req.user_id,
                 authority_id: req.authority_id,
+                totp_validated: req.totp_validated,
                 expires_at: req.expires_at,
                 created_at: Utc::now(),
                 updated_at: Utc::now(),
             })
         }
     }
+
+    /// totp is disabled in these fixtures too: the register leg must never reach
+    /// this mock, so answering with an error turns a future fixture that turns the
+    /// second factor on into a loud failure instead of a silently-enrolled secret.
+    struct MockInsertTotpSecret {
+        log: CallLog,
+    }
+
+    #[async_trait]
+    impl InsertTotpSecretQuery for MockInsertTotpSecret {
+        async fn insert_totp_secret(
+            &self,
+            req: &oxidauth_repository::totp_secrets::insert_totp_secret::InsertTotpSecretParams,
+        ) -> Result<
+            oxidauth_kernel::totp_secrets::create_totp_secret::CreateTotpSecretResponse,
+            BoxedError,
+        > {
+            self.log
+                .push(format!("insert_totp_secret:{}", req.user_id));
+
+            Err("the register leg of these fixtures must never enrol a secret".into())
+        }
+    }
+
 
     // totp is disabled in these fixtures: consulting the secret repo fails loud
     struct MockTotpSecret {
@@ -793,6 +822,7 @@ mod tests {
         MockPermissionTree,
         MockPrivateKeys,
         MockRefreshTokens,
+        MockInsertTotpSecret,
     >;
     type AOR = AuthenticateOrRegisterUseCase<
         MockInsertUserAuthority,
@@ -800,6 +830,7 @@ mod tests {
         MockPermissionTree,
         MockRefreshTokens,
         MockTotpSecret,
+        MockInsertTotpSecret,
         MockAuthority,
         MockInsertUser,
         MockUserAuthority,
@@ -832,6 +863,7 @@ mod tests {
             MockPermissionTree { log: log.clone() },
             MockPrivateKeys { log: log.clone() },
             MockRefreshTokens { log: log.clone() },
+            MockInsertTotpSecret { log: log.clone() },
         ));
 
         AuthenticateOrRegisterUseCase::new(

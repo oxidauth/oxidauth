@@ -1,0 +1,5 @@
+- [####](https://www.pivotaltracker.com/story/show/####) - Bootstrap resolves the system authority by client key
+    - `FindAuthorityByClientKeyService` (kernel trait + use case + api wiring) answers "which authority does this client key open?"; it is a service only, no HTTP route, because a client app already holds its own key
+    - bootstrap asks by `OXIDAUTH_DEFAULT_CLIENT_KEY` first and only falls back to the strategy probe when no key is pinned, so an app that pre-seeds its own `username_password` authority can no longer win the `LIMIT 1` and steal `oxidauth:admin` (OXA-000022)
+    - `select_authority_by_strategy.sql` orders by `created_at, id`, which makes the fallback deterministic instead of whatever page order Postgres returns
+    - the default client key is parsed once and shared by the lookup and the create path, which mints the same key

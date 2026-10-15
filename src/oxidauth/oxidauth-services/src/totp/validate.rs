@@ -196,11 +196,18 @@ where
         let refresh_token_exp_at = DateTime::from_timestamp(refresh_token_exp_at as i64, 0)
             .ok_or("unable to convert refresh_token_exp_at to DateTime")?;
 
+        // This is the leg that completes a half session: the row written here is
+        // what `exchange_refresh_token` reads to decide the jwt is entitled to the
+        // whole tree, so the flag has to be cleared exactly here, by the code that
+        // just verified. The caller's previous (pending) token is left in place —
+        // it dies with the code window, and while it lives it can only mint the
+        // code-validate entitlement.
         let refresh_token = self
             .refresh_tokens
             .insert_refresh_token(&CreateRefreshToken {
                 user_id,
                 authority_id: authority.id,
+                totp_validated: true,
                 expires_at: refresh_token_exp_at,
             })
             .await?;
@@ -417,6 +424,7 @@ mod tests {
                 id: NEW_TOKEN_ID,
                 user_id: req.user_id,
                 authority_id: req.authority_id,
+                totp_validated: req.totp_validated,
                 expires_at: req.expires_at,
                 created_at: Utc::now(),
                 updated_at: Utc::now(),
